@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "elfa-docs": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "cd /home/bio/Work/elfa/elfa-docs && claude mcp serve ."
+      ],
+      "env": {}
+    },
+    "backend-oracle": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "cd /home/bio/Work/elfa/oracle && claude mcp serve ."
+      ],
+      "env": {}
+    }
+  }
+}
