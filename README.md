@@ -1,7 +1,9 @@
 # Elfa AI SDK
 
 [![npm version](https://img.shields.io/npm/v/@elfa-ai/sdk.svg)](https://www.npmjs.com/package/@elfa-ai/sdk)
+[![CI](https://github.com/elfa-ai/elfa-sdk-js/workflows/CI/badge.svg)](https://github.com/elfa-ai/elfa-sdk-js/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![codecov](https://codecov.io/gh/elfa-ai/elfa-sdk-js/branch/main/graph/badge.svg)](https://codecov.io/gh/elfa-ai/elfa-sdk-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Official TypeScript/JavaScript SDK for the Elfa API v2 - Social intelligence for crypto.

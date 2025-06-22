@@ -1,0 +1,43 @@
+name: Validate Workflows
+
+on:
+  push:
+    paths:
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - '.github/workflows/**'
+
+jobs:
+  validate:
+    name: Validate GitHub Workflows
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Validate workflow syntax
+        run: |
+          # Install act for workflow validation (optional)
+          curl -s https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash
+          
+          # Validate all workflow files
+          for workflow in .github/workflows/*.yml; do
+            echo "Validating $workflow..."
+            # Basic YAML syntax validation
+            python3 -c "import yaml; yaml.safe_load(open('$workflow'))" || {
+              echo "❌ Invalid YAML in $workflow"
+              exit 1
+            }
+            echo "✅ $workflow is valid YAML"
+          done
+          
+      - name: Check for required secrets
+        run: |
+          echo "📋 Required secrets for workflows:"
+          echo "- NPM_TOKEN (for publishing to npm)"
+          echo "- ELFA_API_KEY (for integration tests)"
+          echo "- TWITTER_API_KEY (for integration tests)"
+          echo ""
+          echo "ℹ️  Set these in repository Settings > Secrets and variables > Actions"
