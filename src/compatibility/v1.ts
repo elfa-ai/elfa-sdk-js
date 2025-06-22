@@ -4,7 +4,8 @@ import type {
   TrendingTokensResponse,
   TopMentionsResponse,
   GetMentionsByKeywordsResponse,
-  AccountSmartStatsResponse
+  AccountSmartStatsResponse,
+  MentionResponse
 } from '../types/elfa.js';
 
 export interface V1CompatibilityOptions extends SDKOptions {
@@ -81,18 +82,21 @@ export class V1CompatibilityLayer {
   public async getMentionsByKeywords(params: LegacySearchParams): Promise<GetMentionsByKeywordsResponse> {
     const fetchRawTweets = params.fetchRawTweets ?? this.enableV1Behavior;
     
-    const cleanParams: any = {
+    // Separate base params from request options
+    const baseParams: any = {
       keywords: params.keywords,
       from: params.from,
-      to: params.to,
-      fetchRawTweets
+      to: params.to
     };
     
-    if (params.limit !== undefined) cleanParams.limit = params.limit;
-    if (params.searchType !== undefined) cleanParams.searchType = params.searchType;
-    if (params.cursor !== undefined) cleanParams.cursor = params.cursor;
+    if (params.limit !== undefined) baseParams.limit = params.limit;
+    if (params.searchType !== undefined) baseParams.searchType = params.searchType;
+    if (params.cursor !== undefined) baseParams.cursor = params.cursor;
     
-    return this.sdk.getMentionsByKeywords(cleanParams);
+    // Add request options as separate properties
+    baseParams.fetchRawTweets = fetchRawTweets;
+    
+    return this.sdk.getMentionsByKeywords(baseParams);
   }
 
   public async getTrendingTokens(params: LegacyTrendingParams = {}): Promise<TrendingTokensResponse> {
@@ -112,10 +116,31 @@ export class V1CompatibilityLayer {
     });
   }
 
+  public async getMentionsWithSmartEngagement(params: LegacyMentionsParams = {}): Promise<MentionResponse> {
+    const fetchRawTweets = params.fetchRawTweets ?? this.enableV1Behavior;
+    
+    // Map V1 params to V2 params
+    const v2Params = {
+      limit: params.limit,
+      offset: params.offset
+    };
+    
+    // Get mentions from V2 API
+    const response = await this.sdk.getMentions(v2Params);
+    
+    // If fetchRawTweets is enabled, enhance with Twitter data
+    if (fetchRawTweets && this.sdk.isTwitterEnabled() && response.data?.length > 0) {
+      // This would need Twitter API enhancement - for now return as-is
+      // TODO: Implement Twitter enhancement for raw tweet content
+      return response;
+    }
+    
+    return response;
+  }
+
   public async getMentions(_params: LegacyMentionsParams = {}): Promise<any> {
-    // Note: This method maps to the general keyword mentions endpoint
-    // Users should migrate to more specific methods
-    throw new Error('getMentions is deprecated. Please use getKeywordMentions() or getTopMentions() instead.');
+    // Note: This method is deprecated - redirect to new method
+    throw new Error('getMentions is deprecated. Please use getMentionsWithSmartEngagement(), getKeywordMentions() or getTopMentions() instead.');
   }
 
   public async ping(): Promise<{ success: boolean; message: string }> {

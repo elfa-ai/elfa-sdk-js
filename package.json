@@ -1,5 +1,5 @@
 {
-  "name": "elfa-ai",
+  "name": "@elfa-ai/sdk",
   "version": "2.0.0",
   "description": "Official TypeScript SDK for Elfa API v2 - Social intelligence for crypto",
   "main": "dist/index.js",

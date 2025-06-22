@@ -14,8 +14,8 @@ export class TwitterClient {
 
   constructor(options: TwitterClientOptions) {
     this.options = {
-      apiVersion: 'v2',
-      baseUrl: 'https://api.twitter.com',
+      apiVersion: '2',
+      baseUrl: 'https://api.x.com',
       timeout: 30000,
       retries: 3,
       ...options
@@ -46,6 +46,7 @@ export class TwitterClient {
     if (request.tweetIds.length > 100) {
       throw new TwitterApiError('Cannot fetch more than 100 tweets at once');
     }
+
 
     const params = new URLSearchParams();
     params.append('ids', request.tweetIds.join(','));

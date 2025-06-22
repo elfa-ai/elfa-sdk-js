@@ -76,35 +76,10 @@ export async function newSDKExample(): Promise<void> {
   }
 }
 
-export async function migrationStepsExample(): Promise<void> {
-  console.log('\n=== Migration Steps ===\n');
-
-  console.log('Step 1: Replace import statements');
-  console.log('OLD: import ElfaClient from "elfa-v1-sdk"');
-  console.log('NEW: import { ElfaSDK } from "elfa-ai"');
-
-  console.log('\nStep 2: Update initialization');
-  console.log('OLD: const client = new ElfaClient({ apiKey: "key" })');
-  console.log('NEW: const client = new ElfaSDK({ elfaApiKey: "key", twitterApiKey: "token" })');
-
-  console.log('\nStep 3: Use V1 compatibility layer for smooth transition');
-  console.log('import { V1CompatibilityLayer } from "elfa-ai/compatibility"');
-  console.log('const client = new V1CompatibilityLayer({ elfaApiKey: "key", twitterApiKey: "token" })');
-
-  console.log('\nStep 4: Gradually migrate to new methods');
-  console.log('OLD: client.getTopMentions("bitcoin", "24h")');
-  console.log('NEW: client.getTopMentions({ ticker: "bitcoin", timeWindow: "24h", fetchRawTweets: true })');
-
-  console.log('\nStep 5: Leverage new features');
-  console.log('- Set fetchRawTweets: false for V2-formatted processed data');
-  console.log('- Use fetchRawTweets: true for V1-like enhanced content');
-  console.log('- Access new endpoints like getTrendingCAsTwitter()');
-  console.log('- Use proper TypeScript types for better development experience');
-}
+// For detailed migration steps, see docs/MIGRATION.md
 
 if (require.main === module) {
   v1MigrationExample()
     .then(() => newSDKExample())
-    .then(() => migrationStepsExample())
     .catch(console.error);
 }
