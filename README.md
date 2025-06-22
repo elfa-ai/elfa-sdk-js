@@ -1,7 +1,9 @@
 # Elfa AI SDK
 
-[![npm version](https://img.shields.io/npm/v/elfa-ai.svg)](https://www.npmjs.com/package/elfa-ai)
+[![npm version](https://img.shields.io/npm/v/@elfa-ai/sdk.svg)](https://www.npmjs.com/package/@elfa-ai/sdk)
+[![CI](https://github.com/elfa-ai/elfa-sdk-js/workflows/CI/badge.svg)](https://github.com/elfa-ai/elfa-sdk-js/actions/workflows/ci.yml)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+[![codecov](https://codecov.io/gh/elfa-ai/elfa-sdk-js/branch/main/graph/badge.svg)](https://codecov.io/gh/elfa-ai/elfa-sdk-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Official TypeScript/JavaScript SDK for the Elfa API v2 - Social intelligence for crypto.
@@ -19,7 +21,7 @@ Official TypeScript/JavaScript SDK for the Elfa API v2 - Social intelligence for
 ## Installation
 
 ```bash
-npm install elfa-ai
+npm install @elfa-ai/sdk
 ```
 
 ## Quick Start
@@ -27,7 +29,7 @@ npm install elfa-ai
 ### Basic V2 Usage
 
 ```typescript
-import { ElfaSDK } from 'elfa-ai';
+import { ElfaSDK } from '@elfa-ai/sdk';
 
 const elfa = new ElfaSDK({
   elfaApiKey: 'your-elfa-api-key',
@@ -49,7 +51,7 @@ console.log(mentions.data);
 ### Enhanced Usage with Raw Content
 
 ```typescript
-import { ElfaSDK } from 'elfa-ai';
+import { ElfaSDK } from '@elfa-ai/sdk';
 
 const elfa = new ElfaSDK({
   elfaApiKey: 'your-elfa-api-key',
@@ -89,12 +91,16 @@ const processed = await elfa.getKeywordMentions({
 });
 ```
 
-## V1 Migration
+## Migration Guide
+
+For users migrating from direct API calls or V1, see our comprehensive [Migration Guide](./docs/MIGRATION.md).
+
+### Quick V1 Migration
 
 For users migrating from V1, use the compatibility layer:
 
 ```typescript
-import { V1CompatibilityLayer } from 'elfa-ai/compatibility';
+import { V1CompatibilityLayer } from '@elfa-ai/sdk/compatibility';
 
 // Drop-in replacement for V1 with enhanced functionality
 const client = new V1CompatibilityLayer({
@@ -200,7 +206,7 @@ import {
   ValidationError,
   RateLimitError,
   AuthenticationError 
-} from 'elfa-ai';
+} from '@elfa-ai/sdk';
 
 try {
   const mentions = await elfa.getKeywordMentions({
@@ -224,7 +230,7 @@ Check out the [examples directory](./src/examples/) for comprehensive usage exam
 
 - [Basic Usage](./src/examples/basic.ts) - V2 API with processed data
 - [Enhanced Usage](./src/examples/enhanced.ts) - Twitter API enhancement
-- [Migration Guide](./src/examples/migration.ts) - V1 to SDK migration
+- [Migration Examples](./src/examples/migration.ts) - Working migration code examples
 
 ## Contributing
 

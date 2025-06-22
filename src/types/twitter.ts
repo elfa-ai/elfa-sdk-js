@@ -140,7 +140,7 @@ export interface TwitterApiErrorResponse {
 
 export interface TwitterClientOptions {
   bearerToken: string;
-  apiVersion?: 'v2';
+  apiVersion?: '2';
   baseUrl?: string;
   timeout?: number;
   retries?: number;

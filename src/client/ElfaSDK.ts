@@ -24,7 +24,9 @@ import type {
   TopMentionsParams,
   TopMentionsResponse,
   MentionsByKeywordsParams,
-  GetMentionsByKeywordsResponse
+  GetMentionsByKeywordsResponse,
+  MentionResponse,
+  MentionsParams
 } from '../types/elfa.js';
 
 export class ElfaSDK {
@@ -199,6 +201,21 @@ export class ElfaSDK {
       data: enhancementResult.data,
       enhancement_info: enhancementResult.enhancement_info
     } as EnhancedResponse<GetMentionsByKeywordsResponse>;
+  }
+
+  public async getMentions(
+    params: MentionsParams & RequestOptions = {}
+  ): Promise<EnhancedResponse<MentionResponse>> {
+    const response = await this.elfaClient.getMentions(params);
+    
+    const shouldEnhance = this.shouldEnhanceResponse(params);
+    if (!shouldEnhance) {
+      return response as EnhancedResponse<MentionResponse>;
+    }
+
+    // Note: MentionResponse uses Mention[] format which may need custom enhancement
+    // For now, return without enhancement - TODO: implement custom enhancer
+    return response as EnhancedResponse<MentionResponse>;
   }
 
   private shouldEnhanceResponse(params: RequestOptions): boolean {

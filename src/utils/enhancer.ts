@@ -222,6 +222,7 @@ export class ResponseEnhancer {
       throw new Error('Twitter client not available');
     }
 
+
     const batchSize = options.batchSize || this.batchSize;
     const allTweets: TwitterTweet[] = [];
     const allUsers: TwitterUser[] = [];
