@@ -268,6 +268,8 @@ export interface GetTokenMentionsResponse {
 
 export interface TrendingTokensParams {
   timeWindow?: string;
+  from?: number;
+  to?: number;
   page?: number;
   pageSize?: number;
   minMentions?: number;
@@ -276,7 +278,7 @@ export interface TrendingTokensParams {
 export interface KeywordMentionsParams {
   keywords?: string;
   accountName?: string;
-  period?: string;
+  timeWindow?: string;
   from?: number;
   to?: number;
   limit?: number;
@@ -294,6 +296,8 @@ export interface TokenNewsParams {
 
 export interface TrendingCAsParams {
   timeWindow?: string;
+  from?: number;
+  to?: number;
   page?: number;
   pageSize?: number;
   minMentions?: number;
@@ -306,6 +310,8 @@ export interface AccountSmartStatsParams {
 export interface TopMentionsParams {
   ticker: string;
   timeWindow?: string;
+  from?: number;
+  to?: number;
   page?: number;
   pageSize?: number;
   includeAccountDetails?: boolean;
@@ -323,4 +329,37 @@ export interface MentionsByKeywordsParams {
 export interface MentionsParams {
   limit?: number;
   offset?: number;
+}
+
+export interface TopMentionByTickerV2 {
+  source_ref_id: string;
+  original_url: string;
+  like_count: number;
+  repost_count: number;
+  view_count: number;
+  quote_count: number;
+  reply_count: number;
+  bookmark_count: number;
+  mentioned_at: string;
+  account_name: string;
+  account_tags: string[];
+}
+
+export interface TopMentionsByTickerV2Response {
+  success: boolean;
+  data: TopMentionByTickerV2[];
+  metadata: {
+    pageSize: number;
+    page: number;
+    total: number;
+  };
+}
+
+export interface TopMentionsByTickerV2Params {
+  ticker: string;
+  timeWindow?: string;
+  from?: number;
+  to?: number;
+  page?: number;
+  pageSize?: number;
 }

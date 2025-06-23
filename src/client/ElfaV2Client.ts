@@ -18,7 +18,9 @@ import type {
   TopMentionsResponse,
   TopMentionsParams,
   GetMentionsByKeywordsResponse,
-  MentionsByKeywordsParams
+  MentionsByKeywordsParams,
+  TopMentionsByTickerV2Response,
+  TopMentionsByTickerV2Params
 } from '../types/elfa.js';
 
 export interface ElfaV2ClientOptions {
@@ -63,6 +65,25 @@ export class ElfaV2Client {
     this.httpClient.setAuthHeader(this.options.apiKey);
   }
 
+  private validateTimeWindowOrFromTo(params: { timeWindow?: string; from?: number; to?: number }): void {
+    const hasTimeWindow = !!params.timeWindow;
+    const hasFrom = params.from !== undefined;
+    const hasTo = params.to !== undefined;
+
+    // If only one of from/to is provided (but not both), that's invalid
+    if ((hasFrom && !hasTo) || (!hasFrom && hasTo)) {
+      throw new ValidationError('When using from/to parameters, both from and to must be provided');
+    }
+
+    // Must provide either timeWindow OR both from and to
+    if (!hasTimeWindow && (!hasFrom || !hasTo)) {
+      throw new ValidationError('You must provide either timeWindow or both from and to parameters');
+    }
+
+    // If both from and to are provided, they take priority (this is allowed per API spec)
+    // This is valid and no further validation needed
+  }
+
   public async ping(): Promise<PingResponse> {
     return this.httpClient.get<PingResponse>('/v2/ping');
   }
@@ -72,10 +93,18 @@ export class ElfaV2Client {
   }
 
   public async getTrendingTokens(params: TrendingTokensParams = {}): Promise<TrendingTokensResponse> {
+    this.validateTimeWindowOrFromTo(params);
+    
     const searchParams = new URLSearchParams();
 
     if (params.timeWindow) {
       searchParams.append('timeWindow', params.timeWindow);
+    }
+    if (params.from !== undefined) {
+      searchParams.append('from', params.from.toString());
+    }
+    if (params.to !== undefined) {
+      searchParams.append('to', params.to.toString());
     }
     if (params.page !== undefined) {
       searchParams.append('page', params.page.toString());
@@ -115,8 +144,8 @@ export class ElfaV2Client {
     if (params.accountName) {
       searchParams.append('accountName', params.accountName);
     }
-    if (params.period) {
-      searchParams.append('period', params.period);
+    if (params.timeWindow) {
+      searchParams.append('timeWindow', params.timeWindow);
     }
     if (params.from !== undefined) {
       searchParams.append('from', params.from.toString());
@@ -161,10 +190,18 @@ export class ElfaV2Client {
   }
 
   public async getTrendingCAsTwitter(params: TrendingCAsParams = {}): Promise<TrendingCAsV2Response> {
+    this.validateTimeWindowOrFromTo(params);
+    
     const searchParams = new URLSearchParams();
 
     if (params.timeWindow) {
       searchParams.append('timeWindow', params.timeWindow);
+    }
+    if (params.from !== undefined) {
+      searchParams.append('from', params.from.toString());
+    }
+    if (params.to !== undefined) {
+      searchParams.append('to', params.to.toString());
     }
     if (params.page !== undefined) {
       searchParams.append('page', params.page.toString());
@@ -181,10 +218,18 @@ export class ElfaV2Client {
   }
 
   public async getTrendingCAsTelegram(params: TrendingCAsParams = {}): Promise<TrendingCAsV2Response> {
+    this.validateTimeWindowOrFromTo(params);
+    
     const searchParams = new URLSearchParams();
 
     if (params.timeWindow) {
       searchParams.append('timeWindow', params.timeWindow);
+    }
+    if (params.from !== undefined) {
+      searchParams.append('from', params.from.toString());
+    }
+    if (params.to !== undefined) {
+      searchParams.append('to', params.to.toString());
     }
     if (params.page !== undefined) {
       searchParams.append('page', params.page.toString());
@@ -225,6 +270,12 @@ export class ElfaV2Client {
     if (params.timeWindow) {
       searchParams.append('timeWindow', params.timeWindow);
     }
+    if (params.from !== undefined) {
+      searchParams.append('from', params.from.toString());
+    }
+    if (params.to !== undefined) {
+      searchParams.append('to', params.to.toString());
+    }
     if (params.page !== undefined) {
       searchParams.append('page', params.page.toString());
     }
@@ -236,6 +287,35 @@ export class ElfaV2Client {
     }
 
     return this.httpClient.get<TopMentionsResponse>(`/v1/top-mentions?${searchParams}`);
+  }
+
+  public async getTopMentionsByTicker(params: TopMentionsByTickerV2Params): Promise<TopMentionsByTickerV2Response> {
+    if (!params.ticker) {
+      throw new ValidationError('Ticker is required');
+    }
+
+    this.validateTimeWindowOrFromTo(params);
+
+    const searchParams = new URLSearchParams();
+    searchParams.append('ticker', params.ticker);
+
+    if (params.timeWindow) {
+      searchParams.append('timeWindow', params.timeWindow);
+    }
+    if (params.from !== undefined) {
+      searchParams.append('from', params.from.toString());
+    }
+    if (params.to !== undefined) {
+      searchParams.append('to', params.to.toString());
+    }
+    if (params.page !== undefined) {
+      searchParams.append('page', params.page.toString());
+    }
+    if (params.pageSize !== undefined) {
+      searchParams.append('pageSize', params.pageSize.toString());
+    }
+
+    return this.httpClient.get<TopMentionsByTickerV2Response>(`/v2/data/top-mentions-by-ticker?${searchParams}`);
   }
 
   public async getMentionsByKeywords(params: MentionsByKeywordsParams): Promise<GetMentionsByKeywordsResponse> {

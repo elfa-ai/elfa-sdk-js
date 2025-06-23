@@ -53,7 +53,7 @@ export async function newSDKExample(): Promise<void> {
 
     const mentions = await sdk.getKeywordMentions({
       keywords: 'bitcoin',
-      period: '1h',
+      timeWindow: '1h',
       fetchRawTweets: true
     });
     console.log(`SDK mentions: ${mentions.data.length}`);

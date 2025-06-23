@@ -93,20 +93,7 @@ describe('ElfaV2Client', () => {
   });
 
   describe('getTrendingTokens', () => {
-    it('should call trending tokens endpoint with default params', async () => {
-      const mockResponse = {
-        success: true,
-        data: { total: 0, page: 1, pageSize: 20, data: [] }
-      };
-      mockHttpClient.get.mockResolvedValue(mockResponse);
-
-      const result = await client.getTrendingTokens();
-
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/v2/aggregations/trending-tokens');
-      expect(result).toEqual(mockResponse);
-    });
-
-    it('should call trending tokens endpoint with params', async () => {
+    it('should call trending tokens endpoint with timeWindow', async () => {
       const mockResponse = {
         success: true,
         data: { total: 5, page: 1, pageSize: 10, data: [] }
@@ -122,6 +109,74 @@ describe('ElfaV2Client', () => {
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         '/v2/aggregations/trending-tokens?timeWindow=24h&page=1&pageSize=10&minMentions=5'
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should call trending tokens endpoint with from/to parameters', async () => {
+      const mockResponse = {
+        success: true,
+        data: { total: 5, page: 1, pageSize: 10, data: [] }
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTrendingTokens({
+        from: 1640995200,
+        to: 1641081600,
+        page: 1,
+        pageSize: 10,
+        minMentions: 5
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        '/v2/aggregations/trending-tokens?from=1640995200&to=1641081600&page=1&pageSize=10&minMentions=5'
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should throw ValidationError when no time parameters are provided', async () => {
+      await expect(client.getTrendingTokens({
+        page: 1,
+        pageSize: 10
+      })).rejects.toThrow(
+        new ValidationError('You must provide either timeWindow or both from and to parameters')
+      );
+    });
+
+    it('should throw ValidationError when only from is provided', async () => {
+      await expect(client.getTrendingTokens({
+        from: 1640995200,
+        page: 1
+      })).rejects.toThrow(
+        new ValidationError('When using from/to parameters, both from and to must be provided')
+      );
+    });
+
+    it('should throw ValidationError when only to is provided', async () => {
+      await expect(client.getTrendingTokens({
+        to: 1641081600,
+        page: 1
+      })).rejects.toThrow(
+        new ValidationError('When using from/to parameters, both from and to must be provided')
+      );
+    });
+
+    it('should allow both timeWindow and from/to (from/to takes priority)', async () => {
+      const mockResponse = {
+        success: true,
+        data: { total: 5, page: 1, pageSize: 10, data: [] }
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTrendingTokens({
+        timeWindow: '24h',
+        from: 1640995200,
+        to: 1641081600,
+        page: 1
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        '/v2/aggregations/trending-tokens?timeWindow=24h&from=1640995200&to=1641081600&page=1'
       );
       expect(result).toEqual(mockResponse);
     });
@@ -163,12 +218,12 @@ describe('ElfaV2Client', () => {
 
       const result = await client.getKeywordMentions({
         keywords: 'bitcoin',
-        period: '24h',
+        timeWindow: '24h',
         limit: 10
       });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/v2/data/keyword-mentions?keywords=bitcoin&period=24h&limit=10'
+        '/v2/data/keyword-mentions?keywords=bitcoin&timeWindow=24h&limit=10'
       );
       expect(result).toEqual(mockResponse);
     });
@@ -340,6 +395,74 @@ describe('ElfaV2Client', () => {
         keywords: 'bitcoin'
       } as any)).rejects.toThrow(
         new ValidationError('Both from and to timestamps are required')
+      );
+    });
+  });
+
+  describe('getTopMentionsByTicker', () => {
+    it('should call top mentions by ticker V2 endpoint with timeWindow', async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0, page: 1, pageSize: 10 }
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTopMentionsByTicker({
+        ticker: 'BTC',
+        timeWindow: '24h',
+        pageSize: 10
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        '/v2/data/top-mentions-by-ticker?ticker=BTC&timeWindow=24h&pageSize=10'
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should call top mentions by ticker V2 endpoint with from/to', async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0, page: 1, pageSize: 10 }
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTopMentionsByTicker({
+        ticker: 'ETH',
+        from: 1640995200,
+        to: 1641081600,
+        page: 1,
+        pageSize: 10
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        '/v2/data/top-mentions-by-ticker?ticker=ETH&from=1640995200&to=1641081600&page=1&pageSize=10'
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should throw ValidationError if ticker is missing', async () => {
+      await expect(client.getTopMentionsByTicker({} as any)).rejects.toThrow(
+        new ValidationError('Ticker is required')
+      );
+    });
+
+    it('should throw ValidationError when no time parameters are provided', async () => {
+      await expect(client.getTopMentionsByTicker({
+        ticker: 'BTC',
+        page: 1
+      })).rejects.toThrow(
+        new ValidationError('You must provide either timeWindow or both from and to parameters')
+      );
+    });
+
+    it('should throw ValidationError when only from is provided', async () => {
+      await expect(client.getTopMentionsByTicker({
+        ticker: 'BTC',
+        from: 1640995200
+      })).rejects.toThrow(
+        new ValidationError('When using from/to parameters, both from and to must be provided')
       );
     });
   });
