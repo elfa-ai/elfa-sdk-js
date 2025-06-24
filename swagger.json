@@ -1,0 +1,1058 @@
+{
+  "openapi": "3.0.0",
+  "components": {
+    "examples": {},
+    "headers": {},
+    "parameters": {},
+    "requestBodies": {},
+    "responses": {},
+    "schemas": {
+      "PingResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [true],
+            "nullable": false
+          },
+          "data": {
+            "properties": {
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": ["message"],
+            "type": "object"
+          }
+        },
+        "required": ["success", "data"],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "ApiKeyStatusResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "properties": {
+              "remainingRequests": {
+                "properties": {
+                  "monthly": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "daily": {
+                    "type": "number",
+                    "format": "double"
+                  }
+                },
+                "required": ["monthly", "daily"],
+                "type": "object"
+              },
+              "isExpired": {
+                "type": "boolean"
+              },
+              "limits": {
+                "properties": {
+                  "monthly": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "daily": {
+                    "type": "number",
+                    "format": "double"
+                  }
+                },
+                "required": ["monthly", "daily"],
+                "type": "object"
+              },
+              "usage": {
+                "properties": {
+                  "monthly": {
+                    "type": "number",
+                    "format": "double"
+                  },
+                  "daily": {
+                    "type": "number",
+                    "format": "double"
+                  }
+                },
+                "required": ["monthly", "daily"],
+                "type": "object"
+              },
+              "createdAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                ]
+              },
+              "expiresAt": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                ]
+              },
+              "monthlyRequestLimit": {
+                "type": "number",
+                "format": "double"
+              },
+              "dailyRequestLimit": {
+                "type": "number",
+                "format": "double"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["active", "revoked", "expired", "payment_required"]
+              },
+              "name": {
+                "type": "string"
+              },
+              "id": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "required": [
+              "remainingRequests",
+              "isExpired",
+              "limits",
+              "usage",
+              "createdAt",
+              "expiresAt",
+              "monthlyRequestLimit",
+              "dailyRequestLimit",
+              "status",
+              "name",
+              "id"
+            ],
+            "type": "object"
+          }
+        },
+        "required": ["success", "data"],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "JsonPrimitive": {
+        "anyOf": [
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "number",
+            "format": "double"
+          },
+          {
+            "type": "string"
+          }
+        ],
+        "nullable": true
+      },
+      "JsonValue": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/JsonPrimitive"
+          },
+          {
+            "$ref": "#/components/schemas/JsonObject"
+          },
+          {
+            "$ref": "#/components/schemas/JsonArray"
+          }
+        ]
+      },
+      "JsonObject": {
+        "properties": {},
+        "additionalProperties": {
+          "$ref": "#/components/schemas/JsonValue"
+        },
+        "type": "object"
+      },
+      "JsonArray": {
+        "items": {
+          "$ref": "#/components/schemas/JsonValue"
+        },
+        "type": "array"
+      },
+      "Account": {
+        "properties": {
+          "id": {
+            "type": "number",
+            "format": "double"
+          },
+          "username": {
+            "type": "string"
+          },
+          "data": {
+            "properties": {
+              "profileBannerUrl": {
+                "type": "string"
+              },
+              "profileImageUrl": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "userSince": {
+                "type": "string"
+              },
+              "location": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "profileBannerUrl",
+              "profileImageUrl",
+              "description",
+              "userSince",
+              "location",
+              "name"
+            ],
+            "type": "object"
+          },
+          "followerCount": {
+            "type": "number",
+            "format": "double"
+          },
+          "followingCount": {
+            "type": "number",
+            "format": "double"
+          },
+          "isVerified": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "username",
+          "data",
+          "followerCount",
+          "followingCount",
+          "isVerified"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "Mention": {
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "type": "number",
+                "format": "double"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "type": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string",
+            "nullable": true
+          },
+          "originalUrl": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/JsonValue"
+          },
+          "likeCount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "quoteCount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "replyCount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "repostCount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "viewCount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "mentionedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "bookmarkCount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Account"
+              },
+              {}
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "content",
+          "originalUrl",
+          "data",
+          "likeCount",
+          "quoteCount",
+          "replyCount",
+          "repostCount",
+          "viewCount",
+          "mentionedAt",
+          "bookmarkCount",
+          "account"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "MentionResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/Mention"
+            },
+            "type": "array"
+          },
+          "metadata": {
+            "properties": {
+              "offset": {
+                "type": "number",
+                "format": "double"
+              },
+              "limit": {
+                "type": "number",
+                "format": "double"
+              },
+              "total": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "required": ["offset", "limit", "total"],
+            "type": "object"
+          }
+        },
+        "required": ["success", "data", "metadata"],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "TopMentionsResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "properties": {
+              "pageSize": {
+                "type": "number",
+                "format": "double"
+              },
+              "page": {
+                "type": "number",
+                "format": "double"
+              },
+              "total": {
+                "type": "number",
+                "format": "double"
+              },
+              "data": {
+                "items": {
+                  "properties": {
+                    "metrics": {
+                      "properties": {
+                        "view_count": {
+                          "type": "number",
+                          "format": "double"
+                        },
+                        "repost_count": {
+                          "type": "number",
+                          "format": "double"
+                        },
+                        "reply_count": {
+                          "type": "number",
+                          "format": "double"
+                        },
+                        "like_count": {
+                          "type": "number",
+                          "format": "double"
+                        }
+                      },
+                      "required": [
+                        "view_count",
+                        "repost_count",
+                        "reply_count",
+                        "like_count"
+                      ],
+                      "type": "object"
+                    },
+                    "mentioned_at": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "id": {
+                      "type": "number",
+                      "format": "double"
+                    }
+                  },
+                  "required": ["metrics", "mentioned_at", "content", "id"],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": ["pageSize", "page", "total", "data"],
+            "type": "object"
+          }
+        },
+        "required": ["success", "data"],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "AccountInfo": {
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "profileImageUrl": {
+            "type": "string"
+          }
+        },
+        "required": ["username"],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "SimpleMention": {
+        "properties": {
+          "id": {
+            "type": "number",
+            "format": "double"
+          },
+          "twitter_id": {
+            "type": "string"
+          },
+          "twitter_user_id": {
+            "type": "string"
+          },
+          "parent_tweet_id": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "mentioned_at": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "twitter_account_info": {
+            "$ref": "#/components/schemas/AccountInfo"
+          },
+          "metrics": {
+            "properties": {
+              "view_count": {
+                "type": "number",
+                "format": "double"
+              },
+              "repost_count": {
+                "type": "number",
+                "format": "double"
+              },
+              "reply_count": {
+                "type": "number",
+                "format": "double"
+              },
+              "like_count": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "required": [
+              "view_count",
+              "repost_count",
+              "reply_count",
+              "like_count"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "twitter_id",
+          "twitter_user_id",
+          "parent_tweet_id",
+          "content",
+          "mentioned_at",
+          "type",
+          "metrics"
+        ],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "GetMentionsByKeywordsResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SimpleMention"
+            },
+            "type": "array"
+          },
+          "metadata": {
+            "properties": {
+              "cursor": {
+                "type": "string"
+              },
+              "total": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "required": ["total"],
+            "type": "object"
+          }
+        },
+        "required": ["success", "data", "metadata"],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "TrendingTokensResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "properties": {
+              "pageSize": {
+                "type": "number",
+                "format": "double"
+              },
+              "page": {
+                "type": "number",
+                "format": "double"
+              },
+              "total": {
+                "type": "number",
+                "format": "double"
+              },
+              "data": {
+                "items": {
+                  "properties": {
+                    "change_percent": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "previous_count": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "current_count": {
+                      "type": "number",
+                      "format": "double"
+                    },
+                    "token": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "change_percent",
+                    "previous_count",
+                    "current_count",
+                    "token"
+                  ],
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            },
+            "required": ["pageSize", "page", "total", "data"],
+            "type": "object"
+          }
+        },
+        "required": ["success", "data"],
+        "type": "object",
+        "additionalProperties": false
+      },
+      "AccountSmartStatsResponse": {
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "data": {
+            "properties": {
+              "followerEngagementRatio": {
+                "type": "number",
+                "format": "double"
+              },
+              "averageEngagement": {
+                "type": "number",
+                "format": "double"
+              },
+              "smartFollowingCount": {
+                "type": "number",
+                "format": "double"
+              }
+            },
+            "required": [
+              "followerEngagementRatio",
+              "averageEngagement",
+              "smartFollowingCount"
+            ],
+            "type": "object"
+          }
+        },
+        "required": ["success", "data"],
+        "type": "object",
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "type": "apiKey",
+        "name": "x-elfa-api-key",
+        "in": "header"
+      }
+    }
+  },
+  "info": {
+    "title": "Elfa Api",
+    "version": "1.0.0",
+    "description": "API documentation for Elfa"
+  },
+  "paths": {
+    "/v1/ping": {
+      "get": {
+        "operationId": "Ping",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PingResponse"
+                }
+              }
+            }
+          }
+        },
+        "description": "Health check endpoint",
+        "summary": "Simple health check to verify API availability",
+        "tags": ["External"],
+        "security": [],
+        "parameters": []
+      }
+    },
+    "/v1/key-status": {
+      "get": {
+        "operationId": "GetApiKeyStatus",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKeyStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "description": "Get API key status",
+        "summary": "Retrieve the current status and usage of your API key",
+        "tags": ["External"],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": []
+      }
+    },
+    "/v1/mentions": {
+      "get": {
+        "operationId": "GetMentionsWithSmartEngagement",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MentionResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "description": "Get mentions with smart engagement",
+        "summary": "Query tweets by smart accounts with at least 10 other smart interaction (comment, RT, QT). Updated every 1 hour.",
+        "tags": ["External"],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "format": "double",
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/top-mentions": {
+      "get": {
+        "operationId": "GetTopMentions",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TopMentionsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "description": "This experimental endpoint is under active development and its behavior may change without notice.\nUse with caution in production environments.\n\nReturns the most significant mentions for a given ticker symbol, ranked by\nrelevance within a specified time window.",
+        "summary": "Query tweets that mentioned a specified ticker. Ranked by view count. Updated every 1 hour.",
+        "tags": ["External"],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "The ticker symbol to get mentions for. Prefixing with $ will only return cashtag matches.",
+            "in": "query",
+            "name": "ticker",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "Time window for mentions (e.g., \"1h\", \"24h\", \"7d\")",
+            "in": "query",
+            "name": "timeWindow",
+            "required": false,
+            "schema": {
+              "default": "1h",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number for pagination",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Number of items per page",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Include account details (username, description, profile image url)",
+            "in": "query",
+            "name": "includeAccountDetails",
+            "required": false,
+            "schema": {
+              "default": false,
+              "type": "boolean"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/mentions/search": {
+      "get": {
+        "operationId": "GetMentionsByKeywords",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMentionsByKeywordsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "description": "Search mentions by keywords",
+        "summary": "Query tweets that mentioned up to 5 keywords within a 30-days window. Up to 6-months worth of tweets. Updated every 5 mins.",
+        "tags": ["External"],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Up to 5 keywords to search for, separated by commas. Phrases accepted",
+            "in": "query",
+            "name": "keywords",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "description": "Start date (unix timestamp)",
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "description": "End date (unix timestamp)",
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Number of results to return, defaults to 20, max 30",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Cursor for pagination, expires after 10 seconds, the same cursor can be used to paginate through the results",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/trending-tokens": {
+      "get": {
+        "operationId": "GetTrendingTokens",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendingTokensResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        },
+        "description": "This experimental endpoint is under active development and its behavior may change without notice.\nUse with caution in production environments.\n\nRetrieve trending tokens based on highest mentions count,\nfiltered by a minimum mention threshold over a specified time period.",
+        "summary": "Query tokens most discussed in a particular time period. Ranked by smart mentions count. Updated every 5 mins.",
+        "tags": ["External"],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "description": "Time window for trending analysis",
+            "in": "query",
+            "name": "timeWindow",
+            "required": false,
+            "schema": {
+              "default": "24h",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Page number for pagination",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Number of items per page",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "format": "double",
+              "type": "number"
+            }
+          },
+          {
+            "description": "Minimum number of mentions required",
+            "in": "query",
+            "name": "minMentions",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "format": "double",
+              "type": "number"
+            }
+          }
+        ]
+      }
+    },
+    "/v1/account/smart-stats": {
+      "get": {
+        "operationId": "GetAccountSmartStats",
+        "responses": {
+          "200": {
+            "description": "Ok",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSmartStatsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "description": "This experimental endpoint is under active development and its behavior may change without notice.\nUse with caution in production environments.\n\nGet smart stats of smart accounts",
+        "summary": "Retrieve smart stats (smart following count) and social metrics (engagement score & ratio) for a given username",
+        "tags": ["External"],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "username",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.elfa.ai",
+      "description": "Elfa Prod Server"
+    },
+    {
+      "url": "https://api.staging.elfa.ai",
+      "description": "Elfa Staging Server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "External",
+      "description": "External API endpoints"
+    }
+  ],
+  "tryItOutEnabled": true,
+  "supportedSubmitMethods": ["get", "post"]
+}

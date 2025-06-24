@@ -276,15 +276,15 @@ describe('ElfaV2Client', () => {
     });
   });
 
-  describe('getTopMentions', () => {
-    it('should call top mentions endpoint', async () => {
+  describe('getV1TopMentions', () => {
+    it('should call V1 top mentions endpoint', async () => {
       const mockResponse = {
         success: true,
         data: { data: [], total: 0, page: 1, pageSize: 20 }
       };
       mockHttpClient.get.mockResolvedValue(mockResponse);
 
-      const result = await client.getTopMentions({
+      const result = await client.getV1TopMentions({
         ticker: 'BTC',
         timeWindow: '24h',
         includeAccountDetails: true
@@ -297,7 +297,7 @@ describe('ElfaV2Client', () => {
     });
 
     it('should throw ValidationError if ticker is missing', async () => {
-      await expect(client.getTopMentions({} as any)).rejects.toThrow(
+      await expect(client.getV1TopMentions({} as any)).rejects.toThrow(
         new ValidationError('Ticker is required')
       );
     });
@@ -340,6 +340,55 @@ describe('ElfaV2Client', () => {
         keywords: 'bitcoin'
       } as any)).rejects.toThrow(
         new ValidationError('Both from and to timestamps are required')
+      );
+    });
+  });
+
+  describe('getTopMentions', () => {
+    it('should call top mentions V2 endpoint', async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0, page: 1, pageSize: 10 }
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTopMentions({
+        ticker: 'BTC',
+        timeWindow: '24h',
+        page: 1,
+        pageSize: 10
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        '/v2/data/top-mentions?ticker=BTC&timeWindow=24h&page=1&pageSize=10'
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should call top mentions V2 endpoint with from/to timestamps', async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0, page: 1, pageSize: 10 }
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTopMentions({
+        ticker: 'ETH',
+        from: 1640995200,
+        to: 1641081600
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        '/v2/data/top-mentions?ticker=ETH&from=1640995200&to=1641081600'
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('should throw ValidationError if ticker is missing', async () => {
+      await expect(client.getTopMentions({} as any)).rejects.toThrow(
+        new ValidationError('Ticker is required')
       );
     });
   });
