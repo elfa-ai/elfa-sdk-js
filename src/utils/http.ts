@@ -36,7 +36,7 @@ export class HttpClient {
     const clientConfig: any = {
       baseURL: this.options.baseURL,
       headers: {
-        'User-Agent': '@elfa-ai/sdk/2.0.0',
+        'User-Agent': '@elfa-ai/sdk/2.0.1',
         'Accept': 'application/json',
         'Content-Type': 'application/json'
       }
