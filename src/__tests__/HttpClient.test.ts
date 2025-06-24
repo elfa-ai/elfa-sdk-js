@@ -50,7 +50,7 @@ describe('HttpClient', () => {
         baseURL: 'https://api.example.com',
         timeout: 5000,
         headers: {
-          'User-Agent': '@elfa-ai/sdk/2.0.1',
+          'User-Agent': '@elfa-ai/sdk/2.0.2',
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         }
