@@ -24,6 +24,7 @@ describe('ElfaSDK', () => {
       getTrendingCAsTwitter: jest.fn(),
       getTrendingCAsTelegram: jest.fn(),
       getTopMentions: jest.fn(),
+      getV1TopMentions: jest.fn(),
       getMentionsByKeywords: jest.fn(),
       getMentions: jest.fn(),
       testConnection: jest.fn()
@@ -617,14 +618,34 @@ describe('ElfaSDK', () => {
       expect(result).toBe(mockResponse);
     });
 
-    it('should call getTopMentions without enhancement (not implemented yet)', async () => {
+    it('should call getTopMentions (V1) without enhancement (not implemented yet)', async () => {
       const mockResponse = {
         success: true,
         data: { data: [], total: 0, page: 1, pageSize: 20 }
       };
-      mockElfaClient.getTopMentions.mockResolvedValue(mockResponse);
+      mockElfaClient.getV1TopMentions.mockResolvedValue(mockResponse);
 
       const result = await sdk.getTopMentions({
+        ticker: 'BTC',
+        fetchRawTweets: true
+      });
+
+      expect(mockElfaClient.getV1TopMentions).toHaveBeenCalledWith({
+        ticker: 'BTC',
+        fetchRawTweets: true
+      });
+      expect(result).toBe(mockResponse);
+    });
+
+    it('should call getTopMentionsV2 without enhancement (not implemented yet)', async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0, page: 1, pageSize: 10 }
+      };
+      mockElfaClient.getTopMentions.mockResolvedValue(mockResponse);
+
+      const result = await sdk.getTopMentionsV2({
         ticker: 'BTC',
         fetchRawTweets: true
       });

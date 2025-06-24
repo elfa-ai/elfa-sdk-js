@@ -23,6 +23,8 @@ import type {
   TrendingCAsParams,
   TopMentionsParams,
   TopMentionsResponse,
+  TopMentionsV2Params,
+  TopMentionsV2Response,
   MentionsByKeywordsParams,
   GetMentionsByKeywordsResponse,
   MentionResponse,
@@ -173,11 +175,21 @@ export class ElfaSDK {
   public async getTopMentions(
     params: TopMentionsParams & RequestOptions
   ): Promise<EnhancedResponse<TopMentionsResponse>> {
-    const response = await this.elfaClient.getTopMentions(params);
+    const response = await this.elfaClient.getV1TopMentions(params);
     
     // Note: TopMentions data structure doesn't match ProcessedMention format
     // Enhancement not implemented yet - would need custom enhancer method
     return response as EnhancedResponse<TopMentionsResponse>;
+  }
+
+  public async getTopMentionsV2(
+    params: TopMentionsV2Params & RequestOptions
+  ): Promise<EnhancedResponse<TopMentionsV2Response>> {
+    const response = await this.elfaClient.getTopMentions(params);
+    
+    // Note: TopMentionsV2 data structure doesn't match ProcessedMention format
+    // Enhancement not implemented yet - would need custom enhancer method
+    return response as EnhancedResponse<TopMentionsV2Response>;
   }
 
   public async getMentionsByKeywords(

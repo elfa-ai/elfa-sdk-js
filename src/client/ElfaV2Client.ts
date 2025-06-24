@@ -17,10 +17,10 @@ import type {
   MentionsParams,
   TopMentionsResponse,
   TopMentionsParams,
+  TopMentionsV2Response,
+  TopMentionsV2Params,
   GetMentionsByKeywordsResponse,
-  MentionsByKeywordsParams,
-  TopMentionsByTickerV2Response,
-  TopMentionsByTickerV2Params
+  MentionsByKeywordsParams
 } from '../types/elfa.js';
 
 export interface ElfaV2ClientOptions {
@@ -259,7 +259,7 @@ export class ElfaV2Client {
     return this.httpClient.get<MentionResponse>(url);
   }
 
-  public async getTopMentions(params: TopMentionsParams): Promise<TopMentionsResponse> {
+  public async getV1TopMentions(params: TopMentionsParams): Promise<TopMentionsResponse> {
     if (!params.ticker) {
       throw new ValidationError('Ticker is required');
     }
@@ -282,41 +282,12 @@ export class ElfaV2Client {
     if (params.pageSize !== undefined) {
       searchParams.append('pageSize', params.pageSize.toString());
     }
-    if (params.includeAccountDetails !== undefined) {
-      searchParams.append('includeAccountDetails', params.includeAccountDetails.toString());
-    }
+    // Note: includeAccountDetails parameter is ignored when using V2 endpoint
+    // V2 endpoint provides account details by default in a different format
 
-    return this.httpClient.get<TopMentionsResponse>(`/v1/top-mentions?${searchParams}`);
+    return this.httpClient.get<TopMentionsResponse>(`/v2/data/top-mentions?${searchParams}`);
   }
 
-  public async getTopMentionsByTicker(params: TopMentionsByTickerV2Params): Promise<TopMentionsByTickerV2Response> {
-    if (!params.ticker) {
-      throw new ValidationError('Ticker is required');
-    }
-
-    this.validateTimeWindowOrFromTo(params);
-
-    const searchParams = new URLSearchParams();
-    searchParams.append('ticker', params.ticker);
-
-    if (params.timeWindow) {
-      searchParams.append('timeWindow', params.timeWindow);
-    }
-    if (params.from !== undefined) {
-      searchParams.append('from', params.from.toString());
-    }
-    if (params.to !== undefined) {
-      searchParams.append('to', params.to.toString());
-    }
-    if (params.page !== undefined) {
-      searchParams.append('page', params.page.toString());
-    }
-    if (params.pageSize !== undefined) {
-      searchParams.append('pageSize', params.pageSize.toString());
-    }
-
-    return this.httpClient.get<TopMentionsByTickerV2Response>(`/v2/data/top-mentions-by-ticker?${searchParams}`);
-  }
 
   public async getMentionsByKeywords(params: MentionsByKeywordsParams): Promise<GetMentionsByKeywordsResponse> {
     if (!params.keywords) {
@@ -341,7 +312,7 @@ export class ElfaV2Client {
       searchParams.append('cursor', params.cursor);
     }
 
-    return this.httpClient.get<GetMentionsByKeywordsResponse>(`/v1/mentions/search?${searchParams}`);
+    return this.httpClient.get<GetMentionsByKeywordsResponse>(`/v2/data/keyword-mentions?${searchParams}`);
   }
 
   public async getV1TrendingTokens(params: TrendingTokensParams = {}): Promise<TrendingTokensResponse> {
@@ -360,7 +331,7 @@ export class ElfaV2Client {
       searchParams.append('minMentions', params.minMentions.toString());
     }
 
-    const url = `/v1/trending-tokens${searchParams.toString() ? `?${searchParams}` : ''}`;
+    const url = `/v2/aggregations/trending-tokens${searchParams.toString() ? `?${searchParams}` : ''}`;
     return this.httpClient.get<TrendingTokensResponse>(url);
   }
 
@@ -372,7 +343,34 @@ export class ElfaV2Client {
     const searchParams = new URLSearchParams();
     searchParams.append('username', params.username);
 
-    return this.httpClient.get<AccountSmartStatsResponse>(`/v1/account/smart-stats?${searchParams}`);
+    return this.httpClient.get<AccountSmartStatsResponse>(`/v2/account/smart-stats?${searchParams}`);
+  }
+
+  public async getTopMentions(params: TopMentionsV2Params): Promise<TopMentionsV2Response> {
+    if (!params.ticker) {
+      throw new ValidationError('Ticker is required');
+    }
+
+    const searchParams = new URLSearchParams();
+    searchParams.append('ticker', params.ticker);
+
+    if (params.timeWindow) {
+      searchParams.append('timeWindow', params.timeWindow);
+    }
+    if (params.from !== undefined) {
+      searchParams.append('from', params.from.toString());
+    }
+    if (params.to !== undefined) {
+      searchParams.append('to', params.to.toString());
+    }
+    if (params.page !== undefined) {
+      searchParams.append('page', params.page.toString());
+    }
+    if (params.pageSize !== undefined) {
+      searchParams.append('pageSize', params.pageSize.toString());
+    }
+
+    return this.httpClient.get<TopMentionsV2Response>(`/v2/data/top-mentions?${searchParams}`);
   }
 
   public async testConnection(): Promise<boolean> {
