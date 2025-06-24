@@ -19,7 +19,7 @@ export async function enhancedUsageExample(): Promise<void> {
     console.log('Fetching keyword mentions without raw content...');
     const basicMentions = await elfa.getKeywordMentions({
       keywords: 'bitcoin',
-      period: '1h',
+      timeWindow: '1h',
       limit: 3,
       fetchRawTweets: false
     });
@@ -29,7 +29,7 @@ export async function enhancedUsageExample(): Promise<void> {
       console.log('Fetching keyword mentions WITH raw content...');
       const enhancedMentions = await elfa.getKeywordMentions({
         keywords: 'ethereum',
-        period: '1h',
+        timeWindow: '1h',
         limit: 3,
         fetchRawTweets: true
       });
@@ -65,7 +65,7 @@ export async function globalRawTweetExample(): Promise<void> {
 
     const mentions = await elfa.getKeywordMentions({
       keywords: 'solana',
-      period: '1h',
+      timeWindow: '1h',
       limit: 2
     });
 
@@ -77,7 +77,7 @@ export async function globalRawTweetExample(): Promise<void> {
     console.log('Override global setting for this call...');
     const processedMentions = await elfa.getKeywordMentions({
       keywords: 'cardano',
-      period: '1h',
+      timeWindow: '1h',
       limit: 2,
       fetchRawTweets: false
     });
@@ -104,7 +104,7 @@ export async function errorHandlingExample(): Promise<void> {
 
     const mentions = await elfa.getKeywordMentions({
       keywords: 'bitcoin',
-      period: '1h',
+      timeWindow: '1h',
       limit: 5,
       fetchRawTweets: true,
       enhancementOptions: {

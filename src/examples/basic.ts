@@ -25,7 +25,7 @@ export async function basicUsageExample(): Promise<void> {
     console.log('Searching keyword mentions...');
     const mentions = await elfa.getKeywordMentions({
       keywords: 'bitcoin,ethereum',
-      period: '1h',
+      timeWindow: '1h',
       limit: 5
     });
     console.log('Recent mentions:', mentions.data.length);

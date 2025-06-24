@@ -292,6 +292,8 @@ export interface TopMentionsV2Response {
 
 export interface TrendingTokensParams {
   timeWindow?: string;
+  from?: number;
+  to?: number;
   page?: number;
   pageSize?: number;
   minMentions?: number;
@@ -300,7 +302,7 @@ export interface TrendingTokensParams {
 export interface KeywordMentionsParams {
   keywords?: string;
   accountName?: string;
-  period?: string;
+  timeWindow?: string;
   from?: number;
   to?: number;
   limit?: number;
@@ -318,6 +320,8 @@ export interface TokenNewsParams {
 
 export interface TrendingCAsParams {
   timeWindow?: string;
+  from?: number;
+  to?: number;
   page?: number;
   pageSize?: number;
   minMentions?: number;
@@ -330,6 +334,8 @@ export interface AccountSmartStatsParams {
 export interface TopMentionsParams {
   ticker: string;
   timeWindow?: string;
+  from?: number;
+  to?: number;
   page?: number;
   pageSize?: number;
   includeAccountDetails?: boolean;
@@ -357,3 +363,4 @@ export interface MentionsParams {
   limit?: number;
   offset?: number;
 }
+
