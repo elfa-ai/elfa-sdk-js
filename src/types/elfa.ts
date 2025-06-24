@@ -78,6 +78,7 @@ export interface AccountSmartStatsResponse {
     followerEngagementRatio: number;
     averageEngagement: number;
     smartFollowingCount: number;
+    smartFollowerCount: number;
   };
 }
 

@@ -335,6 +335,10 @@
 					},
 					"data": {
 						"properties": {
+							"smartFollowerCount": {
+								"type": "number",
+								"format": "double"
+							},
 							"followerEngagementRatio": {
 								"type": "number",
 								"format": "double"
@@ -1237,7 +1241,7 @@
 	},
 	"info": {
 		"title": "Elfa Api",
-		"version": "2.0.2",
+		"version": "2.0.0",
 		"description": "API documentation for Elfa"
 	},
 	"paths": {
@@ -1314,7 +1318,7 @@
 						"description": "Unauthorized"
 					}
 				},
-				"description": "This experimental endpoint is under active development and its behavior may change without notice.\nUse with caution in production environments.\n\nQuery tokens most discussed in a particular time period. Ranked by smart mentions count. Updated every 5 mins.\nRetrieve trending tokens based on highest mentions count,\nfiltered by a minimum mention threshold over a specified time period.\n\nNote: You must provide EITHER timeWindow OR both from and to parameters.\nIf both timeWindow and from/to are provided, from/to takes priority.",
+				"description": "This experimental endpoint is under active development and its behavior may change without notice.\nUse with caution in production environments.\n\nRetrieve trending tokens based on highest mentions count,\nfiltered by a minimum mention threshold over a specified time period.\n\nNote: You must provide EITHER timeWindow OR both from and to parameters.\nIf both timeWindow and from/to are provided, from/to takes priority.",
 				"summary": "Trending tokens",
 				"tags": [
 					"v2"
@@ -1411,8 +1415,8 @@
 						"description": "User not found"
 					}
 				},
-				"description": "This experimental endpoint is under active development and its behavior may change without notice.\nUse with caution in production environments.\n\nRetrieve smart stats (smart following count) and social metrics (engagement score & ratio) for a given username",
-				"summary": "Get smart stats of smart accounts",
+				"description": "This experimental endpoint is under active development and its behavior may change without notice.\nUse with caution in production environments.\n\nRetrieve smart stats given username",
+				"summary": "Smart stats of accounts",
 				"tags": [
 					"v2"
 				],
@@ -1698,7 +1702,7 @@
 						}
 					},
 					{
-						"description": "CG Coin IDs to filter by, comma-separated",
+						"description": "CoinGecko Coin IDs to filter by, comma-separated",
 						"in": "query",
 						"name": "coinIds",
 						"required": false,

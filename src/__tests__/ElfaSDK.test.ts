@@ -201,7 +201,8 @@ describe('ElfaSDK', () => {
         data: {
           smartFollowingCount: 10,
           averageEngagement: 0.5,
-          followerEngagementRatio: 100
+          followerEngagementRatio: 100,
+          smartFollowerCount: 15
         }
       };
       mockElfaClient.getAccountSmartStats.mockResolvedValue(mockResponse);
