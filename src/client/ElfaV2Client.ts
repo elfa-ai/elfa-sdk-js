@@ -373,33 +373,6 @@ export class ElfaV2Client {
     return this.httpClient.get<TopMentionsV2Response>(`/v2/data/top-mentions?${searchParams}`);
   }
 
-  public async getTopMentions(params: TopMentionsV2Params): Promise<TopMentionsV2Response> {
-    if (!params.ticker) {
-      throw new ValidationError('Ticker is required');
-    }
-
-    const searchParams = new URLSearchParams();
-    searchParams.append('ticker', params.ticker);
-
-    if (params.timeWindow) {
-      searchParams.append('timeWindow', params.timeWindow);
-    }
-    if (params.from !== undefined) {
-      searchParams.append('from', params.from.toString());
-    }
-    if (params.to !== undefined) {
-      searchParams.append('to', params.to.toString());
-    }
-    if (params.page !== undefined) {
-      searchParams.append('page', params.page.toString());
-    }
-    if (params.pageSize !== undefined) {
-      searchParams.append('pageSize', params.pageSize.toString());
-    }
-
-    return this.httpClient.get<TopMentionsV2Response>(`/v2/data/top-mentions?${searchParams}`);
-  }
-
   public async testConnection(): Promise<boolean> {
     try {
       const response = await this.ping();
