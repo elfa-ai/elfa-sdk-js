@@ -267,26 +267,24 @@ export interface GetTokenMentionsResponse {
 }
 
 export interface TopMentionV2 {
-  source_ref_id: string;
-  original_url: string;
-  like_count: number;
-  repost_count: number;
-  view_count: number;
-  quote_count: number;
-  reply_count: number;
-  bookmark_count: number;
-  mentioned_at: string;
-  account_name: string;
-  account_tags: string[];
+  tweetId: string;
+  link: string;
+  likeCount: number;
+  repostCount: number;
+  viewCount: number;
+  quoteCount: number;
+  replyCount: number;
+  bookmarkCount: number;
+  mentionedAt: string;
 }
 
 export interface TopMentionsV2Response {
   success: boolean;
   data: TopMentionV2[];
   metadata: {
-    pageSize: number;
-    page: number;
     total: number;
+    page: number;
+    pageSize: number;
   };
 }
 

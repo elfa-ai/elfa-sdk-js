@@ -363,109 +363,6 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"TopMentionV2": {
-				"properties": {
-					"source_ref_id": {
-						"type": "string"
-					},
-					"original_url": {
-						"type": "string"
-					},
-					"like_count": {
-						"type": "number",
-						"format": "double"
-					},
-					"repost_count": {
-						"type": "number",
-						"format": "double"
-					},
-					"view_count": {
-						"type": "number",
-						"format": "double"
-					},
-					"quote_count": {
-						"type": "number",
-						"format": "double"
-					},
-					"reply_count": {
-						"type": "number",
-						"format": "double"
-					},
-					"bookmark_count": {
-						"type": "number",
-						"format": "double"
-					},
-					"mentioned_at": {
-						"type": "string"
-					},
-					"account_name": {
-						"type": "string"
-					},
-					"account_tags": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					}
-				},
-				"required": [
-					"source_ref_id",
-					"original_url",
-					"like_count",
-					"repost_count",
-					"view_count",
-					"quote_count",
-					"reply_count",
-					"bookmark_count",
-					"mentioned_at",
-					"account_name",
-					"account_tags"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"TopMentionsV2Response": {
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"data": {
-						"items": {
-							"$ref": "#/components/schemas/TopMentionV2"
-						},
-						"type": "array"
-					},
-					"metadata": {
-						"properties": {
-							"pageSize": {
-								"type": "number",
-								"format": "double"
-							},
-							"page": {
-								"type": "number",
-								"format": "double"
-							},
-							"total": {
-								"type": "number",
-								"format": "double"
-							}
-						},
-						"required": [
-							"pageSize",
-							"page",
-							"total"
-						],
-						"type": "object"
-					}
-				},
-				"required": [
-					"success",
-					"data",
-					"metadata"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
 			"SanitizedMention": {
 				"properties": {
 					"tweetId": {
@@ -533,6 +430,48 @@
 					"replyCount",
 					"bookmarkCount",
 					"mentionedAt"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TopMentionsV2Response": {
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/SanitizedMention"
+						},
+						"type": "array"
+					},
+					"metadata": {
+						"properties": {
+							"pageSize": {
+								"type": "number",
+								"format": "double"
+							},
+							"page": {
+								"type": "number",
+								"format": "double"
+							},
+							"total": {
+								"type": "number",
+								"format": "double"
+							}
+						},
+						"required": [
+							"pageSize",
+							"page",
+							"total"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"success",
+					"data",
+					"metadata"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1298,7 +1237,7 @@
 	},
 	"info": {
 		"title": "Elfa Api",
-		"version": "2.0.1",
+		"version": "2.0.2",
 		"description": "API documentation for Elfa"
 	},
 	"paths": {
