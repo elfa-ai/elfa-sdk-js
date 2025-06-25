@@ -121,7 +121,6 @@ export interface TrendingContractAddress {
   contractAddress: string;
   chain: 'ethereum' | 'solana';
   mentionCount: number;
-  changePercent: number;
 }
 
 export interface TrendingCAsV2Response {
