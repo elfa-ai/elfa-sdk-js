@@ -75,10 +75,11 @@ export interface TrendingTokensResponse {
 export interface AccountSmartStatsResponse {
   success: boolean;
   data: {
-    followerEngagementRatio: number;
-    averageEngagement: number;
     smartFollowingCount: number;
-    smartFollowerCount: number;
+    averageEngagement: number;
+    averageReach: number;
+    smartFollowerCount?: number;
+    followerCount?: number;
   };
 }
 
