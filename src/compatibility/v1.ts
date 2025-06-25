@@ -4,7 +4,6 @@ import type {
   TrendingTokensResponse,
   TopMentionsResponse,
   GetMentionsByKeywordsResponse,
-  AccountSmartStatsResponse,
   MentionResponse
 } from '../types/elfa.js';
 
@@ -46,6 +45,15 @@ export interface LegacyMentionsParams {
   limit?: number;
   offset?: number;
   fetchRawTweets?: boolean;
+}
+
+export interface LegacyAccountSmartStatsResponse {
+  success: boolean;
+  data: {
+    smartFollowingCount: number;
+    averageEngagement: number;
+    followerEngagementRatio: number;
+  };
 }
 
 export class V1CompatibilityLayer {
@@ -110,10 +118,18 @@ export class V1CompatibilityLayer {
     return this.sdk.getTrendingTokens(cleanParams);
   }
 
-  public async getAccountSmartStats(params: LegacyAccountStatsParams): Promise<AccountSmartStatsResponse> {
-    return this.sdk.getAccountSmartStats({
+  public async getAccountSmartStats(params: LegacyAccountStatsParams): Promise<LegacyAccountSmartStatsResponse> {
+    const response = await this.sdk.getAccountSmartStats({
       username: params.username
     });
+    return {
+      success: response.success,
+      data: {
+        smartFollowingCount: response.data.smartFollowingCount,
+        averageEngagement: response.data.averageEngagement,
+        followerEngagementRatio: response.data.averageReach,
+      }
+    };
   }
 
   public async getMentionsWithSmartEngagement(params: LegacyMentionsParams = {}): Promise<MentionResponse> {
