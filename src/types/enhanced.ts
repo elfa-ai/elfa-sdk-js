@@ -1,16 +1,16 @@
-import type { 
-  ProcessedMention, 
-  SimpleMention, 
+import type {
+  ProcessedMention,
+  SimpleMention,
   MentionWithAccountAndToken,
   KeywordMentionsV2Response,
   GetMentionsByKeywordsResponse,
   TopMentionsResponse,
   TokenNewsV2Response,
-  GetTokenMentionsResponse
-} from './elfa.js';
-import type { TwitterTweet, TwitterUser } from './twitter.js';
+  GetTokenMentionsResponse,
+} from "./elfa.js";
+import type { TwitterTweet, TwitterUser } from "./twitter.js";
 
-export type DataSource = 'elfa' | 'elfa+twitter';
+export type DataSource = "elfa" | "elfa+twitter";
 
 export interface EnhancedMetrics {
   impression_count?: number;
@@ -38,7 +38,8 @@ export interface EnhancedSimpleMention extends SimpleMention {
   };
 }
 
-export interface EnhancedMentionWithAccountAndToken extends MentionWithAccountAndToken {
+export interface EnhancedMentionWithAccountAndToken
+  extends MentionWithAccountAndToken {
   enhanced_metrics?: EnhancedMetrics;
   data_source: DataSource;
   twitter_data?: {
@@ -47,7 +48,8 @@ export interface EnhancedMentionWithAccountAndToken extends MentionWithAccountAn
   };
 }
 
-export interface EnhancedKeywordMentionsV2Response extends Omit<KeywordMentionsV2Response, 'data'> {
+export interface EnhancedKeywordMentionsV2Response
+  extends Omit<KeywordMentionsV2Response, "data"> {
   data: EnhancedProcessedMention[];
   enhancement_info: {
     total_enhanced: number;
@@ -56,7 +58,8 @@ export interface EnhancedKeywordMentionsV2Response extends Omit<KeywordMentionsV
   };
 }
 
-export interface EnhancedGetMentionsByKeywordsResponse extends Omit<GetMentionsByKeywordsResponse, 'data'> {
+export interface EnhancedGetMentionsByKeywordsResponse
+  extends Omit<GetMentionsByKeywordsResponse, "data"> {
   data: EnhancedSimpleMention[];
   enhancement_info: {
     total_enhanced: number;
@@ -65,19 +68,22 @@ export interface EnhancedGetMentionsByKeywordsResponse extends Omit<GetMentionsB
   };
 }
 
-export interface EnhancedTopMentionsResponse extends Omit<TopMentionsResponse, 'data'> {
+export interface EnhancedTopMentionsResponse
+  extends Omit<TopMentionsResponse, "data"> {
   data: {
     pageSize: number;
     page: number;
     total: number;
-    data: Array<TopMentionsResponse['data']['data'][0] & {
-      enhanced_metrics?: EnhancedMetrics;
-      data_source: DataSource;
-      twitter_data?: {
-        tweet?: TwitterTweet;
-        user?: TwitterUser;
-      };
-    }>;
+    data: Array<
+      TopMentionsResponse["data"]["data"][0] & {
+        enhanced_metrics?: EnhancedMetrics;
+        data_source: DataSource;
+        twitter_data?: {
+          tweet?: TwitterTweet;
+          user?: TwitterUser;
+        };
+      }
+    >;
   };
   enhancement_info: {
     total_enhanced: number;
@@ -86,7 +92,8 @@ export interface EnhancedTopMentionsResponse extends Omit<TopMentionsResponse, '
   };
 }
 
-export interface EnhancedTokenNewsV2Response extends Omit<TokenNewsV2Response, 'data'> {
+export interface EnhancedTokenNewsV2Response
+  extends Omit<TokenNewsV2Response, "data"> {
   data: EnhancedProcessedMention[];
   enhancement_info: {
     total_enhanced: number;
@@ -95,7 +102,8 @@ export interface EnhancedTokenNewsV2Response extends Omit<TokenNewsV2Response, '
   };
 }
 
-export interface EnhancedGetTokenMentionsResponse extends Omit<GetTokenMentionsResponse, 'data'> {
+export interface EnhancedGetTokenMentionsResponse
+  extends Omit<GetTokenMentionsResponse, "data"> {
   data: {
     data: EnhancedMentionWithAccountAndToken[];
   };
@@ -144,14 +152,14 @@ export interface RequestOptions {
   timeout?: number;
 }
 
-export type EnhancedResponse<T> = T extends KeywordMentionsV2Response 
+export type EnhancedResponse<T> = T extends KeywordMentionsV2Response
   ? EnhancedKeywordMentionsV2Response | KeywordMentionsV2Response
   : T extends GetMentionsByKeywordsResponse
-  ? EnhancedGetMentionsByKeywordsResponse | GetMentionsByKeywordsResponse
-  : T extends TopMentionsResponse
-  ? EnhancedTopMentionsResponse | TopMentionsResponse
-  : T extends TokenNewsV2Response
-  ? EnhancedTokenNewsV2Response | TokenNewsV2Response
-  : T extends GetTokenMentionsResponse
-  ? EnhancedGetTokenMentionsResponse | GetTokenMentionsResponse
-  : T;
+    ? EnhancedGetMentionsByKeywordsResponse | GetMentionsByKeywordsResponse
+    : T extends TopMentionsResponse
+      ? EnhancedTopMentionsResponse | TopMentionsResponse
+      : T extends TokenNewsV2Response
+        ? EnhancedTokenNewsV2Response | TokenNewsV2Response
+        : T extends GetTokenMentionsResponse
+          ? EnhancedGetTokenMentionsResponse | GetTokenMentionsResponse
+          : T;

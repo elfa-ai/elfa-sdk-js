@@ -1,24 +1,24 @@
-import type { 
-  ProcessedMention, 
-  SimpleMention, 
-  MentionWithAccountAndToken 
-} from '../types/elfa.js';
-import type { 
-  TwitterTweet, 
-  TwitterUser, 
-  TwitterApiResponse 
-} from '../types/twitter.js';
-import type { 
-  EnhancedProcessedMention, 
-  EnhancedSimpleMention, 
+import type {
+  ProcessedMention,
+  SimpleMention,
+  MentionWithAccountAndToken,
+} from "../types/elfa.js";
+import type {
+  TwitterTweet,
+  TwitterUser,
+  TwitterApiResponse,
+} from "../types/twitter.js";
+import type {
+  EnhancedProcessedMention,
+  EnhancedSimpleMention,
   EnhancedMentionWithAccountAndToken,
   EnhancementOptions,
   EnhancementResult,
   DataSource,
-  EnhancedMetrics
-} from '../types/enhanced.js';
-import { TwitterClient } from '../client/TwitterClient.js';
-import { EnhancementError } from './errors.js';
+  EnhancedMetrics,
+} from "../types/enhanced.js";
+import type { TwitterClient } from "../client/TwitterClient.js";
+import { EnhancementError } from "./errors.js";
 
 export class ResponseEnhancer {
   private twitterClient?: TwitterClient;
@@ -31,197 +31,226 @@ export class ResponseEnhancer {
 
   public async enhanceProcessedMentions(
     mentions: ProcessedMention[],
-    options: EnhancementOptions = {}
+    options: EnhancementOptions = {},
   ): Promise<EnhancementResult<EnhancedProcessedMention[]>> {
     if (!this.twitterClient || !options.includeContent) {
       return {
-        data: mentions.map(mention => ({
+        data: mentions.map((mention) => ({
           ...mention,
-          data_source: 'elfa' as DataSource
+          data_source: "elfa" as DataSource,
         })),
         enhancement_info: {
           total_enhanced: 0,
           failed_enhancements: 0,
-          twitter_api_used: false
-        }
+          twitter_api_used: false,
+        },
       };
     }
 
     const tweetIds = mentions
-      .map(mention => this.extractTweetId(mention.link))
+      .map((mention) => this.extractTweetId(mention.link))
       .filter(Boolean) as string[];
 
     if (tweetIds.length === 0) {
       return {
-        data: mentions.map(mention => ({
+        data: mentions.map((mention) => ({
           ...mention,
-          data_source: 'elfa' as DataSource
+          data_source: "elfa" as DataSource,
         })),
         enhancement_info: {
           total_enhanced: 0,
           failed_enhancements: 0,
-          twitter_api_used: false
-        }
+          twitter_api_used: false,
+        },
       };
     }
 
     try {
       const twitterData = await this.fetchTwitterData(tweetIds, options);
-      const enhanced = this.mergeProcessedMentionsWithTwitterData(mentions, twitterData);
+      const enhanced = this.mergeProcessedMentionsWithTwitterData(
+        mentions,
+        twitterData,
+      );
 
       return {
         data: enhanced,
         enhancement_info: {
-          total_enhanced: enhanced.filter(m => m.data_source === 'elfa+twitter').length,
-          failed_enhancements: mentions.length - enhanced.filter(m => m.data_source === 'elfa+twitter').length,
-          twitter_api_used: true
-        }
+          total_enhanced: enhanced.filter(
+            (m) => m.data_source === "elfa+twitter",
+          ).length,
+          failed_enhancements:
+            mentions.length -
+            enhanced.filter((m) => m.data_source === "elfa+twitter").length,
+          twitter_api_used: true,
+        },
       };
     } catch (error) {
       if (options.fallbackToV2 !== false) {
         return {
-          data: mentions.map(mention => ({
+          data: mentions.map((mention) => ({
             ...mention,
-            data_source: 'elfa' as DataSource
+            data_source: "elfa" as DataSource,
           })),
           enhancement_info: {
             total_enhanced: 0,
             failed_enhancements: mentions.length,
             twitter_api_used: false,
-            errors: [error instanceof Error ? error.message : 'Unknown error']
-          }
+            errors: [error instanceof Error ? error.message : "Unknown error"],
+          },
         };
       }
-      throw new EnhancementError('Failed to enhance mentions with Twitter data', error);
+      throw new EnhancementError(
+        "Failed to enhance mentions with Twitter data",
+        error,
+      );
     }
   }
 
   public async enhanceSimpleMentions(
     mentions: SimpleMention[],
-    options: EnhancementOptions = {}
+    options: EnhancementOptions = {},
   ): Promise<EnhancementResult<EnhancedSimpleMention[]>> {
     if (!this.twitterClient || !options.includeContent) {
       return {
-        data: mentions.map(mention => ({
+        data: mentions.map((mention) => ({
           ...mention,
-          data_source: 'elfa' as DataSource
+          data_source: "elfa" as DataSource,
         })),
         enhancement_info: {
           total_enhanced: 0,
           failed_enhancements: 0,
-          twitter_api_used: false
-        }
+          twitter_api_used: false,
+        },
       };
     }
 
-    const tweetIds = mentions.map(mention => mention.twitter_id);
+    const tweetIds = mentions.map((mention) => mention.twitter_id);
 
     try {
       const twitterData = await this.fetchTwitterData(tweetIds, options);
-      const enhanced = this.mergeSimpleMentionsWithTwitterData(mentions, twitterData);
+      const enhanced = this.mergeSimpleMentionsWithTwitterData(
+        mentions,
+        twitterData,
+      );
 
       return {
         data: enhanced,
         enhancement_info: {
-          total_enhanced: enhanced.filter(m => m.data_source === 'elfa+twitter').length,
-          failed_enhancements: mentions.length - enhanced.filter(m => m.data_source === 'elfa+twitter').length,
-          twitter_api_used: true
-        }
+          total_enhanced: enhanced.filter(
+            (m) => m.data_source === "elfa+twitter",
+          ).length,
+          failed_enhancements:
+            mentions.length -
+            enhanced.filter((m) => m.data_source === "elfa+twitter").length,
+          twitter_api_used: true,
+        },
       };
     } catch (error) {
       if (options.fallbackToV2 !== false) {
         return {
-          data: mentions.map(mention => ({
+          data: mentions.map((mention) => ({
             ...mention,
-            data_source: 'elfa' as DataSource
+            data_source: "elfa" as DataSource,
           })),
           enhancement_info: {
             total_enhanced: 0,
             failed_enhancements: mentions.length,
             twitter_api_used: false,
-            errors: [error instanceof Error ? error.message : 'Unknown error']
-          }
+            errors: [error instanceof Error ? error.message : "Unknown error"],
+          },
         };
       }
-      throw new EnhancementError('Failed to enhance mentions with Twitter data', error);
+      throw new EnhancementError(
+        "Failed to enhance mentions with Twitter data",
+        error,
+      );
     }
   }
 
   public async enhanceMentionsWithAccountAndToken(
     mentions: MentionWithAccountAndToken[],
-    options: EnhancementOptions = {}
+    options: EnhancementOptions = {},
   ): Promise<EnhancementResult<EnhancedMentionWithAccountAndToken[]>> {
     if (!this.twitterClient || !options.includeContent) {
       return {
-        data: mentions.map(mention => ({
+        data: mentions.map((mention) => ({
           ...mention,
-          data_source: 'elfa' as DataSource
+          data_source: "elfa" as DataSource,
         })),
         enhancement_info: {
           total_enhanced: 0,
           failed_enhancements: 0,
-          twitter_api_used: false
-        }
+          twitter_api_used: false,
+        },
       };
     }
 
     const tweetIds = mentions
-      .map(mention => this.extractTweetId(mention.originalUrl))
+      .map((mention) => this.extractTweetId(mention.originalUrl))
       .filter(Boolean) as string[];
 
     if (tweetIds.length === 0) {
       return {
-        data: mentions.map(mention => ({
+        data: mentions.map((mention) => ({
           ...mention,
-          data_source: 'elfa' as DataSource
+          data_source: "elfa" as DataSource,
         })),
         enhancement_info: {
           total_enhanced: 0,
           failed_enhancements: 0,
-          twitter_api_used: false
-        }
+          twitter_api_used: false,
+        },
       };
     }
 
     try {
       const twitterData = await this.fetchTwitterData(tweetIds, options);
-      const enhanced = this.mergeMentionsWithAccountAndTokenWithTwitterData(mentions, twitterData);
+      const enhanced = this.mergeMentionsWithAccountAndTokenWithTwitterData(
+        mentions,
+        twitterData,
+      );
 
       return {
         data: enhanced,
         enhancement_info: {
-          total_enhanced: enhanced.filter(m => m.data_source === 'elfa+twitter').length,
-          failed_enhancements: mentions.length - enhanced.filter(m => m.data_source === 'elfa+twitter').length,
-          twitter_api_used: true
-        }
+          total_enhanced: enhanced.filter(
+            (m) => m.data_source === "elfa+twitter",
+          ).length,
+          failed_enhancements:
+            mentions.length -
+            enhanced.filter((m) => m.data_source === "elfa+twitter").length,
+          twitter_api_used: true,
+        },
       };
     } catch (error) {
       if (options.fallbackToV2 !== false) {
         return {
-          data: mentions.map(mention => ({
+          data: mentions.map((mention) => ({
             ...mention,
-            data_source: 'elfa' as DataSource
+            data_source: "elfa" as DataSource,
           })),
           enhancement_info: {
             total_enhanced: 0,
             failed_enhancements: mentions.length,
             twitter_api_used: false,
-            errors: [error instanceof Error ? error.message : 'Unknown error']
-          }
+            errors: [error instanceof Error ? error.message : "Unknown error"],
+          },
         };
       }
-      throw new EnhancementError('Failed to enhance mentions with Twitter data', error);
+      throw new EnhancementError(
+        "Failed to enhance mentions with Twitter data",
+        error,
+      );
     }
   }
 
   private async fetchTwitterData(
     tweetIds: string[],
-    options: EnhancementOptions
+    options: EnhancementOptions,
   ): Promise<TwitterApiResponse<TwitterTweet[]>> {
     if (!this.twitterClient) {
-      throw new Error('Twitter client not available');
+      throw new Error("Twitter client not available");
     }
-
 
     const batchSize = options.batchSize || this.batchSize;
     const allTweets: TwitterTweet[] = [];
@@ -232,14 +261,26 @@ export class ResponseEnhancer {
       const response = await this.twitterClient.getTweets({
         tweetIds: batch,
         tweetFields: [
-          'id', 'text', 'author_id', 'created_at', 'public_metrics',
-          'referenced_tweets', 'context_annotations', 'lang'
+          "id",
+          "text",
+          "author_id",
+          "created_at",
+          "public_metrics",
+          "referenced_tweets",
+          "context_annotations",
+          "lang",
         ],
         userFields: [
-          'id', 'name', 'username', 'description', 'public_metrics',
-          'profile_image_url', 'verified', 'verified_type'
+          "id",
+          "name",
+          "username",
+          "description",
+          "public_metrics",
+          "profile_image_url",
+          "verified",
+          "verified_type",
         ],
-        expansions: ['author_id']
+        expansions: ["author_id"],
       });
 
       if (response.data) {
@@ -253,27 +294,27 @@ export class ResponseEnhancer {
     return {
       data: allTweets,
       includes: {
-        users: allUsers
-      }
+        users: allUsers,
+      },
     };
   }
 
   private mergeProcessedMentionsWithTwitterData(
     mentions: ProcessedMention[],
-    twitterData: TwitterApiResponse<TwitterTweet[]>
+    twitterData: TwitterApiResponse<TwitterTweet[]>,
   ): EnhancedProcessedMention[] {
     const tweetsMap = new Map<string, TwitterTweet>();
     const usersMap = new Map<string, TwitterUser>();
 
-    twitterData.data?.forEach(tweet => {
+    twitterData.data?.forEach((tweet) => {
       tweetsMap.set(tweet.id, tweet);
     });
 
-    twitterData.includes?.users?.forEach(user => {
+    twitterData.includes?.users?.forEach((user) => {
       usersMap.set(user.id, user);
     });
 
-    return mentions.map(mention => {
+    return mentions.map((mention) => {
       const tweetId = this.extractTweetId(mention.link);
       const tweet = tweetId ? tweetsMap.get(tweetId) : undefined;
       const user = tweet ? usersMap.get(tweet.author_id) : undefined;
@@ -283,34 +324,34 @@ export class ResponseEnhancer {
           ...mention,
           content: tweet.text,
           enhanced_metrics: this.calculateEnhancedMetrics(tweet, user),
-          data_source: 'elfa+twitter' as DataSource,
-          twitter_data: { tweet, user }
+          data_source: "elfa+twitter" as DataSource,
+          twitter_data: { tweet, user },
         };
       }
 
       return {
         ...mention,
-        data_source: 'elfa' as DataSource
+        data_source: "elfa" as DataSource,
       };
     });
   }
 
   private mergeSimpleMentionsWithTwitterData(
     mentions: SimpleMention[],
-    twitterData: TwitterApiResponse<TwitterTweet[]>
+    twitterData: TwitterApiResponse<TwitterTweet[]>,
   ): EnhancedSimpleMention[] {
     const tweetsMap = new Map<string, TwitterTweet>();
     const usersMap = new Map<string, TwitterUser>();
 
-    twitterData.data?.forEach(tweet => {
+    twitterData.data?.forEach((tweet) => {
       tweetsMap.set(tweet.id, tweet);
     });
 
-    twitterData.includes?.users?.forEach(user => {
+    twitterData.includes?.users?.forEach((user) => {
       usersMap.set(user.id, user);
     });
 
-    return mentions.map(mention => {
+    return mentions.map((mention) => {
       const tweet = tweetsMap.get(mention.twitter_id);
       const user = tweet ? usersMap.get(tweet.author_id) : undefined;
 
@@ -319,34 +360,34 @@ export class ResponseEnhancer {
           ...mention,
           content: tweet.text,
           enhanced_metrics: this.calculateEnhancedMetrics(tweet, user),
-          data_source: 'elfa+twitter' as DataSource,
-          twitter_data: { tweet, user }
+          data_source: "elfa+twitter" as DataSource,
+          twitter_data: { tweet, user },
         };
       }
 
       return {
         ...mention,
-        data_source: 'elfa' as DataSource
+        data_source: "elfa" as DataSource,
       };
     });
   }
 
   private mergeMentionsWithAccountAndTokenWithTwitterData(
     mentions: MentionWithAccountAndToken[],
-    twitterData: TwitterApiResponse<TwitterTweet[]>
+    twitterData: TwitterApiResponse<TwitterTweet[]>,
   ): EnhancedMentionWithAccountAndToken[] {
     const tweetsMap = new Map<string, TwitterTweet>();
     const usersMap = new Map<string, TwitterUser>();
 
-    twitterData.data?.forEach(tweet => {
+    twitterData.data?.forEach((tweet) => {
       tweetsMap.set(tweet.id, tweet);
     });
 
-    twitterData.includes?.users?.forEach(user => {
+    twitterData.includes?.users?.forEach((user) => {
       usersMap.set(user.id, user);
     });
 
-    return mentions.map(mention => {
+    return mentions.map((mention) => {
       const tweetId = this.extractTweetId(mention.originalUrl);
       const tweet = tweetId ? tweetsMap.get(tweetId) : undefined;
       const user = tweet ? usersMap.get(tweet.author_id) : undefined;
@@ -356,14 +397,14 @@ export class ResponseEnhancer {
           ...mention,
           content: tweet.text,
           enhanced_metrics: this.calculateEnhancedMetrics(tweet, user),
-          data_source: 'elfa+twitter' as DataSource,
-          twitter_data: { tweet, user }
+          data_source: "elfa+twitter" as DataSource,
+          twitter_data: { tweet, user },
         };
       }
 
       return {
         ...mention,
-        data_source: 'elfa' as DataSource
+        data_source: "elfa" as DataSource,
       };
     });
   }
@@ -373,26 +414,34 @@ export class ResponseEnhancer {
     return tweetIdMatch ? tweetIdMatch[1] : null;
   }
 
-  private calculateEnhancedMetrics(tweet: TwitterTweet, user?: TwitterUser): EnhancedMetrics {
+  private calculateEnhancedMetrics(
+    tweet: TwitterTweet,
+    user?: TwitterUser,
+  ): EnhancedMetrics {
     const metrics: EnhancedMetrics = {};
 
     if (tweet.public_metrics) {
       metrics.impression_count = tweet.public_metrics.impression_count;
-      
-      const totalEngagements = 
+
+      const totalEngagements =
         tweet.public_metrics.like_count +
         tweet.public_metrics.retweet_count +
         tweet.public_metrics.reply_count +
         tweet.public_metrics.quote_count;
-      
-      if (tweet.public_metrics.impression_count && tweet.public_metrics.impression_count > 0) {
-        metrics.engagement_rate = totalEngagements / tweet.public_metrics.impression_count;
+
+      if (
+        tweet.public_metrics.impression_count &&
+        tweet.public_metrics.impression_count > 0
+      ) {
+        metrics.engagement_rate =
+          totalEngagements / tweet.public_metrics.impression_count;
       }
     }
 
     if (user) {
       metrics.reach = user.public_metrics?.followers_count;
-      metrics.twitter_verified = user.verified || user.verified_type !== undefined;
+      metrics.twitter_verified =
+        user.verified || user.verified_type !== undefined;
     }
 
     return metrics;

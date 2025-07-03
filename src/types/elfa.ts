@@ -8,7 +8,7 @@ export interface PingResponse {
 export interface ApiKeyStatus {
   id: number;
   name: string;
-  status: 'active' | 'revoked' | 'expired' | 'payment_required';
+  status: "active" | "revoked" | "expired" | "payment_required";
   dailyRequestLimit: number;
   monthlyRequestLimit: number;
   expiresAt: string;
@@ -120,7 +120,7 @@ export interface TokenNewsV2Response {
 
 export interface TrendingContractAddress {
   contractAddress: string;
-  chain: 'ethereum' | 'solana';
+  chain: "ethereum" | "solana";
   mentionCount: number;
 }
 
@@ -254,8 +254,13 @@ export interface MentionWithAccountAndToken {
   type: string;
   originalUrl: string;
   mentionedAt: string;
-  mentionedByType: 'general' | 'ct' | 'smart';
-  sentiment: 'very-bullish' | 'bullish' | 'very-bearish' | 'bearish' | 'neutral';
+  mentionedByType: "general" | "ct" | "smart";
+  sentiment:
+    | "very-bullish"
+    | "bullish"
+    | "very-bearish"
+    | "bearish"
+    | "neutral";
   account: BasicAccount;
   coins: BasicCoin[];
 }
@@ -362,4 +367,3 @@ export interface MentionsParams {
   limit?: number;
   offset?: number;
 }
-

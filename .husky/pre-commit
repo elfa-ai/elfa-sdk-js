@@ -1,0 +1,8 @@
+# Check if cherry-pick is in progress
+if [ -f "$(git rev-parse --git-dir)/CHERRY_PICK_HEAD" ]; then
+  echo "Cherry-pick in progress, skipping pre-commit hooks..."
+  exit 0
+fi
+
+# Run normal hooks if not cherry-picking
+npx lint-staged

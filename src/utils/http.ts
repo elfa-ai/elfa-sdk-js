@@ -1,11 +1,16 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { 
-  ElfaApiError, 
-  NetworkError, 
-  RateLimitError, 
+import axios, {
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+  type AxiosError,
+} from "axios";
+import {
+  ElfaApiError,
+  NetworkError,
+  RateLimitError,
   AuthenticationError,
-  isRetryableError 
-} from './errors.js';
+  isRetryableError,
+} from "./errors.js";
 
 export interface HttpClientOptions {
   baseURL: string;
@@ -30,22 +35,22 @@ export class HttpClient {
       retries: 3,
       retryDelay: 1000,
       debug: false,
-      ...options
+      ...options,
     };
 
     const clientConfig: any = {
       baseURL: this.options.baseURL,
       headers: {
-        'User-Agent': '@elfa-ai/sdk/2.0.2',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      }
+        "User-Agent": "@elfa-ai/sdk/2.0.2",
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
     };
-    
+
     if (this.options.timeout !== undefined) {
       clientConfig.timeout = this.options.timeout;
     }
-    
+
     this.client = axios.create(clientConfig);
 
     this.setupInterceptors();
@@ -57,24 +62,24 @@ export class HttpClient {
         if (this.options.debug) {
           console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.url}`, {
             params: config.params,
-            data: config.data
+            data: config.data,
           });
         }
         return config;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     this.client.interceptors.response.use(
       (response) => {
         if (this.options.debug) {
           console.log(`[HTTP] ${response.status} ${response.config.url}`, {
-            data: response.data
+            data: response.data,
           });
         }
         return response;
       },
-      (error) => this.handleResponseError(error)
+      (error) => this.handleResponseError(error),
     );
   }
 
@@ -103,21 +108,21 @@ export class HttpClient {
   }
 
   private extractErrorMessage(data: any): string {
-    if (typeof data === 'string') {
+    if (typeof data === "string") {
       return data;
     }
 
-    if (data && typeof data === 'object') {
-      return data.message || data.error || data.detail || 'API request failed';
+    if (data && typeof data === "object") {
+      return data.message || data.error || data.detail || "API request failed";
     }
 
-    return 'Unknown API error';
+    return "Unknown API error";
   }
 
   private extractRateLimitReset(response: AxiosResponse): Date | undefined {
-    const resetHeader = response.headers['x-ratelimit-reset'] || 
-                       response.headers['retry-after'];
-    
+    const resetHeader =
+      response.headers["x-ratelimit-reset"] || response.headers["retry-after"];
+
     if (resetHeader) {
       const resetTime = parseInt(resetHeader, 10);
       return new Date(resetTime * 1000);
@@ -144,7 +149,9 @@ export class HttpClient {
         }
 
         if (this.options.debug) {
-          console.log(`[HTTP] Retry attempt ${attempt + 1}/${maxRetries} after ${retryDelay}ms`);
+          console.log(
+            `[HTTP] Retry attempt ${attempt + 1}/${maxRetries} after ${retryDelay}ms`,
+          );
         }
 
         await this.delay(retryDelay * Math.pow(2, attempt));
@@ -155,30 +162,41 @@ export class HttpClient {
   }
 
   public async get<T = any>(url: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>({ ...config, method: 'GET', url });
+    return this.request<T>({ ...config, method: "GET", url });
   }
 
-  public async post<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
-    return this.request<T>({ ...config, method: 'POST', url, data });
+  public async post<T = any>(
+    url: string,
+    data?: any,
+    config?: RequestConfig,
+  ): Promise<T> {
+    return this.request<T>({ ...config, method: "POST", url, data });
   }
 
-  public async put<T = any>(url: string, data?: any, config?: RequestConfig): Promise<T> {
-    return this.request<T>({ ...config, method: 'PUT', url, data });
+  public async put<T = any>(
+    url: string,
+    data?: any,
+    config?: RequestConfig,
+  ): Promise<T> {
+    return this.request<T>({ ...config, method: "PUT", url, data });
   }
 
-  public async delete<T = any>(url: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>({ ...config, method: 'DELETE', url });
+  public async delete<T = any>(
+    url: string,
+    config?: RequestConfig,
+  ): Promise<T> {
+    return this.request<T>({ ...config, method: "DELETE", url });
   }
 
   public setAuthHeader(token: string): void {
-    this.client.defaults.headers.common['x-elfa-api-key'] = token;
+    this.client.defaults.headers.common["x-elfa-api-key"] = token;
   }
 
   public setTwitterAuthHeader(token: string): void {
-    this.client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    this.client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }
 
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }

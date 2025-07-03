@@ -1,0 +1,7 @@
+# Prettier ignore file
+node_modules/
+dist/
+coverage/
+.git/
+swagger.json
+package-lock.json
