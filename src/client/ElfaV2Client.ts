@@ -180,6 +180,9 @@ export class ElfaV2Client {
     if (params.cursor) {
       searchParams.append("cursor", params.cursor);
     }
+    if (params.reposts !== undefined) {
+      searchParams.append("reposts", params.reposts.toString());
+    }
 
     return this.httpClient.get<KeywordMentionsV2Response>(
       `/v2/data/keyword-mentions?${searchParams}`,
@@ -205,6 +208,9 @@ export class ElfaV2Client {
     }
     if (params.coinIds) {
       searchParams.append("coinIds", params.coinIds);
+    }
+    if (params.reposts !== undefined) {
+      searchParams.append("reposts", params.reposts.toString());
     }
 
     const url = `/v2/data/token-news${searchParams.toString() ? `?${searchParams}` : ""}`;
@@ -411,6 +417,9 @@ export class ElfaV2Client {
     }
     if (params.pageSize !== undefined) {
       searchParams.append("pageSize", params.pageSize.toString());
+    }
+    if (params.reposts !== undefined) {
+      searchParams.append("reposts", params.reposts.toString());
     }
 
     return this.httpClient.get<TopMentionsV2Response>(
