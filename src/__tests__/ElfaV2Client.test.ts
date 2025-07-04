@@ -443,6 +443,28 @@ describe("ElfaV2Client", () => {
       expect(result).toEqual(mockResponse);
     });
 
+    it("should call mentions by keywords endpoint with reposts parameter", async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0 },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getMentionsByKeywords({
+        keywords: "bitcoin",
+        from: 1640995200,
+        to: 1641081600,
+        limit: 10,
+        reposts: false,
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/keyword-mentions?keywords=bitcoin&from=1640995200&to=1641081600&limit=10&reposts=false",
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
     it("should throw ValidationError if keywords are missing", async () => {
       await expect(
         client.getMentionsByKeywords({

@@ -28,6 +28,7 @@ export interface LegacySearchParams {
   searchType?: "and" | "or";
   cursor?: string;
   fetchRawTweets?: boolean;
+  reposts?: boolean;
 }
 
 export interface LegacyTrendingParams {
@@ -117,6 +118,9 @@ export class V1CompatibilityLayer {
     }
     if (params.cursor !== undefined) {
       baseParams.cursor = params.cursor;
+    }
+    if (params.reposts !== undefined) {
+      baseParams.reposts = params.reposts;
     }
 
     // Add request options as separate properties

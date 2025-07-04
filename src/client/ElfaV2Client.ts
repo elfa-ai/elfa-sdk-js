@@ -350,6 +350,9 @@ export class ElfaV2Client {
     if (params.cursor) {
       searchParams.append("cursor", params.cursor);
     }
+    if (params.reposts !== undefined) {
+      searchParams.append("reposts", params.reposts.toString());
+    }
 
     return this.httpClient.get<GetMentionsByKeywordsResponse>(
       `/v2/data/keyword-mentions?${searchParams}`,

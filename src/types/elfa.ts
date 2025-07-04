@@ -378,6 +378,7 @@ export interface MentionsByKeywordsParams {
   limit?: number;
   searchType?: string;
   cursor?: string;
+  reposts?: boolean;
 }
 
 export interface MentionsParams {
