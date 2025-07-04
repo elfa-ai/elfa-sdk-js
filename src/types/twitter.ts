@@ -12,7 +12,7 @@ export interface TwitterTweet {
     bookmark_count?: number;
   };
   referenced_tweets?: Array<{
-    type: 'retweeted' | 'quoted' | 'replied_to';
+    type: "retweeted" | "quoted" | "replied_to";
     id: string;
   }>;
   context_annotations?: Array<{
@@ -41,12 +41,12 @@ export interface TwitterTweet {
   in_reply_to_user_id?: string;
   lang?: string;
   possibly_sensitive?: boolean;
-  reply_settings?: 'everyone' | 'mentionedUsers' | 'following';
+  reply_settings?: "everyone" | "mentionedUsers" | "following";
   source?: string;
   withheld?: {
     copyright: boolean;
     country_codes: string[];
-    scope?: 'tweet' | 'user';
+    scope?: "tweet" | "user";
   };
 }
 
@@ -103,10 +103,10 @@ export interface TwitterUser {
   };
   url?: string;
   verified?: boolean;
-  verified_type?: 'blue' | 'business' | 'government';
+  verified_type?: "blue" | "business" | "government";
   withheld?: {
     country_codes: string[];
-    scope?: 'tweet' | 'user';
+    scope?: "tweet" | "user";
   };
 }
 
@@ -140,7 +140,7 @@ export interface TwitterApiErrorResponse {
 
 export interface TwitterClientOptions {
   bearerToken: string;
-  apiVersion?: '2';
+  apiVersion?: "2";
   baseUrl?: string;
   timeout?: number;
   retries?: number;

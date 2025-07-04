@@ -29,21 +29,21 @@ npm install @elfa-ai/sdk
 ### Basic V2 Usage
 
 ```typescript
-import { ElfaSDK } from '@elfa-ai/sdk';
+import { ElfaSDK } from "@elfa-ai/sdk";
 
 const elfa = new ElfaSDK({
-  elfaApiKey: 'your-elfa-api-key',
-  fetchRawTweets: false // V2-formatted processed data
+  elfaApiKey: "your-elfa-api-key",
+  fetchRawTweets: false, // V2-formatted processed data
 });
 
 // Get trending tokens
-const trending = await elfa.getTrendingTokens({ timeWindow: '24h' });
+const trending = await elfa.getTrendingTokens({ timeWindow: "24h" });
 console.log(trending.data.data);
 
 // Search keyword mentions (processed)
-const mentions = await elfa.getKeywordMentions({ 
-  keywords: 'bitcoin,ethereum',
-  period: '1h'
+const mentions = await elfa.getKeywordMentions({
+  keywords: "bitcoin,ethereum",
+  period: "1h",
 });
 console.log(mentions.data);
 ```
@@ -51,24 +51,24 @@ console.log(mentions.data);
 ### Enhanced Usage with Raw Content
 
 ```typescript
-import { ElfaSDK } from '@elfa-ai/sdk';
+import { ElfaSDK } from "@elfa-ai/sdk";
 
 const elfa = new ElfaSDK({
-  elfaApiKey: 'your-elfa-api-key',
-  twitterApiKey: 'your-twitter-bearer-token', // Enables content enhancement
-  fetchRawTweets: false // Don't fetch raw content by default
+  elfaApiKey: "your-elfa-api-key",
+  twitterApiKey: "your-twitter-bearer-token", // Enables content enhancement
+  fetchRawTweets: false, // Don't fetch raw content by default
 });
 
 // Get mentions with raw tweet content
 const enhancedMentions = await elfa.getKeywordMentions({
-  keywords: 'bitcoin',
-  period: '1h',
-  fetchRawTweets: true // Override to get raw content
+  keywords: "bitcoin",
+  period: "1h",
+  fetchRawTweets: true, // Override to get raw content
 });
 
-enhancedMentions.data.forEach(mention => {
-  console.log('Tweet content:', mention.content); // Enhanced with raw tweet text
-  console.log('Data source:', mention.data_source); // 'elfa+twitter'
+enhancedMentions.data.forEach((mention) => {
+  console.log("Tweet content:", mention.content); // Enhanced with raw tweet text
+  console.log("Data source:", mention.data_source); // 'elfa+twitter'
 });
 ```
 
@@ -76,18 +76,18 @@ enhancedMentions.data.forEach(mention => {
 
 ```typescript
 const elfa = new ElfaSDK({
-  elfaApiKey: 'your-elfa-api-key',
-  twitterApiKey: 'your-twitter-bearer-token',
-  fetchRawTweets: true // Enable raw tweets globally
+  elfaApiKey: "your-elfa-api-key",
+  twitterApiKey: "your-twitter-bearer-token",
+  fetchRawTweets: true, // Enable raw tweets globally
 });
 
 // All methods now include raw content by default
-const mentions = await elfa.getKeywordMentions({ keywords: 'solana' });
+const mentions = await elfa.getKeywordMentions({ keywords: "solana" });
 
 // Can still override per method
-const processed = await elfa.getKeywordMentions({ 
-  keywords: 'cardano',
-  fetchRawTweets: false 
+const processed = await elfa.getKeywordMentions({
+  keywords: "cardano",
+  fetchRawTweets: false,
 });
 ```
 
@@ -100,25 +100,25 @@ For users migrating from direct API calls or V1, see our comprehensive [Migratio
 For users migrating from V1, use the compatibility layer:
 
 ```typescript
-import { V1CompatibilityLayer } from '@elfa-ai/sdk/compatibility';
+import { V1CompatibilityLayer } from "@elfa-ai/sdk/compatibility";
 
 // Drop-in replacement for V1 with enhanced functionality
 const client = new V1CompatibilityLayer({
-  elfaApiKey: 'your-elfa-api-key',
-  twitterApiKey: 'your-twitter-bearer-token',
-  enableV1Behavior: true // Enables raw tweets by default
+  elfaApiKey: "your-elfa-api-key",
+  twitterApiKey: "your-twitter-bearer-token",
+  enableV1Behavior: true, // Enables raw tweets by default
 });
 
 // Use V1 method signatures
 const topMentions = await client.getTopMentions({
-  ticker: 'bitcoin',
-  timeWindow: '24h'
+  ticker: "bitcoin",
+  timeWindow: "24h",
 });
 
 const searchResults = await client.getMentionsByKeywords({
-  keywords: 'ethereum',
+  keywords: "ethereum",
   from: 1640995200,
-  to: 1641081600
+  to: 1641081600,
 });
 ```
 
@@ -127,55 +127,60 @@ const searchResults = await client.getMentionsByKeywords({
 ### Core Methods
 
 #### `getTrendingTokens(params?)`
+
 Get trending tokens based on mention counts.
 
 ```typescript
 const trending = await elfa.getTrendingTokens({
-  timeWindow: '24h',
+  timeWindow: "24h",
   pageSize: 50,
-  minMentions: 5
+  minMentions: 5,
 });
 ```
 
 #### `getKeywordMentions(params)`
+
 Search mentions by keywords with optional raw content.
 
 ```typescript
 const mentions = await elfa.getKeywordMentions({
-  keywords: 'bitcoin,ethereum',
-  period: '1h',
+  keywords: "bitcoin,ethereum",
+  period: "1h",
   limit: 20,
-  fetchRawTweets: true
+  fetchRawTweets: true,
 });
 ```
 
 #### `getTokenNews(params?)`
+
 Get token-related news mentions.
 
 ```typescript
 const news = await elfa.getTokenNews({
-  coinIds: 'bitcoin,ethereum',
+  coinIds: "bitcoin,ethereum",
   pageSize: 20,
-  fetchRawTweets: true
+  fetchRawTweets: true,
 });
 ```
 
 #### `getTrendingCAsTwitter(params?)`
+
 Get trending contract addresses from Twitter.
 
 ```typescript
 const trendingCAs = await elfa.getTrendingCAsTwitter({
-  timeWindow: '24h',
-  minMentions: 10
+  timeWindow: "24h",
+  minMentions: 10,
 });
 ```
 
 #### `getAccountSmartStats(params)`
+
 Get smart stats for a Twitter account.
 
 ```typescript
 const stats = await elfa.getAccountSmartStats({
-  username: 'elonmusk'
+  username: "elonmusk",
 });
 ```
 
@@ -183,15 +188,15 @@ const stats = await elfa.getAccountSmartStats({
 
 ```typescript
 interface SDKOptions {
-  elfaApiKey: string;                    // Required: Your Elfa API key
-  twitterApiKey?: string;                // Optional: Twitter Bearer token for enhancement
-  baseUrl?: string;                      // Optional: API base URL (default: https://api.elfa.ai)
-  fetchRawTweets?: boolean;              // Optional: Global raw tweet setting (default: false)
-  enhancementTimeout?: number;           // Optional: Twitter API timeout (default: 30000ms)
-  maxBatchSize?: number;                 // Optional: Max tweets per batch (default: 100)
-  strictMode?: boolean;                  // Optional: Fail if Twitter unavailable (default: false)
-  respectRateLimits?: boolean;           // Optional: Auto-throttle (default: true)
-  debug?: boolean;                       // Optional: Enable debug logging (default: false)
+  elfaApiKey: string; // Required: Your Elfa API key
+  twitterApiKey?: string; // Optional: Twitter Bearer token for enhancement
+  baseUrl?: string; // Optional: API base URL (default: https://api.elfa.ai)
+  fetchRawTweets?: boolean; // Optional: Global raw tweet setting (default: false)
+  enhancementTimeout?: number; // Optional: Twitter API timeout (default: 30000ms)
+  maxBatchSize?: number; // Optional: Max tweets per batch (default: 100)
+  strictMode?: boolean; // Optional: Fail if Twitter unavailable (default: false)
+  respectRateLimits?: boolean; // Optional: Auto-throttle (default: true)
+  debug?: boolean; // Optional: Enable debug logging (default: false)
 }
 ```
 
@@ -200,26 +205,26 @@ interface SDKOptions {
 The SDK provides comprehensive error handling with specific error types:
 
 ```typescript
-import { 
-  ElfaApiError, 
-  TwitterApiError, 
+import {
+  ElfaApiError,
+  TwitterApiError,
   ValidationError,
   RateLimitError,
-  AuthenticationError 
-} from '@elfa-ai/sdk';
+  AuthenticationError,
+} from "@elfa-ai/sdk";
 
 try {
   const mentions = await elfa.getKeywordMentions({
-    keywords: 'bitcoin',
-    fetchRawTweets: true
+    keywords: "bitcoin",
+    fetchRawTweets: true,
   });
 } catch (error) {
   if (error instanceof AuthenticationError) {
-    console.log('Invalid API key');
+    console.log("Invalid API key");
   } else if (error instanceof RateLimitError) {
-    console.log('Rate limited, retry after:', error.resetTime);
+    console.log("Rate limited, retry after:", error.resetTime);
   } else if (error instanceof TwitterApiError) {
-    console.log('Twitter API issue, using V2 data only');
+    console.log("Twitter API issue, using V2 data only");
   }
 }
 ```
@@ -255,9 +260,14 @@ npm test
 # Run tests with coverage
 npm run test:coverage
 
-# Lint and type check
-npm run lint
-npm run typecheck
+# Code quality checks
+npm run lint                    # Run ESLint
+npm run lint:fix               # Run ESLint with auto-fix
+npm run format                 # Format code with Prettier
+npm run format:check           # Check if code is formatted
+npm run typecheck              # TypeScript type checking
+npm run quality                # Run all quality checks
+npm run quality:fix            # Run all quality checks with auto-fix
 ```
 
 ## License
@@ -269,4 +279,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 📧 Email: support@elfa.ai
 - 📖 Documentation: [https://docs.elfa.ai](https://docs.elfa.ai)
 - 🐛 Issues: [GitHub Issues](https://github.com/elfa-ai/elfa-sdk-js/issues)
-
+  test change
