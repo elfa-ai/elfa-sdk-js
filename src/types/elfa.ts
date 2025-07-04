@@ -93,9 +93,14 @@ export interface ProcessedMention {
   replyCount: number | null;
   bookmarkCount: number | null;
   mentionedAt: string;
+  type: string;
   account?: {
     isVerified: boolean;
     username: string;
+  };
+  repostBreakdown: {
+    smart: number;
+    ct: number;
   };
 }
 
@@ -282,6 +287,15 @@ export interface TopMentionV2 {
   replyCount: number;
   bookmarkCount: number;
   mentionedAt: string;
+  type: string;
+  account?: {
+    isVerified: boolean;
+    username: string;
+  };
+  repostBreakdown: {
+    smart: number;
+    ct: number;
+  };
 }
 
 export interface TopMentionsV2Response {
@@ -312,6 +326,7 @@ export interface KeywordMentionsParams {
   limit?: number;
   searchType?: string;
   cursor?: string;
+  reposts?: boolean;
 }
 
 export interface TokenNewsParams {
@@ -320,6 +335,7 @@ export interface TokenNewsParams {
   page?: number;
   pageSize?: number;
   coinIds?: string;
+  reposts?: boolean;
 }
 
 export interface TrendingCAsParams {
@@ -352,6 +368,7 @@ export interface TopMentionsV2Params {
   to?: number;
   page?: number;
   pageSize?: number;
+  reposts?: boolean;
 }
 
 export interface MentionsByKeywordsParams {
@@ -361,6 +378,7 @@ export interface MentionsByKeywordsParams {
   limit?: number;
   searchType?: string;
   cursor?: string;
+  reposts?: boolean;
 }
 
 export interface MentionsParams {

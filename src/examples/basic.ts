@@ -30,6 +30,15 @@ export async function basicUsageExample(): Promise<void> {
     });
     console.log("Recent mentions:", mentions.data.length);
 
+    console.log("Searching keyword mentions without reposts...");
+    const mentionsNoReposts = await elfa.getKeywordMentions({
+      keywords: "bitcoin,ethereum",
+      timeWindow: "1h",
+      limit: 5,
+      reposts: false,
+    });
+    console.log("Recent mentions (no reposts):", mentionsNoReposts.data.length);
+
     console.log("Getting account smart stats...");
     const accountStats = await elfa.getAccountSmartStats({
       username: "elonmusk",

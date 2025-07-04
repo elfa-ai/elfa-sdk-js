@@ -217,7 +217,9 @@ describe("ElfaSDK", () => {
       };
       mockElfaClient.getAccountSmartStats.mockResolvedValue(mockResponse);
 
-      const result = await sdk.getAccountSmartStats({ username: "testuser" });
+      const result = await sdk.getAccountSmartStats({
+        username: "testuser",
+      });
 
       expect(mockElfaClient.getAccountSmartStats).toHaveBeenCalledWith({
         username: "testuser",
@@ -250,6 +252,11 @@ describe("ElfaSDK", () => {
             replyCount: 5,
             bookmarkCount: 3,
             mentionedAt: "2023-01-01T00:00:00Z",
+            type: "post",
+            repostBreakdown: {
+              smart: 3,
+              ct: 7,
+            },
           },
         ],
         metadata: { total: 1 },
@@ -266,6 +273,11 @@ describe("ElfaSDK", () => {
             replyCount: 5,
             bookmarkCount: 3,
             mentionedAt: "2023-01-01T00:00:00Z",
+            type: "post",
+            repostBreakdown: {
+              smart: 3,
+              ct: 7,
+            },
             content: "Enhanced content",
             data_source: "elfa+twitter" as const,
           },
@@ -316,6 +328,11 @@ describe("ElfaSDK", () => {
             replyCount: 5,
             bookmarkCount: 3,
             mentionedAt: "2023-01-01T00:00:00Z",
+            type: "post",
+            repostBreakdown: {
+              smart: 3,
+              ct: 7,
+            },
           },
         ],
         metadata: { total: 1 },
@@ -350,6 +367,11 @@ describe("ElfaSDK", () => {
             replyCount: 5,
             bookmarkCount: 3,
             mentionedAt: "2023-01-01T00:00:00Z",
+            type: "post",
+            repostBreakdown: {
+              smart: 3,
+              ct: 7,
+            },
           },
         ],
         metadata: { total: 1 },
@@ -380,6 +402,11 @@ describe("ElfaSDK", () => {
             replyCount: 5,
             bookmarkCount: 3,
             mentionedAt: "2023-01-01T00:00:00Z",
+            type: "post",
+            repostBreakdown: {
+              smart: 3,
+              ct: 7,
+            },
           },
         ],
         metadata: { total: 1, page: 1, pageSize: 20 },
@@ -396,6 +423,11 @@ describe("ElfaSDK", () => {
             replyCount: 5,
             bookmarkCount: 3,
             mentionedAt: "2023-01-01T00:00:00Z",
+            type: "post",
+            repostBreakdown: {
+              smart: 3,
+              ct: 7,
+            },
             content: "Enhanced news",
             data_source: "elfa+twitter" as const,
           },
@@ -626,7 +658,9 @@ describe("ElfaSDK", () => {
       };
       mockElfaClient.getTrendingCAsTwitter.mockResolvedValue(mockResponse);
 
-      const result = await sdk.getTrendingCAsTwitter({ timeWindow: "24h" });
+      const result = await sdk.getTrendingCAsTwitter({
+        timeWindow: "24h",
+      });
 
       expect(mockElfaClient.getTrendingCAsTwitter).toHaveBeenCalledWith({
         timeWindow: "24h",
@@ -641,7 +675,9 @@ describe("ElfaSDK", () => {
       };
       mockElfaClient.getTrendingCAsTelegram.mockResolvedValue(mockResponse);
 
-      const result = await sdk.getTrendingCAsTelegram({ timeWindow: "24h" });
+      const result = await sdk.getTrendingCAsTelegram({
+        timeWindow: "24h",
+      });
 
       expect(mockElfaClient.getTrendingCAsTelegram).toHaveBeenCalledWith({
         timeWindow: "24h",
