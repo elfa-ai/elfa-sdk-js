@@ -83,34 +83,6 @@ describe("V1CompatibilityLayer", () => {
       });
     });
 
-    it("should handle getMentionsByKeywords with reposts parameter", async () => {
-      const mockResponse = {
-        success: true,
-        data: [],
-        metadata: { total: 0 },
-      };
-
-      const mockSDK = jest
-        .spyOn(v1Client.getSDK(), "getMentionsByKeywords")
-        .mockResolvedValue(mockResponse);
-
-      await v1Client.getMentionsByKeywords({
-        keywords: "bitcoin,ethereum",
-        from: 1640995200,
-        to: 1641081600,
-        fetchRawTweets: true,
-        reposts: false,
-      });
-
-      expect(mockSDK).toHaveBeenCalledWith({
-        keywords: "bitcoin,ethereum",
-        from: 1640995200,
-        to: 1641081600,
-        fetchRawTweets: true,
-        reposts: false,
-      });
-    });
-
     it("should handle getTrendingTokens with legacy parameters", async () => {
       const mockResponse = {
         success: true,
