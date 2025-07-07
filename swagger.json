@@ -335,11 +335,15 @@
 					},
 					"data": {
 						"properties": {
+							"followerCount": {
+								"type": "number",
+								"format": "double"
+							},
 							"smartFollowerCount": {
 								"type": "number",
 								"format": "double"
 							},
-							"followerEngagementRatio": {
+							"averageReach": {
 								"type": "number",
 								"format": "double"
 							},
@@ -353,7 +357,7 @@
 							}
 						},
 						"required": [
-							"followerEngagementRatio",
+							"averageReach",
 							"averageEngagement",
 							"smartFollowingCount"
 						],
@@ -367,7 +371,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"SanitizedMention": {
+			"MentionV2": {
 				"properties": {
 					"tweetId": {
 						"type": "string"
@@ -408,6 +412,32 @@
 					"mentionedAt": {
 						"type": "string"
 					},
+					"type": {
+						"type": "string",
+						"enum": [
+							"repost",
+							"post",
+							"quote",
+							"reply"
+						]
+					},
+					"repostBreakdown": {
+						"properties": {
+							"ct": {
+								"type": "number",
+								"format": "double"
+							},
+							"smart": {
+								"type": "number",
+								"format": "double"
+							}
+						},
+						"required": [
+							"ct",
+							"smart"
+						],
+						"type": "object"
+					},
 					"account": {
 						"properties": {
 							"isVerified": {
@@ -433,7 +463,9 @@
 					"quoteCount",
 					"replyCount",
 					"bookmarkCount",
-					"mentionedAt"
+					"mentionedAt",
+					"type",
+					"repostBreakdown"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -445,7 +477,7 @@
 					},
 					"data": {
 						"items": {
-							"$ref": "#/components/schemas/SanitizedMention"
+							"$ref": "#/components/schemas/MentionV2"
 						},
 						"type": "array"
 					},
@@ -487,7 +519,7 @@
 					},
 					"data": {
 						"items": {
-							"$ref": "#/components/schemas/SanitizedMention"
+							"$ref": "#/components/schemas/MentionV2"
 						},
 						"type": "array"
 					},
@@ -515,6 +547,69 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"EventSummaryV2Response": {
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"data": {
+						"items": {
+							"properties": {
+								"tweetIds": {
+									"items": {
+										"type": "string"
+									},
+									"type": "array"
+								},
+								"sourceLinks": {
+									"items": {
+										"type": "string"
+									},
+									"type": "array"
+								},
+								"summary": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"tweetIds",
+								"sourceLinks",
+								"summary"
+							],
+							"type": "object"
+						},
+						"type": "array"
+					},
+					"metadata": {
+						"properties": {
+							"summaries": {
+								"type": "number",
+								"format": "double"
+							},
+							"total_summarized": {
+								"type": "number",
+								"format": "double"
+							},
+							"total": {
+								"type": "number",
+								"format": "double"
+							}
+						},
+						"required": [
+							"summaries",
+							"total_summarized",
+							"total"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"success",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"TokenNewsV2Response": {
 				"properties": {
 					"success": {
@@ -522,7 +617,7 @@
 					},
 					"data": {
 						"items": {
-							"$ref": "#/components/schemas/SanitizedMention"
+							"$ref": "#/components/schemas/MentionV2"
 						},
 						"type": "array"
 					},
@@ -572,17 +667,12 @@
 					"mentionCount": {
 						"type": "number",
 						"format": "double"
-					},
-					"changePercent": {
-						"type": "number",
-						"format": "double"
 					}
 				},
 				"required": [
 					"contractAddress",
 					"chain",
-					"mentionCount",
-					"changePercent"
+					"mentionCount"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1229,6 +1319,41 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"AccountSmartStatsResponseV1": {
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"data": {
+						"properties": {
+							"followerEngagementRatio": {
+								"type": "number",
+								"format": "double"
+							},
+							"averageEngagement": {
+								"type": "number",
+								"format": "double"
+							},
+							"smartFollowingCount": {
+								"type": "number",
+								"format": "double"
+							}
+						},
+						"required": [
+							"followerEngagementRatio",
+							"averageEngagement",
+							"smartFollowingCount"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"success",
+					"data"
+				],
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {
@@ -1440,7 +1565,7 @@
 		},
 		"/v2/data/top-mentions": {
 			"get": {
-				"operationId": "getTopMentionsByTicker-v2",
+				"operationId": "getTopMentions-v2",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -1456,7 +1581,7 @@
 						"description": "Unauthorized"
 					}
 				},
-				"description": "Returns the most significant mentions for a given ticker symbol, ranked by\nrelevance and engagement within a specified time window. Sanitized data without raw tweet content.",
+				"description": "Returns the most significant mentions for a given ticker symbol, ranked by\nrelevance and engagement within a specified time window.",
 				"summary": "Top mentions",
 				"tags": [
 					"v2"
@@ -1527,6 +1652,14 @@
 							"format": "double",
 							"type": "number"
 						}
+					},
+					{
+						"in": "query",
+						"name": "reposts",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
 					}
 				]
 			}
@@ -1549,8 +1682,8 @@
 						"description": "Unauthorized"
 					}
 				},
-				"description": "Search mentions by keywords OR account name with time period. Returns sanitized data without raw tweet content.",
-				"summary": "Enhanced keyword mentions search",
+				"description": "Search mentions by keywords OR account name with time period.",
+				"summary": "Multi keyword mentions search",
 				"tags": [
 					"v2"
 				],
@@ -1626,6 +1759,95 @@
 						"schema": {
 							"type": "string"
 						}
+					},
+					{
+						"in": "query",
+						"name": "reposts",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				]
+			}
+		},
+		"/v2/data/event-summary": {
+			"get": {
+				"operationId": "getEventSummary-v2",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/EventSummaryV2Response"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Unauthorized"
+					}
+				},
+				"description": "Generate event summaries based on keyword mentions within a time period.",
+				"summary": "Event summary from keyword mentions",
+				"tags": [
+					"v2"
+				],
+				"security": [
+					{
+						"api_key": []
+					}
+				],
+				"parameters": [
+					{
+						"description": "Keywords to search for, separated by commas",
+						"in": "query",
+						"name": "keywords",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "Start date (unix timestamp)",
+						"in": "query",
+						"name": "from",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "End date (unix timestamp)",
+						"in": "query",
+						"name": "to",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"description": "Time window for mentions (e.g., \"30m\", \"1h\", \"4h\", \"24h\", \"7d\", \"30d\")",
+						"in": "query",
+						"name": "timeWindow",
+						"required": false,
+						"schema": {
+							"default": "7d",
+							"type": "string"
+						}
+					},
+					{
+						"description": "Type of search (and, or)",
+						"in": "query",
+						"name": "searchType",
+						"required": false,
+						"schema": {
+							"default": "or",
+							"type": "string"
+						}
 					}
 				]
 			}
@@ -1648,7 +1870,7 @@
 						"description": "Unauthorized"
 					}
 				},
-				"description": "Retrieve token-related news mentions. Returns sanitized data without raw tweet content.",
+				"description": "Retrieve token-related news mentions.",
 				"summary": "Token news mentions",
 				"tags": [
 					"v2"
@@ -1708,6 +1930,14 @@
 						"required": false,
 						"schema": {
 							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "reposts",
+						"required": false,
+						"schema": {
+							"type": "boolean"
 						}
 					}
 				]
@@ -2265,7 +2495,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/AccountSmartStatsResponse"
+									"$ref": "#/components/schemas/AccountSmartStatsResponseV1"
 								}
 							}
 						}
