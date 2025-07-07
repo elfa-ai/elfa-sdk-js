@@ -21,6 +21,8 @@ import type {
   TopMentionsV2Params,
   GetMentionsByKeywordsResponse,
   MentionsByKeywordsParams,
+  EventSummaryV2Response,
+  EventSummaryV2Params,
 } from "../types/elfa.js";
 
 export interface ElfaV2ClientOptions {
@@ -427,6 +429,34 @@ export class ElfaV2Client {
 
     return this.httpClient.get<TopMentionsV2Response>(
       `/v2/data/top-mentions?${searchParams}`,
+    );
+  }
+
+  public async getEventSummary(
+    params: EventSummaryV2Params,
+  ): Promise<EventSummaryV2Response> {
+    if (!params.keywords) {
+      throw new ValidationError("Keywords are required");
+    }
+
+    const searchParams = new URLSearchParams();
+    searchParams.append("keywords", params.keywords);
+
+    if (params.from !== undefined) {
+      searchParams.append("from", params.from.toString());
+    }
+    if (params.to !== undefined) {
+      searchParams.append("to", params.to.toString());
+    }
+    if (params.timeWindow) {
+      searchParams.append("timeWindow", params.timeWindow);
+    }
+    if (params.searchType) {
+      searchParams.append("searchType", params.searchType);
+    }
+
+    return this.httpClient.get<EventSummaryV2Response>(
+      `/v2/data/event-summary?${searchParams}`,
     );
   }
 

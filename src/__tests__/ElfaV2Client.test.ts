@@ -556,6 +556,64 @@ describe("ElfaV2Client", () => {
     });
   });
 
+  describe("getEventSummary", () => {
+    it("should call event summary endpoint with keywords", async () => {
+      const mockResponse = {
+        success: true,
+        data: [
+          {
+            tweetIds: ["123", "456"],
+            sourceLinks: ["https://twitter.com/user/status/123"],
+            summary: "Test summary",
+          },
+        ],
+        metadata: {
+          summaries: 1,
+          total_summarized: 2,
+          total: 5,
+        },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getEventSummary({
+        keywords: "bitcoin",
+        timeWindow: "24h",
+        searchType: "or",
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/event-summary?keywords=bitcoin&timeWindow=24h&searchType=or",
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should call event summary endpoint with from/to timestamps", async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { summaries: 0, total_summarized: 0, total: 0 },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getEventSummary({
+        keywords: "ethereum",
+        from: 1640995200,
+        to: 1641081600,
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/event-summary?keywords=ethereum&from=1640995200&to=1641081600",
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should throw ValidationError if keywords are missing", async () => {
+      await expect(client.getEventSummary({} as any)).rejects.toThrow(
+        new ValidationError("Keywords are required"),
+      );
+    });
+  });
+
   describe("testConnection", () => {
     it("should return true when ping succeeds", async () => {
       mockHttpClient.get.mockResolvedValue({ success: true });
