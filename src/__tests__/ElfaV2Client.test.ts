@@ -246,6 +246,27 @@ describe("ElfaV2Client", () => {
       expect(result).toEqual(mockResponse);
     });
 
+    it("should call keyword mentions endpoint with reposts parameter", async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0 },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getKeywordMentions({
+        keywords: "bitcoin",
+        timeWindow: "24h",
+        limit: 10,
+        reposts: false,
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/keyword-mentions?keywords=bitcoin&timeWindow=24h&limit=10&reposts=false",
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
     it("should call keyword mentions endpoint with accountName", async () => {
       const mockResponse = {
         success: true,
@@ -304,6 +325,29 @@ describe("ElfaV2Client", () => {
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         "/v2/data/token-news?from=1640995200&to=1641081600&page=1&pageSize=10&coinIds=bitcoin%2Cethereum",
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should call token news endpoint with reposts parameter", async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0, page: 1, pageSize: 10 },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTokenNews({
+        from: 1640995200,
+        to: 1641081600,
+        page: 1,
+        pageSize: 10,
+        coinIds: "bitcoin,ethereum",
+        reposts: false,
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/token-news?from=1640995200&to=1641081600&page=1&pageSize=10&coinIds=bitcoin%2Cethereum&reposts=false",
       );
       expect(result).toEqual(mockResponse);
     });
@@ -399,6 +443,28 @@ describe("ElfaV2Client", () => {
       expect(result).toEqual(mockResponse);
     });
 
+    it("should call mentions by keywords endpoint with reposts parameter", async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0 },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getMentionsByKeywords({
+        keywords: "bitcoin",
+        from: 1640995200,
+        to: 1641081600,
+        limit: 10,
+        reposts: false,
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/keyword-mentions?keywords=bitcoin&from=1640995200&to=1641081600&limit=10&reposts=false",
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
     it("should throw ValidationError if keywords are missing", async () => {
       await expect(
         client.getMentionsByKeywords({
@@ -457,6 +523,28 @@ describe("ElfaV2Client", () => {
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
         "/v2/data/top-mentions?ticker=ETH&from=1640995200&to=1641081600",
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should call top mentions V2 endpoint with reposts parameter", async () => {
+      const mockResponse = {
+        success: true,
+        data: [],
+        metadata: { total: 0, page: 1, pageSize: 10 },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTopMentions({
+        ticker: "BTC",
+        timeWindow: "24h",
+        page: 1,
+        pageSize: 10,
+        reposts: false,
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/top-mentions?ticker=BTC&timeWindow=24h&page=1&pageSize=10&reposts=false",
       );
       expect(result).toEqual(mockResponse);
     });

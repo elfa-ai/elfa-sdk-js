@@ -156,9 +156,10 @@ describe("V1CompatibilityLayer", () => {
     });
 
     it("should handle connection test failure", async () => {
-      jest
-        .spyOn(v1Client.getSDK(), "testConnection")
-        .mockResolvedValue({ elfa: false, twitter: false });
+      jest.spyOn(v1Client.getSDK(), "testConnection").mockResolvedValue({
+        elfa: false,
+        twitter: false,
+      });
 
       const result = await v1Client.testConnection();
 

@@ -38,9 +38,14 @@ describe("ResponseEnhancer", () => {
         replyCount: 5,
         bookmarkCount: 3,
         mentionedAt: "2023-01-01T00:00:00Z",
+        type: "post",
         account: {
           isVerified: true,
           username: "testuser",
+        },
+        repostBreakdown: {
+          smart: 3,
+          ct: 7,
         },
       },
       {
@@ -53,9 +58,14 @@ describe("ResponseEnhancer", () => {
         replyCount: 2,
         bookmarkCount: 1,
         mentionedAt: "2023-01-01T01:00:00Z",
+        type: "post",
         account: {
           isVerified: false,
           username: "normaluser",
+        },
+        repostBreakdown: {
+          smart: 2,
+          ct: 3,
         },
       },
     ];
@@ -188,6 +198,11 @@ describe("ResponseEnhancer", () => {
           replyCount: 0,
           bookmarkCount: 0,
           mentionedAt: "2023-01-01T00:00:00Z",
+          type: "post",
+          repostBreakdown: {
+            smart: 0,
+            ct: 0,
+          },
         },
       ];
 
