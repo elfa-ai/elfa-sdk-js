@@ -385,3 +385,46 @@ export interface MentionsParams {
   limit?: number;
   offset?: number;
 }
+
+export interface MentionV2 {
+  tweetId: string;
+  link: string;
+  likeCount: number | null;
+  repostCount: number | null;
+  viewCount: number | null;
+  quoteCount: number | null;
+  replyCount: number | null;
+  bookmarkCount: number | null;
+  mentionedAt: string;
+  type: "repost" | "post" | "quote" | "reply";
+  repostBreakdown: {
+    ct: number;
+    smart: number;
+  };
+  account?: {
+    isVerified: boolean;
+    username: string;
+  };
+}
+
+export interface EventSummaryV2Response {
+  success: boolean;
+  data: Array<{
+    tweetIds: string[];
+    sourceLinks: string[];
+    summary: string;
+  }>;
+  metadata: {
+    summaries: number;
+    total_summarized: number;
+    total: number;
+  };
+}
+
+export interface EventSummaryV2Params {
+  keywords: string;
+  from?: number;
+  to?: number;
+  timeWindow?: string;
+  searchType?: string;
+}

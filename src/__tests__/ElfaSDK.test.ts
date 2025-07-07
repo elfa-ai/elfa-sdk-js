@@ -27,6 +27,7 @@ describe("ElfaSDK", () => {
       getV1TopMentions: jest.fn(),
       getMentionsByKeywords: jest.fn(),
       getMentions: jest.fn(),
+      getEventSummary: jest.fn(),
       testConnection: jest.fn(),
     } as any;
 
@@ -223,6 +224,43 @@ describe("ElfaSDK", () => {
 
       expect(mockElfaClient.getAccountSmartStats).toHaveBeenCalledWith({
         username: "testuser",
+      });
+      expect(result).toBe(mockResponse);
+    });
+
+    it("should call getEventSummary", async () => {
+      const mockResponse = {
+        success: true as const,
+        data: [
+          {
+            tweetIds: ["123456789", "987654321"],
+            sourceLinks: [
+              "https://twitter.com/user/status/123456789",
+              "https://twitter.com/user/status/987654321",
+            ],
+            summary: "Bitcoin price discussion and market analysis",
+          },
+        ],
+        metadata: {
+          summaries: 1,
+          total_summarized: 2,
+          total: 10,
+        },
+      };
+      mockElfaClient.getEventSummary.mockResolvedValue(mockResponse);
+
+      const result = await sdk.getEventSummary({
+        keywords: "bitcoin",
+        from: 1640995200,
+        to: 1641081600,
+        timeWindow: "24h",
+      });
+
+      expect(mockElfaClient.getEventSummary).toHaveBeenCalledWith({
+        keywords: "bitcoin",
+        from: 1640995200,
+        to: 1641081600,
+        timeWindow: "24h",
       });
       expect(result).toBe(mockResponse);
     });

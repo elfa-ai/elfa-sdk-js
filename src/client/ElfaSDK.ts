@@ -29,6 +29,8 @@ import type {
   GetMentionsByKeywordsResponse,
   MentionResponse,
   MentionsParams,
+  EventSummaryV2Response,
+  EventSummaryV2Params,
 } from "../types/elfa.js";
 
 export class ElfaSDK {
@@ -237,6 +239,12 @@ export class ElfaSDK {
     // Note: MentionResponse uses Mention[] format which may need custom enhancement
     // For now, return without enhancement - TODO: implement custom enhancer
     return response as EnhancedResponse<MentionResponse>;
+  }
+
+  public async getEventSummary(
+    params: EventSummaryV2Params,
+  ): Promise<EventSummaryV2Response> {
+    return this.elfaClient.getEventSummary(params);
   }
 
   private shouldEnhanceResponse(params: RequestOptions): boolean {
