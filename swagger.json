@@ -1460,6 +1460,7 @@
 						"name": "timeWindow",
 						"required": false,
 						"schema": {
+							"default": "7d",
 							"type": "string"
 						}
 					},
@@ -1712,6 +1713,15 @@
 						}
 					},
 					{
+						"in": "query",
+						"name": "timeWindow",
+						"required": false,
+						"schema": {
+							"default": "7d",
+							"type": "string"
+						}
+					},
+					{
 						"description": "Start date (unix timestamp)",
 						"in": "query",
 						"name": "from",
@@ -1882,6 +1892,15 @@
 				],
 				"parameters": [
 					{
+						"in": "query",
+						"name": "timeWindow",
+						"required": false,
+						"schema": {
+							"default": "7d",
+							"type": "string"
+						}
+					},
+					{
 						"description": "Start date (unix timestamp)",
 						"in": "query",
 						"name": "from",
@@ -1978,6 +1997,7 @@
 						"name": "timeWindow",
 						"required": false,
 						"schema": {
+							"default": "7d",
 							"type": "string"
 						}
 					},
@@ -2072,6 +2092,7 @@
 						"name": "timeWindow",
 						"required": false,
 						"schema": {
+							"default": "7d",
 							"type": "string"
 						}
 					},
