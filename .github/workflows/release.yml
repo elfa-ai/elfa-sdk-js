@@ -138,7 +138,7 @@ jobs:
           name: Release v${{ steps.package.outputs.version }}
           body_path: CHANGELOG.md
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(steps.package.outputs.version, '-') }}
 
   notify:
     name: Notify Success

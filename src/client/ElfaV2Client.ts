@@ -196,6 +196,9 @@ export class ElfaV2Client {
   ): Promise<TokenNewsV2Response> {
     const searchParams = new URLSearchParams();
 
+    if (params.timeWindow) {
+      searchParams.append("timeWindow", params.timeWindow);
+    }
     if (params.from !== undefined) {
       searchParams.append("from", params.from.toString());
     }

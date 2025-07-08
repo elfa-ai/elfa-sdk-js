@@ -330,6 +330,7 @@ export interface KeywordMentionsParams {
 }
 
 export interface TokenNewsParams {
+  timeWindow?: string;
   from?: number;
   to?: number;
   page?: number;
