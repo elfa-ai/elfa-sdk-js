@@ -696,9 +696,11 @@ export class ResponseEnhancer {
     };
   }
 
-  private extractTweetIdFromV1Mention(
-    mention: { id?: string | number; url?: string; link?: string },
-  ): string | null {
+  private extractTweetIdFromV1Mention(mention: {
+    id?: string | number;
+    url?: string;
+    link?: string;
+  }): string | null {
     // V1 mentions might have different ID structure
     if (mention.id && typeof mention.id === "string") {
       return mention.id;
