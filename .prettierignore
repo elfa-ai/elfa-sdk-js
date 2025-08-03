@@ -5,3 +5,4 @@ coverage/
 .git/
 swagger.json
 package-lock.json
+.claude/

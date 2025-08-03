@@ -68,6 +68,34 @@ export interface EnhancedGetMentionsByKeywordsResponse
   };
 }
 
+export interface EnhancedTopMentionV2 {
+  tweetId: string;
+  link: string;
+  likeCount: number;
+  repostCount: number;
+  viewCount: number;
+  quoteCount: number;
+  replyCount: number;
+  bookmarkCount: number;
+  mentionedAt: string;
+  type: string;
+  account?: {
+    isVerified: boolean;
+    username: string;
+  };
+  repostBreakdown: {
+    smart: number;
+    ct: number;
+  };
+  content?: string;
+  enhanced_metrics?: EnhancedMetrics;
+  data_source: DataSource;
+  twitter_data?: {
+    tweet?: TwitterTweet;
+    user?: TwitterUser;
+  };
+}
+
 export interface EnhancedTopMentionsResponse
   extends Omit<TopMentionsResponse, "data"> {
   data: {
@@ -84,6 +112,39 @@ export interface EnhancedTopMentionsResponse
         };
       }
     >;
+  };
+  enhancement_info: {
+    total_enhanced: number;
+    failed_enhancements: number;
+    twitter_api_used: boolean;
+  };
+}
+
+export interface EnhancedTopMentionsV1Response extends TopMentionsResponse {
+  data: {
+    pageSize: number;
+    page: number;
+    total: number;
+    data: Array<
+      TopMentionsResponse["data"]["data"][0] & {
+        enhanced_metrics?: EnhancedMetrics;
+        data_source: DataSource;
+        twitter_data?: {
+          tweet?: TwitterTweet;
+          user?: TwitterUser;
+        };
+      }
+    >;
+  };
+}
+
+export interface EnhancedTopMentionsV2Response {
+  success: boolean;
+  data: EnhancedTopMentionV2[];
+  metadata: {
+    total: number;
+    page: number;
+    pageSize: number;
   };
   enhancement_info: {
     total_enhanced: number;
@@ -158,8 +219,12 @@ export type EnhancedResponse<T> = T extends KeywordMentionsV2Response
     ? EnhancedGetMentionsByKeywordsResponse | GetMentionsByKeywordsResponse
     : T extends TopMentionsResponse
       ? EnhancedTopMentionsResponse | TopMentionsResponse
-      : T extends TokenNewsV2Response
-        ? EnhancedTokenNewsV2Response | TokenNewsV2Response
-        : T extends GetTokenMentionsResponse
-          ? EnhancedGetTokenMentionsResponse | GetTokenMentionsResponse
-          : T;
+      : T extends import("./elfa.js").TopMentionsV2Response
+        ?
+            | EnhancedTopMentionsV2Response
+            | import("./elfa.js").TopMentionsV2Response
+        : T extends TokenNewsV2Response
+          ? EnhancedTokenNewsV2Response | TokenNewsV2Response
+          : T extends GetTokenMentionsResponse
+            ? EnhancedGetTokenMentionsResponse | GetTokenMentionsResponse
+            : T;

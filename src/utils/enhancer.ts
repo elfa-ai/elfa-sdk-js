@@ -446,4 +446,289 @@ export class ResponseEnhancer {
 
     return metrics;
   }
+
+  public async enhanceTopMentionsV2(
+    mentions: import("../types/elfa.js").TopMentionV2[],
+    options: EnhancementOptions = {},
+  ): Promise<
+    EnhancementResult<import("../types/enhanced.js").EnhancedTopMentionV2[]>
+  > {
+    if (!this.twitterClient || !options.includeContent) {
+      return {
+        data: mentions.map((mention) => ({
+          ...mention,
+          data_source: "elfa" as DataSource,
+        })),
+        enhancement_info: {
+          total_enhanced: 0,
+          failed_enhancements: 0,
+          twitter_api_used: false,
+        },
+      };
+    }
+
+    const tweetIds = mentions
+      .map((mention) => this.extractTweetId(mention.link))
+      .filter(Boolean) as string[];
+
+    if (tweetIds.length === 0) {
+      return {
+        data: mentions.map((mention) => ({
+          ...mention,
+          data_source: "elfa" as DataSource,
+        })),
+        enhancement_info: {
+          total_enhanced: 0,
+          failed_enhancements: 0,
+          twitter_api_used: false,
+        },
+      };
+    }
+
+    try {
+      const twitterData = await this.fetchTwitterData(tweetIds, options);
+      const enhanced = this.mergeTopMentionsV2WithTwitterData(
+        mentions,
+        twitterData,
+      );
+
+      return {
+        data: enhanced,
+        enhancement_info: {
+          total_enhanced: enhanced.filter(
+            (m) => m.data_source === "elfa+twitter",
+          ).length,
+          failed_enhancements:
+            tweetIds.length -
+            enhanced.filter((m) => m.data_source === "elfa+twitter").length,
+          twitter_api_used: true,
+        },
+      };
+    } catch (error) {
+      if (options.fallbackToV2) {
+        return {
+          data: mentions.map((mention) => ({
+            ...mention,
+            data_source: "elfa" as DataSource,
+          })),
+          enhancement_info: {
+            total_enhanced: 0,
+            failed_enhancements: mentions.length,
+            twitter_api_used: false,
+            errors: [(error as Error).message],
+          },
+        };
+      }
+      throw new EnhancementError(
+        `Failed to enhance TopMentionsV2: ${(error as Error).message}`,
+        error as Error,
+      );
+    }
+  }
+
+  public async enhanceTopMentionsV1(
+    response: import("../types/elfa.js").TopMentionsResponse,
+    options: EnhancementOptions = {},
+  ): Promise<
+    EnhancementResult<
+      import("../types/enhanced.js").EnhancedTopMentionsV1Response
+    >
+  > {
+    if (!this.twitterClient || !options.includeContent) {
+      // Transform to enhanced format even without Twitter data
+      const transformedResponse = this.transformToEnhancedV1Format(
+        response,
+        "elfa",
+      );
+      return {
+        data: transformedResponse,
+        enhancement_info: {
+          total_enhanced: 0,
+          failed_enhancements: 0,
+          twitter_api_used: false,
+        },
+      };
+    }
+
+    const mentions = response.data.data;
+    const tweetIds = mentions
+      .map((mention) => this.extractTweetIdFromV1Mention(mention))
+      .filter(Boolean) as string[];
+
+    if (tweetIds.length === 0) {
+      const transformedResponse = this.transformToEnhancedV1Format(
+        response,
+        "elfa",
+      );
+      return {
+        data: transformedResponse,
+        enhancement_info: {
+          total_enhanced: 0,
+          failed_enhancements: 0,
+          twitter_api_used: false,
+        },
+      };
+    }
+
+    try {
+      const twitterData = await this.fetchTwitterData(tweetIds, options);
+      const enhancedData = this.mergeTopMentionsV1WithTwitterData(
+        response,
+        twitterData,
+      );
+
+      return {
+        data: enhancedData,
+        enhancement_info: {
+          total_enhanced: enhancedData.data.data.filter(
+            (m) => m.data_source === "elfa+twitter",
+          ).length,
+          failed_enhancements:
+            tweetIds.length -
+            enhancedData.data.data.filter(
+              (m) => m.data_source === "elfa+twitter",
+            ).length,
+          twitter_api_used: true,
+        },
+      };
+    } catch (error) {
+      if (options.fallbackToV2) {
+        const transformedResponse = this.transformToEnhancedV1Format(
+          response,
+          "elfa",
+        );
+        return {
+          data: transformedResponse,
+          enhancement_info: {
+            total_enhanced: 0,
+            failed_enhancements: mentions.length,
+            twitter_api_used: false,
+            errors: [(error as Error).message],
+          },
+        };
+      }
+      throw new EnhancementError(
+        `Failed to enhance TopMentionsV1: ${(error as Error).message}`,
+        error as Error,
+      );
+    }
+  }
+
+  private mergeTopMentionsV2WithTwitterData(
+    mentions: import("../types/elfa.js").TopMentionV2[],
+    twitterData: TwitterApiResponse<TwitterTweet[]>,
+  ): import("../types/enhanced.js").EnhancedTopMentionV2[] {
+    const tweetsMap = new Map<string, TwitterTweet>();
+    const usersMap = new Map<string, TwitterUser>();
+
+    twitterData.data?.forEach((tweet) => {
+      tweetsMap.set(tweet.id, tweet);
+    });
+
+    twitterData.includes?.users?.forEach((user) => {
+      usersMap.set(user.id, user);
+    });
+
+    return mentions.map((mention) => {
+      const tweetId = this.extractTweetId(mention.link);
+      const tweet = tweetId ? tweetsMap.get(tweetId) : undefined;
+      const user = tweet ? usersMap.get(tweet.author_id) : undefined;
+
+      if (tweet) {
+        return {
+          ...mention,
+          content: tweet.text,
+          enhanced_metrics: this.calculateEnhancedMetrics(tweet, user),
+          data_source: "elfa+twitter" as DataSource,
+          twitter_data: { tweet, user },
+        };
+      }
+
+      return {
+        ...mention,
+        data_source: "elfa" as DataSource,
+      };
+    });
+  }
+
+  private mergeTopMentionsV1WithTwitterData(
+    response: import("../types/elfa.js").TopMentionsResponse,
+    twitterData: TwitterApiResponse<TwitterTweet[]>,
+  ): import("../types/enhanced.js").EnhancedTopMentionsV1Response {
+    const tweetsMap = new Map<string, TwitterTweet>();
+    const usersMap = new Map<string, TwitterUser>();
+
+    twitterData.data?.forEach((tweet) => {
+      tweetsMap.set(tweet.id, tweet);
+    });
+
+    twitterData.includes?.users?.forEach((user) => {
+      usersMap.set(user.id, user);
+    });
+
+    const enhancedMentions = response.data.data.map((mention) => {
+      const tweetId = this.extractTweetIdFromV1Mention(mention);
+      const tweet = tweetId ? tweetsMap.get(tweetId) : undefined;
+      const user = tweet ? usersMap.get(tweet.author_id) : undefined;
+
+      if (tweet) {
+        return {
+          ...mention,
+          content: tweet.text, // Override existing content with fresh Twitter content
+          enhanced_metrics: this.calculateEnhancedMetrics(tweet, user),
+          data_source: "elfa+twitter" as DataSource,
+          twitter_data: { tweet, user },
+        };
+      }
+
+      return {
+        ...mention,
+        data_source: "elfa" as DataSource,
+      };
+    });
+
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        data: enhancedMentions,
+      },
+    };
+  }
+
+  private extractTweetIdFromV1Mention(mention: {
+    id?: string | number;
+    url?: string;
+    link?: string;
+  }): string | null {
+    // V1 mentions might have different ID structure
+    if (mention.id && typeof mention.id === "string") {
+      return mention.id;
+    }
+    if (mention.id && typeof mention.id === "number") {
+      return mention.id.toString();
+    }
+    // Fallback to extracting from URL if available
+    const url = mention.url || mention.link;
+    if (url) {
+      return this.extractTweetId(url);
+    }
+    return null;
+  }
+
+  private transformToEnhancedV1Format(
+    response: import("../types/elfa.js").TopMentionsResponse,
+    dataSource: DataSource,
+  ): import("../types/enhanced.js").EnhancedTopMentionsV1Response {
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        data: response.data.data.map((mention) => ({
+          ...mention,
+          data_source: dataSource,
+        })),
+      },
+    };
+  }
 }
