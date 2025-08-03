@@ -550,7 +550,11 @@ export class ResponseEnhancer {
       };
     }
 
-    const mentions = response.data.data;
+    // Handle both V1 (nested) and V2 (flat) response structures
+    const mentions = Array.isArray(response.data)
+      ? response.data // V2 structure: { data: [...], metadata: {...} }
+      : response.data.data; // V1 structure: { data: { data: [...] } }
+
     const tweetIds = mentions
       .map((mention) => this.extractTweetIdFromV1Mention(mention))
       .filter(Boolean) as string[];
@@ -666,7 +670,12 @@ export class ResponseEnhancer {
       usersMap.set(user.id, user);
     });
 
-    const enhancedMentions = response.data.data.map((mention) => {
+    // Handle both V1 (nested) and V2 (flat) response structures
+    const originalMentions = Array.isArray(response.data)
+      ? response.data // V2 structure: { data: [...], metadata: {...} }
+      : response.data.data; // V1 structure: { data: { data: [...] } }
+
+    const enhancedMentions = originalMentions.map((mention) => {
       const tweetId = this.extractTweetIdFromV1Mention(mention);
       const tweet = tweetId ? tweetsMap.get(tweetId) : undefined;
       const user = tweet ? usersMap.get(tweet.author_id) : undefined;
@@ -687,13 +696,28 @@ export class ResponseEnhancer {
       };
     });
 
-    return {
-      ...response,
-      data: {
-        ...response.data,
-        data: enhancedMentions,
-      },
-    };
+    // Transform V2 response to V1 format for backward compatibility
+    if (Array.isArray(response.data)) {
+      // V2 structure: { data: [...], metadata: {...} }
+      return {
+        ...response,
+        data: {
+          data: enhancedMentions,
+          page: (response as any).metadata?.page || 1,
+          pageSize: (response as any).metadata?.pageSize || 20,
+          total: (response as any).metadata?.total || enhancedMentions.length,
+        },
+      };
+    } else {
+      // V1 structure: { data: { data: [...] } }
+      return {
+        ...response,
+        data: {
+          ...response.data,
+          data: enhancedMentions,
+        },
+      };
+    }
   }
 
   private extractTweetIdFromV1Mention(mention: {
@@ -720,15 +744,33 @@ export class ResponseEnhancer {
     response: import("../types/elfa.js").TopMentionsResponse,
     dataSource: DataSource,
   ): import("../types/enhanced.js").EnhancedTopMentionsV1Response {
-    return {
-      ...response,
-      data: {
-        ...response.data,
-        data: response.data.data.map((mention) => ({
-          ...mention,
-          data_source: dataSource,
-        })),
-      },
-    };
+    // Handle both V1 (nested) and V2 (flat) response structures
+    if (Array.isArray(response.data)) {
+      // V2 structure: { data: [...], metadata: {...} }
+      return {
+        ...response,
+        data: {
+          data: response.data.map((mention) => ({
+            ...mention,
+            data_source: dataSource,
+          })),
+          page: (response as any).metadata?.page || 1,
+          pageSize: (response as any).metadata?.pageSize || 20,
+          total: (response as any).metadata?.total || response.data.length,
+        },
+      };
+    } else {
+      // V1 structure: { data: { data: [...] } }
+      return {
+        ...response,
+        data: {
+          ...response.data,
+          data: response.data.data.map((mention) => ({
+            ...mention,
+            data_source: dataSource,
+          })),
+        },
+      };
+    }
   }
 }
