@@ -564,21 +564,23 @@ describe("ElfaSDK", () => {
     it("should enhance getTopMentions (V1) when fetchRawTweets is true", async () => {
       const mockResponse = {
         success: true,
-        data: { 
-          data: [{ 
-            id: 1, 
-            content: "test",
-            metrics: {
-              view_count: 100,
-              repost_count: 5,
-              reply_count: 2,
-              like_count: 10,
+        data: {
+          data: [
+            {
+              id: 1,
+              content: "test",
+              metrics: {
+                view_count: 100,
+                repost_count: 5,
+                reply_count: 2,
+                like_count: 10,
+              },
+              mentioned_at: "2025-01-01T00:00:00Z",
             },
-            mentioned_at: "2025-01-01T00:00:00Z"
-          }], 
-          total: 1, 
-          page: 1, 
-          pageSize: 20 
+          ],
+          total: 1,
+          page: 1,
+          pageSize: 20,
         },
       };
       const enhancedResponse = {
@@ -586,11 +588,13 @@ describe("ElfaSDK", () => {
           ...mockResponse,
           data: {
             ...mockResponse.data,
-            data: [{ 
-              ...mockResponse.data.data[0],
-              content: "enhanced content", 
-              data_source: "elfa+twitter" as const
-            }],
+            data: [
+              {
+                ...mockResponse.data.data[0],
+                content: "enhanced content",
+                data_source: "elfa+twitter" as const,
+              },
+            ],
           },
         },
         enhancement_info: {

@@ -220,7 +220,9 @@ export type EnhancedResponse<T> = T extends KeywordMentionsV2Response
     : T extends TopMentionsResponse
       ? EnhancedTopMentionsResponse | TopMentionsResponse
       : T extends import("./elfa.js").TopMentionsV2Response
-        ? EnhancedTopMentionsV2Response | import("./elfa.js").TopMentionsV2Response
+        ?
+            | EnhancedTopMentionsV2Response
+            | import("./elfa.js").TopMentionsV2Response
         : T extends TokenNewsV2Response
           ? EnhancedTokenNewsV2Response | TokenNewsV2Response
           : T extends GetTokenMentionsResponse

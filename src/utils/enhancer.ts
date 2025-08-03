@@ -450,7 +450,9 @@ export class ResponseEnhancer {
   public async enhanceTopMentionsV2(
     mentions: import("../types/elfa.js").TopMentionV2[],
     options: EnhancementOptions = {},
-  ): Promise<EnhancementResult<import("../types/enhanced.js").EnhancedTopMentionV2[]>> {
+  ): Promise<
+    EnhancementResult<import("../types/enhanced.js").EnhancedTopMentionV2[]>
+  > {
     if (!this.twitterClient || !options.includeContent) {
       return {
         data: mentions.map((mention) => ({
@@ -527,10 +529,17 @@ export class ResponseEnhancer {
   public async enhanceTopMentionsV1(
     response: import("../types/elfa.js").TopMentionsResponse,
     options: EnhancementOptions = {},
-  ): Promise<EnhancementResult<import("../types/enhanced.js").EnhancedTopMentionsV1Response>> {
+  ): Promise<
+    EnhancementResult<
+      import("../types/enhanced.js").EnhancedTopMentionsV1Response
+    >
+  > {
     if (!this.twitterClient || !options.includeContent) {
       // Transform to enhanced format even without Twitter data
-      const transformedResponse = this.transformToEnhancedV1Format(response, "elfa");
+      const transformedResponse = this.transformToEnhancedV1Format(
+        response,
+        "elfa",
+      );
       return {
         data: transformedResponse,
         enhancement_info: {
@@ -547,7 +556,10 @@ export class ResponseEnhancer {
       .filter(Boolean) as string[];
 
     if (tweetIds.length === 0) {
-      const transformedResponse = this.transformToEnhancedV1Format(response, "elfa");
+      const transformedResponse = this.transformToEnhancedV1Format(
+        response,
+        "elfa",
+      );
       return {
         data: transformedResponse,
         enhancement_info: {
@@ -573,13 +585,18 @@ export class ResponseEnhancer {
           ).length,
           failed_enhancements:
             tweetIds.length -
-            enhancedData.data.data.filter((m) => m.data_source === "elfa+twitter").length,
+            enhancedData.data.data.filter(
+              (m) => m.data_source === "elfa+twitter",
+            ).length,
           twitter_api_used: true,
         },
       };
     } catch (error) {
       if (options.fallbackToV2) {
-        const transformedResponse = this.transformToEnhancedV1Format(response, "elfa");
+        const transformedResponse = this.transformToEnhancedV1Format(
+          response,
+          "elfa",
+        );
         return {
           data: transformedResponse,
           enhancement_info: {
@@ -679,17 +696,20 @@ export class ResponseEnhancer {
     };
   }
 
-  private extractTweetIdFromV1Mention(mention: any): string | null {
+  private extractTweetIdFromV1Mention(
+    mention: { id?: string | number; url?: string; link?: string },
+  ): string | null {
     // V1 mentions might have different ID structure
-    if (mention.id && typeof mention.id === 'string') {
+    if (mention.id && typeof mention.id === "string") {
       return mention.id;
     }
-    if (mention.id && typeof mention.id === 'number') {
+    if (mention.id && typeof mention.id === "number") {
       return mention.id.toString();
     }
     // Fallback to extracting from URL if available
-    if (mention.url || mention.link) {
-      return this.extractTweetId(mention.url || mention.link);
+    const url = mention.url || mention.link;
+    if (url) {
+      return this.extractTweetId(url);
     }
     return null;
   }

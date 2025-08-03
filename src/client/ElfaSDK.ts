@@ -202,7 +202,7 @@ export class ElfaSDK {
     return {
       ...enhancementResult.data,
       enhancement_info: enhancementResult.enhancement_info,
-    } as any;
+    } as EnhancedResponse<TopMentionsResponse>;
   }
 
   public async getTopMentionsV2(
@@ -225,7 +225,7 @@ export class ElfaSDK {
       ...response,
       data: enhancementResult.data,
       enhancement_info: enhancementResult.enhancement_info,
-    } as any;
+    } as EnhancedResponse<TopMentionsV2Response>;
   }
 
   public async getMentionsByKeywords(
