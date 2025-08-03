@@ -54,7 +54,7 @@ export class ElfaSDK {
 
     this.options = {
       baseUrl: "https://api.elfa.ai",
-      fetchRawTweets: false,
+      fetchRawTweets: !!options.twitterApiKey,
       enhancementTimeout: 30000,
       maxBatchSize: 100,
       strictMode: false,
@@ -188,9 +188,21 @@ export class ElfaSDK {
   ): Promise<EnhancedResponse<TopMentionsResponse>> {
     const response = await this.elfaClient.getV1TopMentions(params);
 
-    // Note: TopMentions data structure doesn't match ProcessedMention format
-    // Enhancement not implemented yet - would need custom enhancer method
-    return response as EnhancedResponse<TopMentionsResponse>;
+    const shouldEnhance = this.shouldEnhanceResponse(params);
+    if (!shouldEnhance) {
+      return response as EnhancedResponse<TopMentionsResponse>;
+    }
+
+    const enhancementOptions = this.buildEnhancementOptions(params);
+    const enhancementResult = await this.enhancer.enhanceTopMentionsV1(
+      response,
+      enhancementOptions,
+    );
+
+    return {
+      ...enhancementResult.data,
+      enhancement_info: enhancementResult.enhancement_info,
+    } as any;
   }
 
   public async getTopMentionsV2(
@@ -198,9 +210,22 @@ export class ElfaSDK {
   ): Promise<EnhancedResponse<TopMentionsV2Response>> {
     const response = await this.elfaClient.getTopMentions(params);
 
-    // Note: TopMentionsV2 data structure doesn't match ProcessedMention format
-    // Enhancement not implemented yet - would need custom enhancer method
-    return response as EnhancedResponse<TopMentionsV2Response>;
+    const shouldEnhance = this.shouldEnhanceResponse(params);
+    if (!shouldEnhance) {
+      return response as EnhancedResponse<TopMentionsV2Response>;
+    }
+
+    const enhancementOptions = this.buildEnhancementOptions(params);
+    const enhancementResult = await this.enhancer.enhanceTopMentionsV2(
+      response.data,
+      enhancementOptions,
+    );
+
+    return {
+      ...response,
+      data: enhancementResult.data,
+      enhancement_info: enhancementResult.enhancement_info,
+    } as any;
   }
 
   public async getMentionsByKeywords(
