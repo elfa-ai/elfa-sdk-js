@@ -2,6 +2,7 @@ import type {
   ProcessedMention,
   SimpleMention,
   MentionWithAccountAndToken,
+  Mention,
 } from "../types/elfa.js";
 import type {
   TwitterTweet,
@@ -12,6 +13,7 @@ import type {
   EnhancedProcessedMention,
   EnhancedSimpleMention,
   EnhancedMentionWithAccountAndToken,
+  EnhancedMention,
   EnhancementOptions,
   EnhancementResult,
   DataSource,
@@ -124,7 +126,9 @@ export class ResponseEnhancer {
       };
     }
 
-    const tweetIds = mentions.map((mention) => mention.twitter_id);
+    const tweetIds = mentions
+      .map((mention) => this.extractTweetIdFromMention(mention))
+      .filter(Boolean) as string[];
 
     try {
       const twitterData = await this.fetchTwitterData(tweetIds, options);
@@ -209,6 +213,80 @@ export class ResponseEnhancer {
         mentions,
         twitterData,
       );
+
+      return {
+        data: enhanced,
+        enhancement_info: {
+          total_enhanced: enhanced.filter(
+            (m) => m.data_source === "elfa+twitter",
+          ).length,
+          failed_enhancements:
+            mentions.length -
+            enhanced.filter((m) => m.data_source === "elfa+twitter").length,
+          twitter_api_used: true,
+        },
+      };
+    } catch (error) {
+      if (options.fallbackToV2 !== false) {
+        return {
+          data: mentions.map((mention) => ({
+            ...mention,
+            data_source: "elfa" as DataSource,
+          })),
+          enhancement_info: {
+            total_enhanced: 0,
+            failed_enhancements: mentions.length,
+            twitter_api_used: false,
+            errors: [error instanceof Error ? error.message : "Unknown error"],
+          },
+        };
+      }
+      throw new EnhancementError(
+        "Failed to enhance mentions with Twitter data",
+        error,
+      );
+    }
+  }
+
+  public async enhanceMentions(
+    mentions: Mention[],
+    options: EnhancementOptions = {},
+  ): Promise<EnhancementResult<EnhancedMention[]>> {
+    if (!this.twitterClient || !options.includeContent) {
+      return {
+        data: mentions.map((mention) => ({
+          ...mention,
+          data_source: "elfa" as DataSource,
+        })),
+        enhancement_info: {
+          total_enhanced: 0,
+          failed_enhancements: 0,
+          twitter_api_used: false,
+        },
+      };
+    }
+
+    const tweetIds = mentions
+      .map((mention) => this.extractTweetId(mention.originalUrl))
+      .filter(Boolean) as string[];
+
+    if (tweetIds.length === 0) {
+      return {
+        data: mentions.map((mention) => ({
+          ...mention,
+          data_source: "elfa" as DataSource,
+        })),
+        enhancement_info: {
+          total_enhanced: 0,
+          failed_enhancements: 0,
+          twitter_api_used: false,
+        },
+      };
+    }
+
+    try {
+      const twitterData = await this.fetchTwitterData(tweetIds, options);
+      const enhanced = this.mergeMentionsWithTwitterData(mentions, twitterData);
 
       return {
         data: enhanced,
@@ -352,7 +430,8 @@ export class ResponseEnhancer {
     });
 
     return mentions.map((mention) => {
-      const tweet = tweetsMap.get(mention.twitter_id);
+      const tweetId = this.extractTweetIdFromMention(mention);
+      const tweet = tweetId ? tweetsMap.get(tweetId) : undefined;
       const user = tweet ? usersMap.get(tweet.author_id) : undefined;
 
       if (tweet) {
@@ -409,9 +488,70 @@ export class ResponseEnhancer {
     });
   }
 
+  private mergeMentionsWithTwitterData(
+    mentions: Mention[],
+    twitterData: TwitterApiResponse<TwitterTweet[]>,
+  ): EnhancedMention[] {
+    const tweetsMap = new Map<string, TwitterTweet>();
+    const usersMap = new Map<string, TwitterUser>();
+
+    twitterData.data?.forEach((tweet) => {
+      tweetsMap.set(tweet.id, tweet);
+    });
+
+    twitterData.includes?.users?.forEach((user) => {
+      usersMap.set(user.id, user);
+    });
+
+    return mentions.map((mention) => {
+      const tweetId = this.extractTweetId(mention.originalUrl);
+      const tweet = tweetId ? tweetsMap.get(tweetId) : undefined;
+      const user = tweet ? usersMap.get(tweet.author_id) : undefined;
+
+      if (tweet) {
+        return {
+          ...mention,
+          content: tweet.text, // Override existing content with fresh Twitter content
+          enhanced_metrics: this.calculateEnhancedMetrics(tweet, user),
+          data_source: "elfa+twitter" as DataSource,
+          twitter_data: { tweet, user },
+        };
+      }
+
+      return {
+        ...mention,
+        data_source: "elfa" as DataSource,
+      };
+    });
+  }
+
   private extractTweetId(url: string): string | null {
     const tweetIdMatch = url.match(/\/status\/(\d+)/);
     return tweetIdMatch ? tweetIdMatch[1] : null;
+  }
+
+  private extractTweetIdFromMention(mention: any): string | null {
+    // Handle SimpleMention format (has twitter_id field)
+    if (mention.twitter_id) {
+      return mention.twitter_id;
+    }
+
+    // Handle ProcessedMention format (has tweetId field)
+    if (mention.tweetId) {
+      return mention.tweetId;
+    }
+
+    // Handle ProcessedMention format (has link field)
+    if (mention.link) {
+      return this.extractTweetId(mention.link);
+    }
+
+    // Handle other formats with URL fields
+    if (mention.originalUrl) {
+      return this.extractTweetId(mention.originalUrl);
+    }
+
+    return null;
   }
 
   private calculateEnhancedMetrics(
