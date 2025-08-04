@@ -167,27 +167,15 @@ export class V1CompatibilityLayer {
   ): Promise<MentionResponse> {
     const fetchRawTweets = params.fetchRawTweets ?? this.enableV1Behavior;
 
-    // Map V1 params to V2 params
+    // Map V1 params to V2 params with request options
     const v2Params = {
       limit: params.limit,
       offset: params.offset,
+      fetchRawTweets,
     };
 
-    // Get mentions from V2 API
-    const response = await this.sdk.getMentions(v2Params);
-
-    // If fetchRawTweets is enabled, enhance with Twitter data
-    if (
-      fetchRawTweets &&
-      this.sdk.isTwitterEnabled() &&
-      response.data?.length > 0
-    ) {
-      // This would need Twitter API enhancement - for now return as-is
-      // TODO: Implement Twitter enhancement for raw tweet content
-      return response;
-    }
-
-    return response;
+    // Get mentions from V2 API with Twitter enhancement
+    return this.sdk.getMentions(v2Params);
   }
 
   public async getMentions(_params: LegacyMentionsParams = {}): Promise<any> {

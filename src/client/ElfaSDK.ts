@@ -261,9 +261,17 @@ export class ElfaSDK {
       return response as EnhancedResponse<MentionResponse>;
     }
 
-    // Note: MentionResponse uses Mention[] format which may need custom enhancement
-    // For now, return without enhancement - TODO: implement custom enhancer
-    return response as EnhancedResponse<MentionResponse>;
+    const enhancementOptions = this.buildEnhancementOptions(params);
+    const enhancementResult = await this.enhancer.enhanceMentions(
+      response.data,
+      enhancementOptions,
+    );
+
+    return {
+      ...response,
+      data: enhancementResult.data,
+      enhancement_info: enhancementResult.enhancement_info,
+    } as EnhancedResponse<MentionResponse>;
   }
 
   public async getEventSummary(
