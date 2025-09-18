@@ -83,6 +83,15 @@ export interface AccountSmartStatsResponse {
   };
 }
 
+export interface AccountSmartStatsResponseV1 {
+  success: boolean;
+  data: {
+    smartFollowingCount: number;
+    averageEngagement: number;
+    followerEngagementRatio: number;
+  };
+}
+
 export interface ProcessedMention {
   tweetId: string;
   link: string;

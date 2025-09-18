@@ -157,7 +157,7 @@ export class V1CompatibilityLayer {
       data: {
         smartFollowingCount: response.data.smartFollowingCount,
         averageEngagement: response.data.averageEngagement,
-        followerEngagementRatio: response.data.averageReach,
+        followerEngagementRatio: response.data.followerEngagementRatio,
       },
     };
   }
