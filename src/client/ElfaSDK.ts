@@ -13,7 +13,7 @@ import type {
   ApiKeyStatusResponse,
   TrendingTokensResponse,
   TrendingTokensParams,
-  AccountSmartStatsResponse,
+  AccountSmartStatsResponseV1,
   AccountSmartStatsParams,
   KeywordMentionsV2Response,
   KeywordMentionsParams,
@@ -121,8 +121,8 @@ export class ElfaSDK {
 
   public async getAccountSmartStats(
     params: AccountSmartStatsParams,
-  ): Promise<AccountSmartStatsResponse> {
-    return this.elfaClient.getAccountSmartStats(params);
+  ): Promise<AccountSmartStatsResponseV1> {
+    return this.elfaClient.getV1AccountSmartStats(params);
   }
 
   public async getKeywordMentions(

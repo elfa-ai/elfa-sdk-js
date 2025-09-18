@@ -203,7 +203,9 @@ describe("ElfaV2Client", () => {
         data: {
           smartFollowingCount: 10,
           averageEngagement: 0.5,
-          followerEngagementRatio: 100,
+          averageReach: 100,
+          smartFollowerCount: 15,
+          followerCount: 1000,
         },
       };
       mockHttpClient.get.mockResolvedValue(mockResponse);

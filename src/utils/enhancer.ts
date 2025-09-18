@@ -820,20 +820,33 @@ export class ResponseEnhancer {
       const tweet = tweetId ? tweetsMap.get(tweetId) : undefined;
       const user = tweet ? usersMap.get(tweet.author_id) : undefined;
 
+      // First transform to V1 format structure
+      let transformedMention = this.transformMentionToV1Format(mention);
+
       if (tweet) {
-        return {
-          ...mention,
+        // Override with fresh Twitter content and enhance
+        transformedMention = {
+          ...transformedMention,
           content: tweet.text, // Override existing content with fresh Twitter content
           enhanced_metrics: this.calculateEnhancedMetrics(tweet, user),
           data_source: "elfa+twitter" as DataSource,
           twitter_data: { tweet, user },
         };
+
+        // Update Twitter-specific fields with fresh data
+        if (user) {
+          transformedMention.twitter_user_id = user.id;
+          transformedMention.twitter_account_info = {
+            username: user.username || "",
+            description: user.description || "",
+            profileImageUrl: user.profile_image_url || "",
+          };
+        }
+      } else {
+        transformedMention.data_source = "elfa" as DataSource;
       }
 
-      return {
-        ...mention,
-        data_source: "elfa" as DataSource,
-      };
+      return transformedMention;
     });
 
     // Transform V2 response to V1 format for backward compatibility
@@ -890,10 +903,13 @@ export class ResponseEnhancer {
       return {
         ...response,
         data: {
-          data: response.data.map((mention) => ({
-            ...mention,
-            data_source: dataSource,
-          })),
+          data: response.data.map((mention) => {
+            const transformed = this.transformMentionToV1Format(mention);
+            return {
+              ...transformed,
+              data_source: dataSource,
+            };
+          }),
           page: (response as any).metadata?.page || 1,
           pageSize: (response as any).metadata?.pageSize || 20,
           total: (response as any).metadata?.total || response.data.length,
@@ -905,12 +921,78 @@ export class ResponseEnhancer {
         ...response,
         data: {
           ...response.data,
-          data: response.data.data.map((mention) => ({
-            ...mention,
-            data_source: dataSource,
-          })),
+          data: response.data.data.map((mention) => {
+            const transformed = this.transformMentionToV1Format(mention);
+            return {
+              ...transformed,
+              data_source: dataSource,
+            };
+          }),
         },
       };
     }
+  }
+
+  /**
+   * Transform V2 mention format to V1 legacy format for backward compatibility
+   */
+  private transformMentionToV1Format(mention: any): any {
+    // Check if already in V1 format (has 'id' field instead of 'tweetId')
+    if ("id" in mention && !("tweetId" in mention)) {
+      return mention; // Already V1 format
+    }
+
+    // Transform V2 format to V1 format matching TopMentionsResponse structure
+    const transformed: any = {
+      id: parseInt(mention.tweetId) || 0, // Convert string tweetId to number id
+      content: mention.content || "",
+      mentioned_at: mention.mentionedAt || "",
+      metrics: {
+        view_count: mention.viewCount || 0,
+        repost_count: mention.repostCount || 0,
+        reply_count: mention.replyCount || 0,
+        like_count: mention.likeCount || 0,
+      },
+    };
+
+    // Add Twitter-specific fields for enhanced compatibility (not in base TopMentionsResponse)
+    // These are added by enhancement process to match SimpleMention format
+    if (mention.tweetId) {
+      transformed.twitter_id = mention.tweetId;
+    }
+
+    if (mention.twitter_data?.user) {
+      transformed.twitter_user_id = mention.twitter_data.user.id || "";
+      transformed.twitter_account_info = {
+        username: mention.twitter_data.user.username || "",
+        description: mention.twitter_data.user.description || "",
+        profileImageUrl: mention.twitter_data.user.profile_image_url || "",
+      };
+    } else {
+      // Provide empty values when no Twitter data available
+      transformed.twitter_user_id = "";
+      transformed.twitter_account_info = {
+        username: "",
+        description: "",
+        profileImageUrl: "",
+      };
+    }
+
+    // Add additional V1 fields
+    transformed.parent_tweet_id = "";
+    transformed.type = mention.type || "";
+
+    // Preserve enhancement fields
+    if (mention.enhanced_metrics) {
+      transformed.enhanced_metrics = mention.enhanced_metrics;
+    }
+    if (mention.data_source) {
+      transformed.data_source = mention.data_source;
+    }
+    if (mention.twitter_data) {
+      transformed.twitter_data = mention.twitter_data;
+    }
+
+    return transformed;
   }
 }

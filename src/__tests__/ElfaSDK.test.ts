@@ -19,6 +19,7 @@ describe("ElfaSDK", () => {
       getApiKeyStatus: jest.fn(),
       getTrendingTokens: jest.fn(),
       getAccountSmartStats: jest.fn(),
+      getV1AccountSmartStats: jest.fn(),
       getKeywordMentions: jest.fn(),
       getTokenNews: jest.fn(),
       getTrendingCAsTwitter: jest.fn(),
@@ -213,18 +214,16 @@ describe("ElfaSDK", () => {
         data: {
           smartFollowingCount: 10,
           averageEngagement: 0.5,
-          averageReach: 100,
-          smartFollowerCount: 15,
-          followerCount: 1000,
+          followerEngagementRatio: 100,
         },
       };
-      mockElfaClient.getAccountSmartStats.mockResolvedValue(mockResponse);
+      mockElfaClient.getV1AccountSmartStats.mockResolvedValue(mockResponse);
 
       const result = await sdk.getAccountSmartStats({
         username: "testuser",
       });
 
-      expect(mockElfaClient.getAccountSmartStats).toHaveBeenCalledWith({
+      expect(mockElfaClient.getV1AccountSmartStats).toHaveBeenCalledWith({
         username: "testuser",
       });
       expect(result).toBe(mockResponse);

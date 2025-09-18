@@ -6,6 +6,7 @@ import type {
   TrendingTokensResponse,
   TrendingTokensParams,
   AccountSmartStatsResponse,
+  AccountSmartStatsResponseV1,
   AccountSmartStatsParams,
   KeywordMentionsV2Response,
   KeywordMentionsParams,
@@ -388,7 +389,7 @@ export class ElfaV2Client {
 
   public async getV1AccountSmartStats(
     params: AccountSmartStatsParams,
-  ): Promise<AccountSmartStatsResponse> {
+  ): Promise<AccountSmartStatsResponseV1> {
     if (!params.username) {
       throw new ValidationError("Username is required");
     }
@@ -396,9 +397,19 @@ export class ElfaV2Client {
     const searchParams = new URLSearchParams();
     searchParams.append("username", params.username);
 
-    return this.httpClient.get<AccountSmartStatsResponse>(
+    const v2Response = await this.httpClient.get<AccountSmartStatsResponse>(
       `/v2/account/smart-stats?${searchParams}`,
     );
+
+    // Transform V2 response to V1 format
+    return {
+      success: v2Response.success,
+      data: {
+        smartFollowingCount: v2Response.data.smartFollowingCount,
+        averageEngagement: v2Response.data.averageEngagement,
+        followerEngagementRatio: v2Response.data.averageReach,
+      },
+    };
   }
 
   public async getTopMentions(
