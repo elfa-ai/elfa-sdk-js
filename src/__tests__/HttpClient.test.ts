@@ -1,5 +1,9 @@
 import axios, { type AxiosError } from "axios";
-import { HttpClient, computeRateLimitReset } from "../utils/http";
+import {
+  HttpClient,
+  computeRateLimitReset,
+  extractErrorMessage,
+} from "../utils/http";
 import { VERSION } from "../version";
 
 // Mock axios
@@ -352,5 +356,30 @@ describe("computeRateLimitReset", () => {
 
   it("returns undefined when no header is present", () => {
     expect(from({})).toBeUndefined();
+  });
+});
+
+describe("extractErrorMessage", () => {
+  it("reads a flat message", () => {
+    expect(extractErrorMessage({ code: "X", message: "boom" })).toBe("boom");
+  });
+
+  it("reads a nested error envelope", () => {
+    expect(
+      extractErrorMessage({ error: { code: "NOT_FOUND", message: "gone" } }),
+    ).toBe("gone");
+  });
+
+  it("reads a string error field", () => {
+    expect(extractErrorMessage({ error: "bad" })).toBe("bad");
+  });
+
+  it("falls back for objects without a message", () => {
+    expect(extractErrorMessage({ error: { code: "X" } })).toBe('{"code":"X"}');
+  });
+
+  it("handles strings and unknowns", () => {
+    expect(extractErrorMessage("plain")).toBe("plain");
+    expect(extractErrorMessage(null)).toBe("Unknown API error");
   });
 });

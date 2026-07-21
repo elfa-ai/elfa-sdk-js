@@ -13,6 +13,7 @@ import type {
   AutoPollQueryResponse,
   AutoDraft,
   AutoUpsertDraftInput,
+  AutoConvertDraftResponse,
   AutoListDraftsResponse,
   AutoListSessionsResponse,
   AutoSession,
@@ -118,8 +119,10 @@ export class AutoClient {
     );
   }
 
-  public convertDraft(draftId: string): Promise<AutoQuery> {
-    return this.post<AutoQuery>(`/queries/drafts/${draftId}/convert`);
+  public convertDraft(draftId: string): Promise<AutoConvertDraftResponse> {
+    return this.post<AutoConvertDraftResponse>(
+      `/queries/drafts/${draftId}/convert`,
+    );
   }
 
   public listSessions(queryId: string): Promise<AutoListSessionsResponse> {

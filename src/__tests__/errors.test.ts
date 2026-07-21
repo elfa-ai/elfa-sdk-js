@@ -43,6 +43,25 @@ describe("Error Classes", () => {
     });
   });
 
+  describe("subclass instanceof", () => {
+    it("each subclass is instanceof itself, the base, and Error", () => {
+      const cases = [
+        [new ElfaApiError("a", 500), ElfaApiError],
+        [new ValidationError("b"), ValidationError],
+        [new RateLimitError("c"), RateLimitError],
+        [new AuthenticationError("d"), AuthenticationError],
+        [new NetworkError("e"), NetworkError],
+      ] as const;
+
+      for (const [error, Cls] of cases) {
+        expect(error).toBeInstanceOf(Cls);
+        expect(error).toBeInstanceOf(ElfaSDKError);
+        expect(error).toBeInstanceOf(Error);
+        expect(error.constructor.name).toBe(Cls.name);
+      }
+    });
+  });
+
   describe("ValidationError", () => {
     it("should create validation error", () => {
       const error = new ValidationError("Invalid input");

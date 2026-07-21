@@ -18,7 +18,7 @@ export class ElfaSDKError extends Error {
     if (details !== undefined) {
       this.details = details;
     }
-    Object.setPrototypeOf(this, ElfaSDKError.prototype);
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 

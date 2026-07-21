@@ -192,7 +192,17 @@ export function extractErrorMessage(data: any): string {
   }
 
   if (data && typeof data === "object") {
-    return data.message || data.error || data.detail || "API request failed";
+    const candidate = data.message ?? data.error ?? data.detail;
+    if (typeof candidate === "string") {
+      return candidate;
+    }
+    if (candidate && typeof candidate === "object") {
+      if (typeof candidate.message === "string") {
+        return candidate.message;
+      }
+      return JSON.stringify(candidate);
+    }
+    return "API request failed";
   }
 
   return "Unknown API error";

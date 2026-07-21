@@ -138,6 +138,12 @@ export interface AutoUpsertDraftInput {
   description?: string;
 }
 
+export interface AutoConvertDraftResponse {
+  draftId: string;
+  convertedAt: string;
+  query: AutoQuery;
+}
+
 export interface AutoListDraftsResponse {
   drafts?: AutoDraft[];
   data?: AutoDraft[];
