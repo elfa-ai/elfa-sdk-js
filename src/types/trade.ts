@@ -60,7 +60,6 @@ export interface ClosePositionInput {
   orderType: TradeOrderType;
   size?: string;
   amount?: string;
-  positionSizePercent?: number;
   closePercent?: number;
   price?: string;
 }
