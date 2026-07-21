@@ -17,6 +17,7 @@ export interface TradeClientOptions {
   timeout?: number;
   retries?: number;
   retryDelay?: number;
+  headers?: Record<string, string>;
   debug?: boolean;
 }
 
@@ -34,6 +35,7 @@ export class TradeClient {
       timeout: options.timeout ?? 30000,
       retries: options.retries ?? 3,
       retryDelay: options.retryDelay ?? 1000,
+      ...(options.headers ? { headers: options.headers } : {}),
       debug: options.debug ?? false,
     });
     this.httpClient.setAuthHeader(options.apiKey);

@@ -34,6 +34,7 @@ export interface AutoClientOptions {
   timeout?: number;
   retries?: number;
   retryDelay?: number;
+  headers?: Record<string, string>;
   debug?: boolean;
 }
 
@@ -44,17 +45,20 @@ export class AutoClient {
   private baseUrl: string;
   private apiKey: string;
   private hmacSecret?: string;
+  private headers?: Record<string, string>;
 
   constructor(options: AutoClientOptions) {
     this.baseUrl = options.baseUrl ?? "https://api.elfa.ai";
     this.apiKey = options.apiKey;
     if (options.hmacSecret) this.hmacSecret = options.hmacSecret;
+    if (options.headers) this.headers = options.headers;
 
     this.httpClient = new HttpClient({
       baseURL: this.baseUrl,
       timeout: options.timeout ?? 30000,
       retries: options.retries ?? 3,
       retryDelay: options.retryDelay ?? 1000,
+      ...(options.headers ? { headers: options.headers } : {}),
       debug: options.debug ?? false,
     });
     this.httpClient.setAuthHeader(this.apiKey);
@@ -209,6 +213,7 @@ export class AutoClient {
   ): AsyncGenerator<AutoStreamEvent> {
     const response = await fetch(`${this.baseUrl}${MOUNT}${path}`, {
       headers: {
+        ...this.headers,
         "x-elfa-api-key": this.apiKey,
         Accept: "text/event-stream",
       },

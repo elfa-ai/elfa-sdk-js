@@ -18,6 +18,7 @@ export interface HttpClientOptions {
   timeout?: number;
   retries?: number;
   retryDelay?: number;
+  headers?: Record<string, string>;
   debug?: boolean;
 }
 
@@ -45,6 +46,7 @@ export class HttpClient {
         "User-Agent": `@elfa-ai/sdk/${VERSION}`,
         Accept: "application/json",
         "Content-Type": "application/json",
+        ...this.options.headers,
       },
     };
 

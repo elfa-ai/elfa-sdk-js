@@ -55,6 +55,7 @@ export class ElfaSDK {
       ...(this.options.hmacSecret
         ? { hmacSecret: this.options.hmacSecret }
         : {}),
+      ...(this.options.headers ? { headers: this.options.headers } : {}),
     };
 
     this.elfaClient = new ElfaV2Client(clientOptions);

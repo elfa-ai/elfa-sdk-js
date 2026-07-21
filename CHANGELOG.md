@@ -12,6 +12,7 @@
 - `elfa.trade` — direct trading (`/v2/trade/*`): orders and positions with previews.
 - HMAC request signing via the `hmacSecret` option for Auto/Trade mutations.
 - `retries` / `retryDelay` options.
+- `headers` option for sending custom headers with every request.
 
 ### Removed
 

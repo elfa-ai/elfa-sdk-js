@@ -5,5 +5,6 @@ export interface SDKOptions {
   timeout?: number;
   retries?: number;
   retryDelay?: number;
+  headers?: Record<string, string>;
   debug?: boolean;
 }
