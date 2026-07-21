@@ -1,5 +1,7 @@
 import { ElfaV2Client } from "./ElfaV2Client.js";
 import { TwitterClient } from "./TwitterClient.js";
+import { AutoClient } from "./AutoClient.js";
+import { TradeClient } from "./TradeClient.js";
 import { ResponseEnhancer } from "../utils/enhancer.js";
 import { ValidationError } from "../utils/errors.js";
 import type {
@@ -13,7 +15,7 @@ import type {
   ApiKeyStatusResponse,
   TrendingTokensResponse,
   TrendingTokensParams,
-  AccountSmartStatsResponseV1,
+  AccountSmartStatsResponse,
   AccountSmartStatsParams,
   KeywordMentionsV2Response,
   KeywordMentionsParams,
@@ -21,19 +23,18 @@ import type {
   TokenNewsParams,
   TrendingCAsV2Response,
   TrendingCAsParams,
-  TopMentionsParams,
-  TopMentionsResponse,
   TopMentionsV2Params,
   TopMentionsV2Response,
-  MentionsByKeywordsParams,
-  GetMentionsByKeywordsResponse,
-  MentionResponse,
-  MentionsParams,
   EventSummaryV2Response,
   EventSummaryV2Params,
+  TrendingNarrativesResponse,
+  TrendingNarrativesParams,
 } from "../types/elfa.js";
+import type { ChatParams, ChatResponse } from "../types/chat.js";
 
 export class ElfaSDK {
+  public readonly auto: AutoClient;
+  public readonly trade: TradeClient;
   private elfaClient: ElfaV2Client;
   private twitterClient?: TwitterClient;
   private enhancer: ResponseEnhancer;
@@ -69,6 +70,7 @@ export class ElfaSDK {
       apiKey: this.options.elfaApiKey,
       baseUrl: this.options.baseUrl,
       timeout: this.options.enhancementTimeout,
+      retries: this.options.retries,
       debug: this.options.debug,
     });
 
@@ -83,6 +85,20 @@ export class ElfaSDK {
       this.twitterClient,
       this.options.maxBatchSize,
     );
+
+    const engineOptions = {
+      apiKey: this.options.elfaApiKey,
+      baseUrl: this.options.baseUrl,
+      timeout: this.options.enhancementTimeout,
+      retries: this.options.retries,
+      retryDelay: this.options.retryDelay,
+      debug: this.options.debug,
+      ...(this.options.hmacSecret
+        ? { hmacSecret: this.options.hmacSecret }
+        : {}),
+    };
+    this.auto = new AutoClient(engineOptions);
+    this.trade = new TradeClient(engineOptions);
   }
 
   private validateOptions(options: SDKOptions): void {
@@ -121,8 +137,8 @@ export class ElfaSDK {
 
   public async getAccountSmartStats(
     params: AccountSmartStatsParams,
-  ): Promise<AccountSmartStatsResponseV1> {
-    return this.elfaClient.getV1AccountSmartStats(params);
+  ): Promise<AccountSmartStatsResponse> {
+    return this.elfaClient.getAccountSmartStats(params);
   }
 
   public async getKeywordMentions(
@@ -184,28 +200,6 @@ export class ElfaSDK {
   }
 
   public async getTopMentions(
-    params: TopMentionsParams & RequestOptions,
-  ): Promise<EnhancedResponse<TopMentionsResponse>> {
-    const response = await this.elfaClient.getV1TopMentions(params);
-
-    const shouldEnhance = this.shouldEnhanceResponse(params);
-    if (!shouldEnhance) {
-      return response as EnhancedResponse<TopMentionsResponse>;
-    }
-
-    const enhancementOptions = this.buildEnhancementOptions(params);
-    const enhancementResult = await this.enhancer.enhanceTopMentionsV1(
-      response,
-      enhancementOptions,
-    );
-
-    return {
-      ...enhancementResult.data,
-      enhancement_info: enhancementResult.enhancement_info,
-    } as EnhancedResponse<TopMentionsResponse>;
-  }
-
-  public async getTopMentionsV2(
     params: TopMentionsV2Params & RequestOptions,
   ): Promise<EnhancedResponse<TopMentionsV2Response>> {
     const response = await this.elfaClient.getTopMentions(params);
@@ -228,56 +222,20 @@ export class ElfaSDK {
     } as EnhancedResponse<TopMentionsV2Response>;
   }
 
-  public async getMentionsByKeywords(
-    params: MentionsByKeywordsParams & RequestOptions,
-  ): Promise<EnhancedResponse<GetMentionsByKeywordsResponse>> {
-    const response = await this.elfaClient.getMentionsByKeywords(params);
-
-    const shouldEnhance = this.shouldEnhanceResponse(params);
-    if (!shouldEnhance) {
-      return response as EnhancedResponse<GetMentionsByKeywordsResponse>;
-    }
-
-    const enhancementOptions = this.buildEnhancementOptions(params);
-    const enhancementResult = await this.enhancer.enhanceSimpleMentions(
-      response.data,
-      enhancementOptions,
-    );
-
-    return {
-      ...response,
-      data: enhancementResult.data,
-      enhancement_info: enhancementResult.enhancement_info,
-    } as EnhancedResponse<GetMentionsByKeywordsResponse>;
-  }
-
-  public async getMentions(
-    params: MentionsParams & RequestOptions = {},
-  ): Promise<EnhancedResponse<MentionResponse>> {
-    const response = await this.elfaClient.getMentions(params);
-
-    const shouldEnhance = this.shouldEnhanceResponse(params);
-    if (!shouldEnhance) {
-      return response as EnhancedResponse<MentionResponse>;
-    }
-
-    const enhancementOptions = this.buildEnhancementOptions(params);
-    const enhancementResult = await this.enhancer.enhanceMentions(
-      response.data,
-      enhancementOptions,
-    );
-
-    return {
-      ...response,
-      data: enhancementResult.data,
-      enhancement_info: enhancementResult.enhancement_info,
-    } as EnhancedResponse<MentionResponse>;
-  }
-
   public async getEventSummary(
     params: EventSummaryV2Params,
   ): Promise<EventSummaryV2Response> {
     return this.elfaClient.getEventSummary(params);
+  }
+
+  public async getTrendingNarratives(
+    params: TrendingNarrativesParams = {},
+  ): Promise<TrendingNarrativesResponse> {
+    return this.elfaClient.getTrendingNarratives(params);
+  }
+
+  public async chat(params: ChatParams): Promise<ChatResponse> {
+    return this.elfaClient.chat(params);
   }
 
   private shouldEnhanceResponse(params: RequestOptions): boolean {

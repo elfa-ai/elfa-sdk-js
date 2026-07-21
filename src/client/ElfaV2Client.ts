@@ -1,12 +1,12 @@
 import { HttpClient } from "../utils/http.js";
 import { ValidationError } from "../utils/errors.js";
+import type { ChatParams, ChatResponse } from "../types/chat.js";
 import type {
   PingResponse,
   ApiKeyStatusResponse,
   TrendingTokensResponse,
   TrendingTokensParams,
   AccountSmartStatsResponse,
-  AccountSmartStatsResponseV1,
   AccountSmartStatsParams,
   KeywordMentionsV2Response,
   KeywordMentionsParams,
@@ -14,16 +14,12 @@ import type {
   TokenNewsParams,
   TrendingCAsV2Response,
   TrendingCAsParams,
-  MentionResponse,
-  MentionsParams,
-  TopMentionsResponse,
-  TopMentionsParams,
   TopMentionsV2Response,
   TopMentionsV2Params,
-  GetMentionsByKeywordsResponse,
-  MentionsByKeywordsParams,
   EventSummaryV2Response,
   EventSummaryV2Params,
+  TrendingNarrativesResponse,
+  TrendingNarrativesParams,
 } from "../types/elfa.js";
 
 export interface ElfaV2ClientOptions {
@@ -77,22 +73,17 @@ export class ElfaV2Client {
     const hasFrom = params.from !== undefined;
     const hasTo = params.to !== undefined;
 
-    // If only one of from/to is provided (but not both), that's invalid
     if ((hasFrom && !hasTo) || (!hasFrom && hasTo)) {
       throw new ValidationError(
         "When using from/to parameters, both from and to must be provided",
       );
     }
 
-    // Must provide either timeWindow OR both from and to
     if (!hasTimeWindow && (!hasFrom || !hasTo)) {
       throw new ValidationError(
         "You must provide either timeWindow or both from and to parameters",
       );
     }
-
-    // If both from and to are provided, they take priority (this is allowed per API spec)
-    // This is valid and no further validation needed
   }
 
   public async ping(): Promise<PingResponse> {
@@ -283,135 +274,6 @@ export class ElfaV2Client {
     return this.httpClient.get<TrendingCAsV2Response>(url);
   }
 
-  public async getMentions(
-    params: MentionsParams = {},
-  ): Promise<MentionResponse> {
-    const searchParams = new URLSearchParams();
-
-    if (params.limit !== undefined) {
-      searchParams.append("limit", params.limit.toString());
-    }
-    if (params.offset !== undefined) {
-      searchParams.append("offset", params.offset.toString());
-    }
-
-    const url = `/v1/mentions${searchParams.toString() ? `?${searchParams}` : ""}`;
-    return this.httpClient.get<MentionResponse>(url);
-  }
-
-  public async getV1TopMentions(
-    params: TopMentionsParams,
-  ): Promise<TopMentionsResponse> {
-    if (!params.ticker) {
-      throw new ValidationError("Ticker is required");
-    }
-
-    const searchParams = new URLSearchParams();
-    searchParams.append("ticker", params.ticker);
-
-    if (params.timeWindow) {
-      searchParams.append("timeWindow", params.timeWindow);
-    }
-    if (params.from !== undefined) {
-      searchParams.append("from", params.from.toString());
-    }
-    if (params.to !== undefined) {
-      searchParams.append("to", params.to.toString());
-    }
-    if (params.page !== undefined) {
-      searchParams.append("page", params.page.toString());
-    }
-    if (params.pageSize !== undefined) {
-      searchParams.append("pageSize", params.pageSize.toString());
-    }
-    // Note: includeAccountDetails parameter is ignored when using V2 endpoint
-    // V2 endpoint provides account details by default in a different format
-
-    return this.httpClient.get<TopMentionsResponse>(
-      `/v2/data/top-mentions?${searchParams}`,
-    );
-  }
-
-  public async getMentionsByKeywords(
-    params: MentionsByKeywordsParams,
-  ): Promise<GetMentionsByKeywordsResponse> {
-    if (!params.keywords) {
-      throw new ValidationError("Keywords are required");
-    }
-    if (params.from === undefined || params.to === undefined) {
-      throw new ValidationError("Both from and to timestamps are required");
-    }
-
-    const searchParams = new URLSearchParams();
-    searchParams.append("keywords", params.keywords);
-    searchParams.append("from", params.from.toString());
-    searchParams.append("to", params.to.toString());
-
-    if (params.limit !== undefined) {
-      searchParams.append("limit", params.limit.toString());
-    }
-    if (params.searchType) {
-      searchParams.append("searchType", params.searchType);
-    }
-    if (params.cursor) {
-      searchParams.append("cursor", params.cursor);
-    }
-    if (params.reposts !== undefined) {
-      searchParams.append("reposts", params.reposts.toString());
-    }
-
-    return this.httpClient.get<GetMentionsByKeywordsResponse>(
-      `/v2/data/keyword-mentions?${searchParams}`,
-    );
-  }
-
-  public async getV1TrendingTokens(
-    params: TrendingTokensParams = {},
-  ): Promise<TrendingTokensResponse> {
-    const searchParams = new URLSearchParams();
-
-    if (params.timeWindow) {
-      searchParams.append("timeWindow", params.timeWindow);
-    }
-    if (params.page !== undefined) {
-      searchParams.append("page", params.page.toString());
-    }
-    if (params.pageSize !== undefined) {
-      searchParams.append("pageSize", params.pageSize.toString());
-    }
-    if (params.minMentions !== undefined) {
-      searchParams.append("minMentions", params.minMentions.toString());
-    }
-
-    const url = `/v2/aggregations/trending-tokens${searchParams.toString() ? `?${searchParams}` : ""}`;
-    return this.httpClient.get<TrendingTokensResponse>(url);
-  }
-
-  public async getV1AccountSmartStats(
-    params: AccountSmartStatsParams,
-  ): Promise<AccountSmartStatsResponseV1> {
-    if (!params.username) {
-      throw new ValidationError("Username is required");
-    }
-
-    const searchParams = new URLSearchParams();
-    searchParams.append("username", params.username);
-
-    const v2Response = await this.httpClient.get<AccountSmartStatsResponse>(
-      `/v2/account/smart-stats?${searchParams}`,
-    );
-
-    // Transform V2 response to V1 format
-    return {
-      success: v2Response.success,
-      data: {
-        smartFollowingCount: v2Response.data.smartFollowingCount,
-        averageEngagement: v2Response.data.averageEngagement,
-        followerEngagementRatio: v2Response.data.averageReach,
-      },
-    };
-  }
-
   public async getTopMentions(
     params: TopMentionsV2Params,
   ): Promise<TopMentionsV2Response> {
@@ -472,6 +334,43 @@ export class ElfaV2Client {
     return this.httpClient.get<EventSummaryV2Response>(
       `/v2/data/event-summary?${searchParams}`,
     );
+  }
+
+  public async getTrendingNarratives(
+    params: TrendingNarrativesParams = {},
+  ): Promise<TrendingNarrativesResponse> {
+    const searchParams = new URLSearchParams();
+
+    if (params.timeFrame) {
+      searchParams.append("timeFrame", params.timeFrame);
+    }
+    if (params.maxNarratives !== undefined) {
+      searchParams.append("maxNarratives", params.maxNarratives.toString());
+    }
+    if (params.maxTweetsPerNarrative !== undefined) {
+      searchParams.append(
+        "maxTweetsPerNarrative",
+        params.maxTweetsPerNarrative.toString(),
+      );
+    }
+
+    const url = `/v2/data/trending-narratives${searchParams.toString() ? `?${searchParams}` : ""}`;
+    return this.httpClient.get<TrendingNarrativesResponse>(url);
+  }
+
+  public async chat(params: ChatParams): Promise<ChatResponse> {
+    return this.httpClient.post<ChatResponse>(
+      "/v2/chat",
+      this.buildChatBody(params),
+    );
+  }
+
+  private buildChatBody(params: ChatParams): ChatParams {
+    const analysisType = params.analysisType ?? "chat";
+    if (analysisType === "chat" && !params.message?.trim()) {
+      throw new ValidationError("message is required for chat analysis");
+    }
+    return params;
   }
 
   public async testConnection(): Promise<boolean> {

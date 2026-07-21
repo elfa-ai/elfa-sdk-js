@@ -6,14 +6,16 @@
 [![codecov](https://codecov.io/gh/elfa-ai/elfa-sdk-js/branch/main/graph/badge.svg)](https://codecov.io/gh/elfa-ai/elfa-sdk-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official TypeScript/JavaScript SDK for the Elfa API v2 - Social intelligence for crypto.
+Official TypeScript/JavaScript SDK for the Elfa API v2 - social intelligence, AI chat, and the Auto/Trade engines for crypto.
 
 ## Features
 
+- **Social Intelligence**: Trending tokens, mentions, narratives, smart stats, and event summaries
+- **AI Chat**: Market analysis and conversational chat via `elfa.chat`
+- **Auto Condition Engine**: Build EQL queries that notify or trade via `elfa.auto`
+- **Direct Trading**: Place orders and manage positions via `elfa.trade`
 - **Dual API Architecture**: Seamlessly combines Elfa V2 API with optional Twitter API enhancement (adds raw tweet content and metrics)
-- **V1 Compatibility**: Drop-in replacement for V1 SDK with enhanced functionality
 - **TypeScript First**: Comprehensive type definitions and IDE support
-- **Flexible Enhancement**: Choose between V2-formatted processed data or V1-like raw content
 - **Smart Error Handling**: Graceful degradation when Twitter API is unavailable
 - **Rate Limiting**: Built-in respect for API rate limits
 - **Comprehensive Testing**: Full test suite with examples
@@ -91,37 +93,6 @@ const processed = await elfa.getKeywordMentions({
 });
 ```
 
-## Migration Guide
-
-For users migrating from direct API calls or V1, see our comprehensive [Migration Guide](./docs/MIGRATION.md).
-
-### Quick V1 Migration
-
-For users migrating from V1, use the compatibility layer:
-
-```typescript
-import { V1CompatibilityLayer } from "@elfa-ai/sdk/compatibility";
-
-// Drop-in replacement for V1 with enhanced functionality
-const client = new V1CompatibilityLayer({
-  elfaApiKey: "your-elfa-api-key",
-  twitterApiKey: "your-twitter-bearer-token",
-  enableV1Behavior: true, // Enables raw tweets by default
-});
-
-// Use V1 method signatures
-const topMentions = await client.getTopMentions({
-  ticker: "bitcoin",
-  timeWindow: "24h",
-});
-
-const searchResults = await client.getMentionsByKeywords({
-  keywords: "ethereum",
-  from: 1640995200,
-  to: 1641081600,
-});
-```
-
 ## API Reference
 
 ### Core Methods
@@ -184,12 +155,114 @@ const stats = await elfa.getAccountSmartStats({
 });
 ```
 
+#### `getTrendingNarratives(params?)`
+
+Get trending narrative clusters from Twitter analysis.
+
+```typescript
+const narratives = await elfa.getTrendingNarratives({
+  timeFrame: "day",
+  maxNarratives: 7,
+});
+```
+
+#### `chat(params)`
+
+AI market analysis and conversational chat. Requires a key with the `chat` scope.
+
+```typescript
+const reply = await elfa.chat({
+  message: "What is the market sentiment on SOL?",
+});
+console.log(reply.data.message);
+
+// Continue the conversation with the returned sessionId
+const followUp = await elfa.chat({
+  message: "And ETH?",
+  sessionId: reply.data.sessionId,
+});
+
+// Preset analyses (no message needed)
+await elfa.chat({
+  analysisType: "tokenAnalysis",
+  assetMetadata: { symbol: "BTC" },
+});
+```
+
+### Auto (Condition Engine)
+
+`elfa.auto` drives the Auto condition engine — EQL queries that watch markets and
+fire notifications or trades. Trade-action and exchange mutations need an HMAC
+secret (`hmacSecret`); notification-only queries do not.
+
+```typescript
+const query = {
+  query: {
+    conditions: {
+      AND: [
+        {
+          source: "price",
+          method: "current",
+          args: { symbol: "BTC", exchange: "hyperliquid" },
+          operator: ">",
+          value: 100000,
+        },
+      ],
+    },
+    actions: [
+      {
+        stepId: "step_1",
+        type: "notify",
+        params: { message: "BTC crossed 100k" },
+      },
+    ],
+    expiresIn: "24h",
+  },
+  title: "BTC breakout alert",
+};
+
+const { valid } = await elfa.auto.validateQuery(query);
+const created = await elfa.auto.createQuery(query);
+const status = await elfa.auto.getQuery(created.id ?? created.queryId!);
+
+// Stream notifications over SSE
+for await (const event of elfa.auto.streamQuery(created.id!)) {
+  console.log(event.event, event.data);
+}
+```
+
+### Trade (Direct Trading)
+
+`elfa.trade` places synchronous orders on your linked exchange account. All writes
+require an HMAC secret; previews are unsigned.
+
+```typescript
+const elfa = new ElfaSDK({ elfaApiKey: "...", hmacSecret: "..." });
+
+const preview = await elfa.trade.previewOrder({
+  exchange: "hyperliquid",
+  symbol: "BTC",
+  side: "buy",
+  orderType: "market",
+  amount: "100",
+});
+
+const result = await elfa.trade.placeOrder({
+  exchange: "hyperliquid",
+  symbol: "BTC",
+  side: "buy",
+  orderType: "market",
+  amount: "100",
+});
+```
+
 ### Configuration Options
 
 ```typescript
 interface SDKOptions {
   elfaApiKey: string; // Required: Your Elfa API key
   twitterApiKey?: string; // Optional: Twitter Bearer token for enhancement
+  hmacSecret?: string; // Optional: HMAC secret for Auto/Trade signed mutations
   baseUrl?: string; // Optional: API base URL (default: https://api.elfa.ai)
   fetchRawTweets?: boolean; // Optional: Global raw tweet setting (default: false)
   enhancementTimeout?: number; // Optional: Twitter API timeout (default: 30000ms)
@@ -235,7 +308,7 @@ Check out the [examples directory](./src/examples/) for comprehensive usage exam
 
 - [Basic Usage](./src/examples/basic.ts) - V2 API with processed data
 - [Enhanced Usage](./src/examples/enhanced.ts) - Twitter API enhancement
-- [Migration Examples](./src/examples/migration.ts) - Working migration code examples
+- [Auto & Trade](./src/examples/auto.ts) - Condition engine queries and direct trading
 
 ## Contributing
 

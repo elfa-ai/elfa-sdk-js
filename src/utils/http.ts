@@ -11,6 +11,7 @@ import {
   AuthenticationError,
   isRetryableError,
 } from "./errors.js";
+import { VERSION } from "../version.js";
 
 export interface HttpClientOptions {
   baseURL: string;
@@ -41,7 +42,7 @@ export class HttpClient {
     const clientConfig: any = {
       baseURL: this.options.baseURL,
       headers: {
-        "User-Agent": "@elfa-ai/sdk/2.0.2",
+        "User-Agent": `@elfa-ai/sdk/${VERSION}`,
         Accept: "application/json",
         "Content-Type": "application/json",
       },
@@ -108,31 +109,21 @@ export class HttpClient {
   }
 
   private extractErrorMessage(data: any): string {
-    if (typeof data === "string") {
-      return data;
-    }
-
-    if (data && typeof data === "object") {
-      return data.message || data.error || data.detail || "API request failed";
-    }
-
-    return "Unknown API error";
+    return extractErrorMessage(data);
   }
 
   private extractRateLimitReset(response: AxiosResponse): Date | undefined {
-    const resetHeader =
-      response.headers["x-ratelimit-reset"] || response.headers["retry-after"];
-
-    if (resetHeader) {
-      const resetTime = parseInt(resetHeader, 10);
-      return new Date(resetTime * 1000);
-    }
-
-    return undefined;
+    return computeRateLimitReset((name) => {
+      const value = response.headers[name];
+      return value == null ? undefined : String(value);
+    });
   }
 
   public async request<T = any>(config: RequestConfig): Promise<T> {
-    const maxRetries = config.retries ?? this.options.retries ?? 3;
+    const method = (config.method ?? "get").toUpperCase();
+    const idempotent = method === "GET" || method === "HEAD";
+    const maxRetries =
+      config.retries ?? (idempotent ? (this.options.retries ?? 3) : 0);
     const retryDelay = config.retryDelay ?? this.options.retryDelay ?? 1000;
 
     let lastError: Error;
@@ -199,4 +190,66 @@ export class HttpClient {
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
+}
+
+export function extractErrorMessage(data: any): string {
+  if (typeof data === "string") {
+    return data;
+  }
+
+  if (data && typeof data === "object") {
+    return data.message || data.error || data.detail || "API request failed";
+  }
+
+  return "Unknown API error";
+}
+
+export async function throwForFetchResponse(
+  response: Response,
+): Promise<never> {
+  const text = await response.text().catch(() => "");
+  let data: any = text;
+  try {
+    data = text ? JSON.parse(text) : undefined;
+  } catch {
+    data = text;
+  }
+
+  const message = extractErrorMessage(data);
+
+  if (response.status === 401) {
+    throw new AuthenticationError(message);
+  }
+
+  if (response.status === 429) {
+    const resetTime = computeRateLimitReset(
+      (name) => response.headers.get(name) ?? undefined,
+    );
+    throw new RateLimitError(message, resetTime, data);
+  }
+
+  throw new ElfaApiError(message, response.status, data);
+}
+
+export function computeRateLimitReset(
+  getHeader: (name: string) => string | undefined,
+): Date | undefined {
+  const reset = getHeader("x-ratelimit-reset");
+  if (reset) {
+    const epoch = parseInt(reset, 10);
+    if (!Number.isNaN(epoch)) return new Date(epoch * 1000);
+  }
+
+  const retryAfter = getHeader("retry-after");
+  if (retryAfter) {
+    const trimmed = retryAfter.trim();
+    const delta = parseInt(trimmed, 10);
+    if (!Number.isNaN(delta) && String(delta) === trimmed) {
+      return new Date(Date.now() + delta * 1000);
+    }
+    const date = new Date(trimmed);
+    if (!Number.isNaN(date.getTime())) return date;
+  }
+
+  return undefined;
 }

@@ -1,6 +1,6 @@
 import { ResponseEnhancer } from "../utils/enhancer";
 import type { TwitterClient } from "../client/TwitterClient";
-import type { ProcessedMention, SimpleMention } from "../types/elfa";
+import type { ProcessedMention } from "../types/elfa";
 
 // Mock the TwitterClient
 jest.mock("../client/TwitterClient");
@@ -217,96 +217,6 @@ describe("ResponseEnhancer", () => {
       expect(result.data[0].data_source).toBe("elfa");
       expect(result.enhancement_info.total_enhanced).toBe(0);
       expect(result.enhancement_info.twitter_api_used).toBe(false);
-    });
-  });
-
-  describe("enhanceSimpleMentions", () => {
-    const mockSimpleMentions: SimpleMention[] = [
-      {
-        id: 1,
-        twitter_id: "123456789",
-        twitter_user_id: "user123",
-        parent_tweet_id: "0",
-        content: "Bitcoin is going up!",
-        mentioned_at: "2023-01-01T00:00:00Z",
-        type: "tweet",
-        metrics: {
-          view_count: 1000,
-          repost_count: 10,
-          reply_count: 5,
-          like_count: 20,
-        },
-      },
-      {
-        id: 2,
-        twitter_id: "987654321",
-        twitter_user_id: "user456",
-        parent_tweet_id: "0",
-        content: "Ethereum update",
-        mentioned_at: "2023-01-01T01:00:00Z",
-        type: "tweet",
-        metrics: {
-          view_count: 500,
-          repost_count: 5,
-          reply_count: 2,
-          like_count: 15,
-        },
-      },
-    ];
-
-    it("should enhance simple mentions with Twitter data", async () => {
-      mockTwitterClient.getTweets.mockResolvedValue({
-        data: [
-          {
-            id: "123456789",
-            text: "Bitcoin is going up! 🚀",
-            author_id: "user123",
-            created_at: "2023-01-01T00:00:00.000Z",
-            public_metrics: {
-              retweet_count: 10,
-              like_count: 20,
-              reply_count: 5,
-              quote_count: 2,
-              impression_count: 1000,
-            },
-          },
-        ],
-        includes: {
-          users: [
-            {
-              id: "user123",
-              username: "testuser",
-              name: "Test User",
-              verified: false,
-              public_metrics: {
-                followers_count: 5000,
-                following_count: 300,
-                tweet_count: 500,
-                listed_count: 50,
-              },
-            },
-          ],
-        },
-      });
-
-      const result = await enhancer.enhanceSimpleMentions(mockSimpleMentions, {
-        includeContent: true,
-        includeMetrics: true,
-      });
-
-      expect(result.data).toHaveLength(2);
-      expect(result.data[0]).toMatchObject({
-        id: 1,
-        content: "Bitcoin is going up! 🚀",
-        data_source: "elfa+twitter",
-        enhanced_metrics: {
-          impression_count: 1000,
-          engagement_rate: 37 / 1000,
-          reach: 5000,
-          twitter_verified: false,
-        },
-      });
-      expect(result.enhancement_info.total_enhanced).toBe(1);
     });
   });
 

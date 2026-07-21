@@ -9,7 +9,6 @@ This file provides universal base instructions for AI coding assistants working 
 ### Core Architecture
 
 - **Dual API Design**: Elfa V2 (primary) + Twitter API (enhancement)
-- **V1 Compatibility**: Drop-in replacement for legacy users
 - **Enhancement Pattern**: Optional raw content enrichment with graceful fallback
 - **Error Resilience**: Twitter API failures don't break core functionality
 
@@ -44,7 +43,6 @@ src/
 ├── client/          # Core SDK and API client implementations
 ├── types/           # TypeScript definitions (generated from OpenAPI)
 ├── utils/           # HTTP, errors, pagination, enhancement logic
-├── compatibility/   # V1 migration layer
 ├── examples/        # Usage examples and demos
 └── __tests__/       # Test suites
 ```

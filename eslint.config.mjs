@@ -1,6 +1,9 @@
+import { fileURLToPath } from "node:url";
 import globals from "globals";
 import pluginJs from "@eslint/js";
 import tseslint from "typescript-eslint";
+
+const tsconfigRootDir = fileURLToPath(new URL(".", import.meta.url));
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
@@ -19,7 +22,7 @@ export default [
     languageOptions: {
       parserOptions: {
         project: true,
-        tsconfigRootDir: ".",
+        tsconfigRootDir,
       },
     },
     rules: {

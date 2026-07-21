@@ -1,14 +1,8 @@
 import type {
   ProcessedMention,
-  SimpleMention,
-  MentionWithAccountAndToken,
-  Mention,
-  MentionResponse,
   KeywordMentionsV2Response,
-  GetMentionsByKeywordsResponse,
-  TopMentionsResponse,
   TokenNewsV2Response,
-  GetTokenMentionsResponse,
+  TopMentionsV2Response,
 } from "./elfa.js";
 import type { TwitterTweet, TwitterUser } from "./twitter.js";
 
@@ -31,56 +25,11 @@ export interface EnhancedProcessedMention extends ProcessedMention {
   };
 }
 
-export interface EnhancedSimpleMention extends SimpleMention {
-  enhanced_metrics?: EnhancedMetrics;
-  data_source: DataSource;
-  twitter_data?: {
-    tweet?: TwitterTweet;
-    user?: TwitterUser;
-  };
-}
-
-export interface EnhancedMention extends Mention {
-  enhanced_metrics?: EnhancedMetrics;
-  data_source: DataSource;
-  twitter_data?: {
-    tweet?: TwitterTweet;
-    user?: TwitterUser;
-  };
-}
-
-export interface EnhancedMentionWithAccountAndToken
-  extends MentionWithAccountAndToken {
-  enhanced_metrics?: EnhancedMetrics;
-  data_source: DataSource;
-  twitter_data?: {
-    tweet?: TwitterTweet;
-    user?: TwitterUser;
-  };
-}
-
-export interface EnhancedKeywordMentionsV2Response
-  extends Omit<KeywordMentionsV2Response, "data"> {
+export interface EnhancedKeywordMentionsV2Response extends Omit<
+  KeywordMentionsV2Response,
+  "data"
+> {
   data: EnhancedProcessedMention[];
-  enhancement_info: {
-    total_enhanced: number;
-    failed_enhancements: number;
-    twitter_api_used: boolean;
-  };
-}
-
-export interface EnhancedMentionResponse extends Omit<MentionResponse, "data"> {
-  data: EnhancedMention[];
-  enhancement_info: {
-    total_enhanced: number;
-    failed_enhancements: number;
-    twitter_api_used: boolean;
-  };
-}
-
-export interface EnhancedGetMentionsByKeywordsResponse
-  extends Omit<GetMentionsByKeywordsResponse, "data"> {
-  data: EnhancedSimpleMention[];
   enhancement_info: {
     total_enhanced: number;
     failed_enhancements: number;
@@ -116,48 +65,6 @@ export interface EnhancedTopMentionV2 {
   };
 }
 
-export interface EnhancedTopMentionsResponse
-  extends Omit<TopMentionsResponse, "data"> {
-  data: {
-    pageSize: number;
-    page: number;
-    total: number;
-    data: Array<
-      TopMentionsResponse["data"]["data"][0] & {
-        enhanced_metrics?: EnhancedMetrics;
-        data_source: DataSource;
-        twitter_data?: {
-          tweet?: TwitterTweet;
-          user?: TwitterUser;
-        };
-      }
-    >;
-  };
-  enhancement_info: {
-    total_enhanced: number;
-    failed_enhancements: number;
-    twitter_api_used: boolean;
-  };
-}
-
-export interface EnhancedTopMentionsV1Response extends TopMentionsResponse {
-  data: {
-    pageSize: number;
-    page: number;
-    total: number;
-    data: Array<
-      TopMentionsResponse["data"]["data"][0] & {
-        enhanced_metrics?: EnhancedMetrics;
-        data_source: DataSource;
-        twitter_data?: {
-          tweet?: TwitterTweet;
-          user?: TwitterUser;
-        };
-      }
-    >;
-  };
-}
-
 export interface EnhancedTopMentionsV2Response {
   success: boolean;
   data: EnhancedTopMentionV2[];
@@ -173,21 +80,11 @@ export interface EnhancedTopMentionsV2Response {
   };
 }
 
-export interface EnhancedTokenNewsV2Response
-  extends Omit<TokenNewsV2Response, "data"> {
+export interface EnhancedTokenNewsV2Response extends Omit<
+  TokenNewsV2Response,
+  "data"
+> {
   data: EnhancedProcessedMention[];
-  enhancement_info: {
-    total_enhanced: number;
-    failed_enhancements: number;
-    twitter_api_used: boolean;
-  };
-}
-
-export interface EnhancedGetTokenMentionsResponse
-  extends Omit<GetTokenMentionsResponse, "data"> {
-  data: {
-    data: EnhancedMentionWithAccountAndToken[];
-  };
   enhancement_info: {
     total_enhanced: number;
     failed_enhancements: number;
@@ -216,7 +113,10 @@ export interface EnhancementResult<T> {
 export interface SDKOptions {
   elfaApiKey: string;
   twitterApiKey?: string;
+  hmacSecret?: string;
   baseUrl?: string;
+  retries?: number;
+  retryDelay?: number;
   fetchRawTweets?: boolean;
   enhancementTimeout?: number;
   maxBatchSize?: number;
@@ -235,18 +135,8 @@ export interface RequestOptions {
 
 export type EnhancedResponse<T> = T extends KeywordMentionsV2Response
   ? EnhancedKeywordMentionsV2Response | KeywordMentionsV2Response
-  : T extends GetMentionsByKeywordsResponse
-    ? EnhancedGetMentionsByKeywordsResponse | GetMentionsByKeywordsResponse
-    : T extends MentionResponse
-      ? EnhancedMentionResponse | MentionResponse
-      : T extends TopMentionsResponse
-        ? EnhancedTopMentionsResponse | TopMentionsResponse
-        : T extends import("./elfa.js").TopMentionsV2Response
-          ?
-              | EnhancedTopMentionsV2Response
-              | import("./elfa.js").TopMentionsV2Response
-          : T extends TokenNewsV2Response
-            ? EnhancedTokenNewsV2Response | TokenNewsV2Response
-            : T extends GetTokenMentionsResponse
-              ? EnhancedGetTokenMentionsResponse | GetTokenMentionsResponse
-              : T;
+  : T extends TopMentionsV2Response
+    ? EnhancedTopMentionsV2Response | TopMentionsV2Response
+    : T extends TokenNewsV2Response
+      ? EnhancedTokenNewsV2Response | TokenNewsV2Response
+      : T;

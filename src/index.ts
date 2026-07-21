@@ -3,11 +3,8 @@ import { ElfaSDK } from "./client/ElfaSDK.js";
 export { ElfaSDK } from "./client/ElfaSDK.js";
 export { ElfaV2Client } from "./client/ElfaV2Client.js";
 export { TwitterClient } from "./client/TwitterClient.js";
-
-export {
-  V1CompatibilityLayer,
-  createV1CompatibleClient,
-} from "./compatibility/v1.js";
+export { AutoClient } from "./client/AutoClient.js";
+export { TradeClient } from "./client/TradeClient.js";
 
 export * from "./types/index.js";
 
@@ -27,9 +24,8 @@ export type {
   TokenNewsParams,
   TrendingCAsParams,
   AccountSmartStatsParams,
-  TopMentionsParams,
-  MentionsByKeywordsParams,
-  MentionsParams,
+  TopMentionsV2Params,
+  TrendingNarrativesParams,
 } from "./types/elfa.js";
 
 export type {

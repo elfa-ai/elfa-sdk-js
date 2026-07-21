@@ -19,15 +19,11 @@ describe("ElfaSDK", () => {
       getApiKeyStatus: jest.fn(),
       getTrendingTokens: jest.fn(),
       getAccountSmartStats: jest.fn(),
-      getV1AccountSmartStats: jest.fn(),
       getKeywordMentions: jest.fn(),
       getTokenNews: jest.fn(),
       getTrendingCAsTwitter: jest.fn(),
       getTrendingCAsTelegram: jest.fn(),
       getTopMentions: jest.fn(),
-      getV1TopMentions: jest.fn(),
-      getMentionsByKeywords: jest.fn(),
-      getMentions: jest.fn(),
       getEventSummary: jest.fn(),
       testConnection: jest.fn(),
     } as any;
@@ -38,9 +34,6 @@ describe("ElfaSDK", () => {
 
     mockEnhancer = {
       enhanceProcessedMentions: jest.fn(),
-      enhanceSimpleMentions: jest.fn(),
-      enhanceMentionsWithAccountAndToken: jest.fn(),
-      enhanceTopMentionsV1: jest.fn(),
       enhanceTopMentionsV2: jest.fn(),
     } as any;
 
@@ -214,16 +207,18 @@ describe("ElfaSDK", () => {
         data: {
           smartFollowingCount: 10,
           averageEngagement: 0.5,
-          followerEngagementRatio: 100,
+          averageReach: 100,
+          smartFollowerCount: 5,
+          followerCount: 1000,
         },
       };
-      mockElfaClient.getV1AccountSmartStats.mockResolvedValue(mockResponse);
+      mockElfaClient.getAccountSmartStats.mockResolvedValue(mockResponse);
 
       const result = await sdk.getAccountSmartStats({
         username: "testuser",
       });
 
-      expect(mockElfaClient.getV1AccountSmartStats).toHaveBeenCalledWith({
+      expect(mockElfaClient.getAccountSmartStats).toHaveBeenCalledWith({
         username: "testuser",
       });
       expect(result).toBe(mockResponse);
@@ -489,146 +484,7 @@ describe("ElfaSDK", () => {
       expect((result as any).enhancement_info).toBeDefined();
     });
 
-    it("should enhance mentions by keywords when fetchRawTweets is true", async () => {
-      const mockResponse = {
-        success: true,
-        data: [
-          {
-            id: 1,
-            twitter_id: "123",
-            twitter_user_id: "user123",
-            parent_tweet_id: "0",
-            content: "Bitcoin mention",
-            mentioned_at: "2023-01-01T00:00:00Z",
-            type: "tweet",
-            metrics: {
-              view_count: 1000,
-              repost_count: 10,
-              reply_count: 5,
-              like_count: 20,
-            },
-          },
-        ],
-        metadata: { total: 1 },
-      };
-      const enhancedResponse = {
-        data: [
-          {
-            id: 1,
-            twitter_id: "123",
-            twitter_user_id: "user123",
-            parent_tweet_id: "0",
-            content: "Enhanced mention",
-            mentioned_at: "2023-01-01T00:00:00Z",
-            type: "tweet",
-            metrics: {
-              view_count: 1000,
-              repost_count: 10,
-              reply_count: 5,
-              like_count: 20,
-            },
-            data_source: "elfa+twitter" as const,
-          },
-        ],
-        enhancement_info: {
-          total_enhanced: 1,
-          failed_enhancements: 0,
-          twitter_api_used: true,
-        },
-      };
-
-      mockElfaClient.getMentionsByKeywords.mockResolvedValue(mockResponse);
-      mockEnhancer.enhanceSimpleMentions.mockResolvedValue(enhancedResponse);
-
-      const result = await sdk.getMentionsByKeywords({
-        keywords: "bitcoin",
-        from: 1640995200,
-        to: 1641081600,
-        fetchRawTweets: true,
-      });
-
-      expect(mockEnhancer.enhanceSimpleMentions).toHaveBeenCalledWith(
-        mockResponse.data,
-        {
-          includeContent: true,
-          includeMetrics: true,
-          fallbackToV2: true,
-          batchSize: 100,
-          timeout: 30000,
-        },
-      );
-      expect((result as any).enhancement_info).toBeDefined();
-    });
-
-    it("should enhance getTopMentions (V1) when fetchRawTweets is true", async () => {
-      const mockResponse = {
-        success: true,
-        data: {
-          data: [
-            {
-              id: 1,
-              content: "test",
-              metrics: {
-                view_count: 100,
-                repost_count: 5,
-                reply_count: 2,
-                like_count: 10,
-              },
-              mentioned_at: "2025-01-01T00:00:00Z",
-            },
-          ],
-          total: 1,
-          page: 1,
-          pageSize: 20,
-        },
-      };
-      const enhancedResponse = {
-        data: {
-          ...mockResponse,
-          data: {
-            ...mockResponse.data,
-            data: [
-              {
-                ...mockResponse.data.data[0],
-                content: "enhanced content",
-                data_source: "elfa+twitter" as const,
-              },
-            ],
-          },
-        },
-        enhancement_info: {
-          total_enhanced: 1,
-          failed_enhancements: 0,
-          twitter_api_used: true,
-        },
-      };
-
-      mockElfaClient.getV1TopMentions.mockResolvedValue(mockResponse);
-      mockEnhancer.enhanceTopMentionsV1.mockResolvedValue(enhancedResponse);
-
-      const result = await sdk.getTopMentions({
-        ticker: "BTC",
-        fetchRawTweets: true,
-      });
-
-      expect(mockElfaClient.getV1TopMentions).toHaveBeenCalledWith({
-        ticker: "BTC",
-        fetchRawTweets: true,
-      });
-      expect(mockEnhancer.enhanceTopMentionsV1).toHaveBeenCalledWith(
-        mockResponse,
-        {
-          includeContent: true,
-          includeMetrics: true,
-          fallbackToV2: true,
-          batchSize: 100,
-          timeout: 30000,
-        },
-      );
-      expect((result as any).enhancement_info).toBeDefined();
-    });
-
-    it("should enhance getTopMentionsV2 when fetchRawTweets is true", async () => {
+    it("should enhance getTopMentions when fetchRawTweets is true", async () => {
       const mockResponse = {
         success: true,
         data: [
@@ -666,7 +522,7 @@ describe("ElfaSDK", () => {
       mockElfaClient.getTopMentions.mockResolvedValue(mockResponse);
       mockEnhancer.enhanceTopMentionsV2.mockResolvedValue(enhancedResponse);
 
-      const result = await sdk.getTopMentionsV2({
+      const result = await sdk.getTopMentions({
         ticker: "BTC",
         fetchRawTweets: true,
       });
@@ -881,30 +737,6 @@ describe("ElfaSDK", () => {
 
       expect(mockElfaClient.getTrendingCAsTelegram).toHaveBeenCalledWith({
         timeWindow: "24h",
-      });
-      expect(result).toBe(mockResponse);
-    });
-
-    it("should call getMentions without enhancement (not implemented yet)", async () => {
-      const mockResponse = {
-        success: true,
-        data: [],
-        metadata: {
-          offset: 0,
-          limit: 10,
-          total: 0,
-        },
-      };
-      mockElfaClient.getMentions.mockResolvedValue(mockResponse);
-
-      const result = await sdk.getMentions({
-        limit: 10,
-        fetchRawTweets: true,
-      });
-
-      expect(mockElfaClient.getMentions).toHaveBeenCalledWith({
-        limit: 10,
-        fetchRawTweets: true,
       });
       expect(result).toBe(mockResponse);
     });

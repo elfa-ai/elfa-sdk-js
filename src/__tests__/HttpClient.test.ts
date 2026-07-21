@@ -1,5 +1,6 @@
 import axios, { type AxiosError } from "axios";
-import { HttpClient } from "../utils/http";
+import { HttpClient, computeRateLimitReset } from "../utils/http";
+import { VERSION } from "../version";
 
 // Mock axios
 jest.mock("axios");
@@ -50,7 +51,7 @@ describe("HttpClient", () => {
         baseURL: "https://api.example.com",
         timeout: 5000,
         headers: {
-          "User-Agent": "@elfa-ai/sdk/2.0.2",
+          "User-Agent": `@elfa-ai/sdk/${VERSION}`,
           Accept: "application/json",
           "Content-Type": "application/json",
         },
@@ -99,6 +100,28 @@ describe("HttpClient", () => {
       ).rejects.toThrow("Persistent error");
 
       expect(mockAxiosInstance.request).toHaveBeenCalledTimes(2);
+    });
+
+    it("should not retry non-idempotent methods by default", async () => {
+      const { NetworkError } = await import("../utils/errors");
+      mockAxiosInstance.request.mockRejectedValue(new NetworkError("boom"));
+
+      await expect(
+        httpClient.request({ url: "/test", method: "POST", retryDelay: 0 }),
+      ).rejects.toThrow("boom");
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledTimes(1);
+    });
+
+    it("should retry idempotent GET using the client default", async () => {
+      const { NetworkError } = await import("../utils/errors");
+      mockAxiosInstance.request.mockRejectedValue(new NetworkError("boom"));
+
+      await expect(
+        httpClient.request({ url: "/test", method: "GET", retryDelay: 0 }),
+      ).rejects.toThrow("boom");
+
+      expect(mockAxiosInstance.request).toHaveBeenCalledTimes(3);
     });
   });
 
@@ -309,5 +332,32 @@ describe("HttpClient", () => {
         expect(error.resetTime).toBeInstanceOf(Date);
       }
     });
+  });
+});
+
+describe("computeRateLimitReset", () => {
+  const from = (headers: Record<string, string>) =>
+    computeRateLimitReset((name) => headers[name]);
+
+  it("reads x-ratelimit-reset as absolute epoch seconds", () => {
+    const result = from({ "x-ratelimit-reset": "1700000000" });
+    expect(result).toEqual(new Date(1700000000 * 1000));
+  });
+
+  it("reads retry-after as a delta from now", () => {
+    const before = Date.now();
+    const result = from({ "retry-after": "60" });
+    const ms = result!.getTime() - before;
+    expect(ms).toBeGreaterThanOrEqual(59000);
+    expect(ms).toBeLessThanOrEqual(61000);
+  });
+
+  it("parses an http-date retry-after", () => {
+    const result = from({ "retry-after": "Wed, 21 Oct 2015 07:28:00 GMT" });
+    expect(result).toEqual(new Date("Wed, 21 Oct 2015 07:28:00 GMT"));
+  });
+
+  it("returns undefined when no header is present", () => {
+    expect(from({})).toBeUndefined();
   });
 });

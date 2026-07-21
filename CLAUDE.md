@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the **Elfa AI SDK** - a TypeScript SDK for the Elfa API v2 that provides social intelligence for crypto. The SDK offers a dual API architecture combining Elfa V2 API with optional Twitter API enhancement, plus V1 compatibility for migration.
+This is the **Elfa AI SDK** - a TypeScript SDK for the Elfa API v2 that provides social intelligence for crypto. The SDK offers a dual API architecture combining the Elfa V2 API with optional Twitter API enhancement.
 
 ## Development Commands
 
@@ -45,7 +45,6 @@ npm run lint               # Check code style
 
 - **Dual Client Architecture**: `ElfaV2Client` (core API) + `TwitterClient` (enhancement)
 - **Main SDK Class**: `ElfaSDK` orchestrates both clients with response enhancement
-- **V1 Compatibility Layer**: `V1CompatibilityLayer` provides drop-in replacement for legacy code
 - **Enhancement System**: `ResponseEnhancer` enriches V2 data with Twitter content when available
 
 ### Key Directories
@@ -53,7 +52,6 @@ npm run lint               # Check code style
 - `src/client/` - Core SDK and API client implementations
 - `src/types/` - TypeScript definitions for all APIs and responses
 - `src/utils/` - HTTP utilities, error handling, pagination, and enhancement logic
-- `src/compatibility/` - V1 migration and compatibility layer
 - `src/examples/` - Usage examples for different scenarios
 - `src/__tests__/` - Jest test suites
 
