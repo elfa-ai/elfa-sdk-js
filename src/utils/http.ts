@@ -87,7 +87,7 @@ export class HttpClient {
   private handleResponseError(error: AxiosError): Promise<never> {
     if (error.response) {
       const { status, data } = error.response;
-      const message = this.extractErrorMessage(data);
+      const message = extractErrorMessage(data);
 
       if (status === 401) {
         throw new AuthenticationError(message);
@@ -106,10 +106,6 @@ export class HttpClient {
     }
 
     throw new NetworkError(`Request setup error: ${error.message}`, error);
-  }
-
-  private extractErrorMessage(data: any): string {
-    return extractErrorMessage(data);
   }
 
   private extractRateLimitReset(response: AxiosResponse): Date | undefined {

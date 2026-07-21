@@ -27,6 +27,7 @@ export interface ElfaV2ClientOptions {
   baseUrl?: string;
   timeout?: number;
   retries?: number;
+  retryDelay?: number;
   debug?: boolean;
 }
 
@@ -53,6 +54,10 @@ export class ElfaV2Client {
 
     if (this.options.retries !== undefined) {
       httpOptions.retries = this.options.retries;
+    }
+
+    if (this.options.retryDelay !== undefined) {
+      httpOptions.retryDelay = this.options.retryDelay;
     }
 
     if (this.options.debug !== undefined) {
