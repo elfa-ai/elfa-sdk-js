@@ -3,7 +3,6 @@ import { ElfaSDK } from "../client/ElfaSDK.js";
 export async function basicUsageExample(): Promise<void> {
   const elfa = new ElfaSDK({
     elfaApiKey: "your-elfa-api-key",
-    fetchRawTweets: false,
   });
 
   try {

@@ -172,13 +172,6 @@ describe("HttpClient", () => {
         "test-api-key",
       );
     });
-
-    it("should set Twitter auth header", () => {
-      httpClient.setTwitterAuthHeader("test-bearer-token");
-      expect(mockAxiosInstance.defaults.headers.common["Authorization"]).toBe(
-        "Bearer test-bearer-token",
-      );
-    });
   });
 
   describe("error handling", () => {

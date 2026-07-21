@@ -183,10 +183,6 @@ export class HttpClient {
     this.client.defaults.headers.common["x-elfa-api-key"] = token;
   }
 
-  public setTwitterAuthHeader(token: string): void {
-    this.client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  }
-
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }

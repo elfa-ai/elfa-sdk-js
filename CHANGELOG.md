@@ -19,7 +19,12 @@
   decommissioned server-side. This includes `V1CompatibilityLayer`,
   `createV1CompatibleClient`, `getMentions`, `getMentionsByKeywords`, and the
   V1-shaped variants of `getTopMentions` and `getAccountSmartStats`. Use the
-  V2 methods, or the [Elfa MCP server](https://docs.elfa.ai) for agent access.
+  V2 methods.
+- **The Twitter enhancement layer has been removed.** `TwitterClient`, the
+  `twitterApiKey` / `fetchRawTweets` options, and the raw-tweet enrichment are
+  gone. The SDK returns Elfa's processed data and tweet links only, and no
+  longer exposes raw tweet content. Integrate the X/Twitter API directly if you
+  need it.
 
 ### Changed
 

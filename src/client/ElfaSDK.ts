@@ -1,15 +1,8 @@
 import { ElfaV2Client } from "./ElfaV2Client.js";
-import { TwitterClient } from "./TwitterClient.js";
 import { AutoClient } from "./AutoClient.js";
 import { TradeClient } from "./TradeClient.js";
-import { ResponseEnhancer } from "../utils/enhancer.js";
 import { ValidationError } from "../utils/errors.js";
-import type {
-  SDKOptions,
-  RequestOptions,
-  EnhancedResponse,
-  EnhancementOptions,
-} from "../types/enhanced.js";
+import type { SDKOptions } from "../types/options.js";
 import type {
   PingResponse,
   ApiKeyStatusResponse,
@@ -36,17 +29,9 @@ export class ElfaSDK {
   public readonly auto: AutoClient;
   public readonly trade: TradeClient;
   private elfaClient: ElfaV2Client;
-  private twitterClient?: TwitterClient;
-  private enhancer: ResponseEnhancer;
   private options: SDKOptions & {
     baseUrl: string;
-    fetchRawTweets: boolean;
-    enhancementTimeout: number;
-    maxBatchSize: number;
-    strictMode: boolean;
-    cacheEnhancements: boolean;
-    respectRateLimits: boolean;
-    retryOnRateLimit: boolean;
+    timeout: number;
     debug: boolean;
   };
 
@@ -55,41 +40,15 @@ export class ElfaSDK {
 
     this.options = {
       baseUrl: "https://api.elfa.ai",
-      fetchRawTweets: !!options.twitterApiKey,
-      enhancementTimeout: 30000,
-      maxBatchSize: 100,
-      strictMode: false,
-      cacheEnhancements: false,
-      respectRateLimits: true,
-      retryOnRateLimit: true,
+      timeout: 30000,
       debug: false,
       ...options,
     };
 
-    this.elfaClient = new ElfaV2Client({
+    const clientOptions = {
       apiKey: this.options.elfaApiKey,
       baseUrl: this.options.baseUrl,
-      timeout: this.options.enhancementTimeout,
-      retries: this.options.retries,
-      debug: this.options.debug,
-    });
-
-    if (this.options.twitterApiKey) {
-      this.twitterClient = new TwitterClient({
-        bearerToken: this.options.twitterApiKey,
-        timeout: this.options.enhancementTimeout,
-      });
-    }
-
-    this.enhancer = new ResponseEnhancer(
-      this.twitterClient,
-      this.options.maxBatchSize,
-    );
-
-    const engineOptions = {
-      apiKey: this.options.elfaApiKey,
-      baseUrl: this.options.baseUrl,
-      timeout: this.options.enhancementTimeout,
+      timeout: this.options.timeout,
       retries: this.options.retries,
       retryDelay: this.options.retryDelay,
       debug: this.options.debug,
@@ -97,8 +56,10 @@ export class ElfaSDK {
         ? { hmacSecret: this.options.hmacSecret }
         : {}),
     };
-    this.auto = new AutoClient(engineOptions);
-    this.trade = new TradeClient(engineOptions);
+
+    this.elfaClient = new ElfaV2Client(clientOptions);
+    this.auto = new AutoClient(clientOptions);
+    this.trade = new TradeClient(clientOptions);
   }
 
   private validateOptions(options: SDKOptions): void {
@@ -106,18 +67,8 @@ export class ElfaSDK {
       throw new ValidationError("elfaApiKey is required");
     }
 
-    if (
-      options.maxBatchSize !== undefined &&
-      (options.maxBatchSize < 1 || options.maxBatchSize > 100)
-    ) {
-      throw new ValidationError("maxBatchSize must be between 1 and 100");
-    }
-
-    if (
-      options.enhancementTimeout !== undefined &&
-      options.enhancementTimeout < 1000
-    ) {
-      throw new ValidationError("enhancementTimeout must be at least 1000ms");
+    if (options.timeout !== undefined && options.timeout < 1000) {
+      throw new ValidationError("timeout must be at least 1000ms");
     }
   }
 
@@ -142,49 +93,15 @@ export class ElfaSDK {
   }
 
   public async getKeywordMentions(
-    params: KeywordMentionsParams & RequestOptions = {},
-  ): Promise<EnhancedResponse<KeywordMentionsV2Response>> {
-    const response = await this.elfaClient.getKeywordMentions(params);
-
-    const shouldEnhance = this.shouldEnhanceResponse(params);
-    if (!shouldEnhance) {
-      return response as EnhancedResponse<KeywordMentionsV2Response>;
-    }
-
-    const enhancementOptions = this.buildEnhancementOptions(params);
-    const enhancementResult = await this.enhancer.enhanceProcessedMentions(
-      response.data,
-      enhancementOptions,
-    );
-
-    return {
-      ...response,
-      data: enhancementResult.data,
-      enhancement_info: enhancementResult.enhancement_info,
-    } as EnhancedResponse<KeywordMentionsV2Response>;
+    params: KeywordMentionsParams = {},
+  ): Promise<KeywordMentionsV2Response> {
+    return this.elfaClient.getKeywordMentions(params);
   }
 
   public async getTokenNews(
-    params: TokenNewsParams & RequestOptions = {},
-  ): Promise<EnhancedResponse<TokenNewsV2Response>> {
-    const response = await this.elfaClient.getTokenNews(params);
-
-    const shouldEnhance = this.shouldEnhanceResponse(params);
-    if (!shouldEnhance) {
-      return response as EnhancedResponse<TokenNewsV2Response>;
-    }
-
-    const enhancementOptions = this.buildEnhancementOptions(params);
-    const enhancementResult = await this.enhancer.enhanceProcessedMentions(
-      response.data,
-      enhancementOptions,
-    );
-
-    return {
-      ...response,
-      data: enhancementResult.data,
-      enhancement_info: enhancementResult.enhancement_info,
-    } as EnhancedResponse<TokenNewsV2Response>;
+    params: TokenNewsParams = {},
+  ): Promise<TokenNewsV2Response> {
+    return this.elfaClient.getTokenNews(params);
   }
 
   public async getTrendingCAsTwitter(
@@ -200,26 +117,9 @@ export class ElfaSDK {
   }
 
   public async getTopMentions(
-    params: TopMentionsV2Params & RequestOptions,
-  ): Promise<EnhancedResponse<TopMentionsV2Response>> {
-    const response = await this.elfaClient.getTopMentions(params);
-
-    const shouldEnhance = this.shouldEnhanceResponse(params);
-    if (!shouldEnhance) {
-      return response as EnhancedResponse<TopMentionsV2Response>;
-    }
-
-    const enhancementOptions = this.buildEnhancementOptions(params);
-    const enhancementResult = await this.enhancer.enhanceTopMentionsV2(
-      response.data,
-      enhancementOptions,
-    );
-
-    return {
-      ...response,
-      data: enhancementResult.data,
-      enhancement_info: enhancementResult.enhancement_info,
-    } as EnhancedResponse<TopMentionsV2Response>;
+    params: TopMentionsV2Params,
+  ): Promise<TopMentionsV2Response> {
+    return this.elfaClient.getTopMentions(params);
   }
 
   public async getEventSummary(
@@ -238,49 +138,12 @@ export class ElfaSDK {
     return this.elfaClient.chat(params);
   }
 
-  private shouldEnhanceResponse(params: RequestOptions): boolean {
-    const fetchRawTweets = params.fetchRawTweets ?? this.options.fetchRawTweets;
-    return fetchRawTweets && !!this.twitterClient;
-  }
-
-  private buildEnhancementOptions(params: RequestOptions): EnhancementOptions {
-    return {
-      includeContent: true,
-      includeMetrics: true,
-      fallbackToV2: !this.options.strictMode,
-      batchSize: this.options.maxBatchSize,
-      timeout: this.options.enhancementTimeout,
-      ...params.enhancementOptions,
-    };
-  }
-
-  public async testConnection(): Promise<{
-    elfa: boolean;
-    twitter?: boolean;
-  }> {
-    const results: { elfa: boolean; twitter?: boolean } = {
-      elfa: false,
-    };
-
+  public async testConnection(): Promise<boolean> {
     try {
-      results.elfa = await this.elfaClient.testConnection();
+      return await this.elfaClient.testConnection();
     } catch {
-      results.elfa = false;
+      return false;
     }
-
-    if (this.twitterClient) {
-      try {
-        results.twitter = await this.twitterClient.testConnection();
-      } catch {
-        results.twitter = false;
-      }
-    }
-
-    return results;
-  }
-
-  public isTwitterEnabled(): boolean {
-    return !!this.twitterClient;
   }
 
   public getOptions() {
@@ -291,12 +154,6 @@ export class ElfaSDK {
     if (newOptions.elfaApiKey) {
       throw new ValidationError(
         "Cannot update elfaApiKey after initialization",
-      );
-    }
-
-    if (newOptions.twitterApiKey) {
-      throw new ValidationError(
-        "Cannot update twitterApiKey after initialization",
       );
     }
 

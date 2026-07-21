@@ -29,13 +29,6 @@ export class ElfaApiError extends ElfaSDKError {
   }
 }
 
-export class TwitterApiError extends ElfaSDKError {
-  constructor(message: string, statusCode?: number, details?: any) {
-    super(message, "TWITTER_API_ERROR", statusCode, details);
-    this.name = "TwitterApiError";
-  }
-}
-
 export class ValidationError extends ElfaSDKError {
   constructor(message: string, details?: any) {
     super(message, "VALIDATION_ERROR", undefined, details);
@@ -66,13 +59,6 @@ export class NetworkError extends ElfaSDKError {
   constructor(message: string, originalError?: Error) {
     super(message, "NETWORK_ERROR", undefined, originalError);
     this.name = "NetworkError";
-  }
-}
-
-export class EnhancementError extends ElfaSDKError {
-  constructor(message: string, details?: any) {
-    super(message, "ENHANCEMENT_ERROR", undefined, details);
-    this.name = "EnhancementError";
   }
 }
 
