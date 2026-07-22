@@ -97,10 +97,26 @@ policy allows only the `dev` and `main` branches. A tag ref matches no branch ru
 so a tag-triggered run is blocked at the environment gate. Every release to date
 has used `workflow_dispatch`.
 
-`NPM_TOKEN` lives on the `production` **environment**, not in repo secrets — a
-plain `gh secret set` puts it in the wrong place. An expired token surfaces as
-`npm error 404 ... PUT`, which is npm's way of reporting an auth failure without
-disclosing whether the package exists.
+**Publishing uses OIDC trusted publishing — there is no npm token.** npm mints a
+short-lived credential from the workflow's id-token, so nothing needs rotating.
+The trust relationship is configured on npmjs.com against three values that must
+keep matching the workflow:
+
+| npm setting       | Value         |
+| ----------------- | ------------- |
+| Repository        | `elfa-sdk-js` |
+| Workflow filename | `release.yml` |
+| Environment name  | `production`  |
+
+Renaming the workflow file or the `production` environment breaks publishing
+until the npm-side config is updated to match. Publishing requires
+`Node >= 22.14.0` and `npm >= 11.5.1`, which is why the publish job pins a newer
+Node than the test matrix and upgrades npm before publishing. Provenance
+attestations are generated automatically; `--provenance` is not needed.
+
+If publishing ever fails with `npm error 404 ... PUT`, that is an auth failure,
+not a missing package — npm withholds 401/403 so it does not disclose whether a
+package exists.
 
 ## Security Considerations
 
