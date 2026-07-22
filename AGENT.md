@@ -109,11 +109,10 @@ keep matching the workflow:
 | Environment name  | `production`  |
 
 Renaming the workflow file or the `production` environment breaks publishing
-until the npm-side config is updated to match. Publishing requires Node
-
-> = 22.14.0 and npm >= 11.5.1, which is why the publish job pins a newer Node than
-> the test matrix and upgrades npm before publishing. Provenance attestations are
-> generated automatically; `--provenance` is not needed.
+until the npm-side config is updated to match. Publishing requires
+`Node >= 22.14.0` and `npm >= 11.5.1`, which is why the publish job pins a newer
+Node than the test matrix and upgrades npm before publishing. Provenance
+attestations are generated automatically; `--provenance` is not needed.
 
 If publishing ever fails with `npm error 404 ... PUT`, that is an auth failure,
 not a missing package — npm withholds 401/403 so it does not disclose whether a
