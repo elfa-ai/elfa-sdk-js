@@ -219,6 +219,7 @@ interface SDKOptions {
   timeout?: number; // Optional: request timeout in ms (default: 30000)
   retries?: number; // Optional: retries for idempotent requests (default: 3)
   retryDelay?: number; // Optional: base retry delay in ms (default: 1000)
+  headers?: Record<string, string>; // Optional: extra headers sent with every request
   debug?: boolean; // Optional: Enable debug logging (default: false)
 }
 ```
@@ -301,4 +302,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - 📧 Email: <support@elfa.ai>
 - 📖 Documentation: [https://docs.elfa.ai](https://docs.elfa.ai)
 - 🐛 Issues: [GitHub Issues](https://github.com/elfa-ai/elfa-sdk-js/issues)
-  test change

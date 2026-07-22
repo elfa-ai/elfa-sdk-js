@@ -9,18 +9,25 @@ export interface TradeErrorDetail {
   message: string;
 }
 
+/**
+ * Venue-level fields beyond the ones named here are passed through verbatim
+ * from the execution service (a preview, for instance, also returns `order`,
+ * `requestedSize` and `resolvedSize`), so both response types stay open.
+ */
 export interface TradeResultResponse {
   success: boolean;
   orderId?: string;
   filledSize?: string;
   avgFillPrice?: string;
   error?: TradeErrorDetail;
+  [key: string]: unknown;
 }
 
 export interface TradePreviewResponse {
   success: boolean;
   wouldExecute: boolean;
   error?: TradeErrorDetail;
+  [key: string]: unknown;
 }
 
 export interface PlaceOrderInput {

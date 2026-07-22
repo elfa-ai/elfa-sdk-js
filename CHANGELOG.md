@@ -26,6 +26,8 @@
   gone. The SDK returns Elfa's processed data and tweet links only, and no
   longer exposes raw tweet content. Integrate the X/Twitter API directly if you
   need it.
+- `docs/MIGRATION.md`. It documented the V1 compatibility layer and the Twitter
+  enhancement layer, both removed above, so every API it described is gone.
 
 ### Changed
 
