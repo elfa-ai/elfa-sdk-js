@@ -19,7 +19,7 @@ This file provides universal base instructions for AI coding assistants working 
 - **TypeScript**: Strict mode, comprehensive typing, ES2020 target
 - **File Extensions**: Use `.js` extensions in imports for ESM compatibility
 - **Error Handling**: Specific error classes with inheritance hierarchy
-- **Testing**: Jest with comprehensive test coverage (currently 38 tests)
+- **Testing**: Jest, with mocked unit tests plus live integration tests gated behind `ELFA_API_KEY`
 - **Linting**: ESLint with TypeScript support
 
 ### Key Patterns to Follow
@@ -38,7 +38,7 @@ This file provides universal base instructions for AI coding assistants working 
 ```
 src/
 ├── client/          # Core SDK and API client implementations
-├── types/           # TypeScript definitions (generated from OpenAPI)
+├── types/           # TypeScript definitions (hand-written; see note below)
 ├── utils/           # HTTP, HMAC signing, SSE, errors, pagination
 ├── examples/        # Usage examples and demos
 └── __tests__/       # Test suites
@@ -46,28 +46,30 @@ src/
 
 ## API Update Workflow
 
-The project uses an automated schema update process:
+`swagger.json` is a reference copy of the backend's OpenAPI schema. **Types are not
+generated from it** — everything under `src/types/` is hand-written and must be
+updated by hand when the API changes. Refreshing the schema alone changes nothing
+about the SDK's behaviour or types.
 
-1. Backend generates OpenAPI schema via TSOA
-2. CI/CD publishes schema to docs site: `https://staging.elfa-docs.pages.dev/swagger/swagger.json`
-3. SDK can be updated via script: `npm run update-schema`
-4. Type definitions regenerated from new schema
+1. Backend generates the OpenAPI schema via TSOA
+2. CI/CD publishes it to `https://docs.elfa.ai/swagger/swagger.json`
+3. Refresh the local copy with `npm run update-schema`
+4. Diff it, then update `src/types/` and the affected client by hand
 
-### Schema Update Commands
+### Schema Commands
 
 ```bash
-npm run update-schema     # Fetch latest schema and regenerate types
-npm run generate-types    # Regenerate types from existing schema
-npm run validate-schema   # Validate current schema compatibility
+npm run update-schema         # Overwrite swagger.json from docs.elfa.ai
+npm run check-schema-updates  # Diff the published schema against the local copy
 ```
 
 ## Common Tasks
 
 ### Adding New API Endpoints
 
-1. Update `swagger.json` (`npm run update-schema`)
+1. Update `swagger.json` (`npm run update-schema`) and diff it for the new shape
 2. Add method to the appropriate client (`ElfaV2Client`, `AutoClient`, or `TradeClient`)
-3. Add types under `src/types/`
+3. Add types under `src/types/` by hand — nothing generates them
 4. Update the main SDK class (`ElfaSDK`) if exposed there
 5. Add tests
 6. Update documentation and examples
@@ -80,11 +82,25 @@ npm run validate-schema   # Validate current schema compatibility
 
 ### Release Process
 
-1. Update version in package.json
-2. Run `npm run prepublishOnly` (builds, tests, lints)
-3. Verify dist/ output is correct
-4. Create GitHub release with changelog
-5. Publish to npm registry
+Releases run through `.github/workflows/release.yml`, which publishes to npm and
+creates the GitHub release. Do not publish by hand.
+
+1. Land the version bump in `package.json` and the matching `## <version>` entry
+   in `CHANGELOG.md` — the release body is extracted from that section
+2. Trigger **Actions → Release → Run workflow** from `main`, passing the same
+   version string (`validate` fails the run if it disagrees with `package.json`)
+3. The workflow runs typecheck, lint, tests and build, then publishes and tags
+
+**Dispatch from `main` — do not push a `v*.*.*` tag.** The workflow declares that
+tag trigger, but `publish` runs in the `production` environment, whose deployment
+policy allows only the `dev` and `main` branches. A tag ref matches no branch rule,
+so a tag-triggered run is blocked at the environment gate. Every release to date
+has used `workflow_dispatch`.
+
+`NPM_TOKEN` lives on the `production` **environment**, not in repo secrets — a
+plain `gh secret set` puts it in the wrong place. An expired token surfaces as
+`npm error 404 ... PUT`, which is npm's way of reporting an auth failure without
+disclosing whether the package exists.
 
 ## Security Considerations
 
