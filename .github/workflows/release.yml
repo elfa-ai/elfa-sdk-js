@@ -105,38 +105,70 @@ jobs:
           echo "name=$(node -p "require('./package.json').name")" >> $GITHUB_OUTPUT
           echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
-      - name: Generate changelog
+      - name: Generate release notes
         id: changelog
+        env:
+          VERSION: ${{ steps.package.outputs.version }}
+          PACKAGE_NAME: ${{ steps.package.outputs.name }}
         run: |
-          # Get previous tag
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
-          CURRENT_TAG="v${{ steps.package.outputs.version }}"
+          set -euo pipefail
 
-          echo "## Changes" > CHANGELOG.md
+          # Prefer the curated CHANGELOG.md entry for this version — that is what
+          # readers actually need on a release, especially the breaking changes.
+          # Pull out everything between "## <version>" and the next "## " heading.
+          # The version is escaped first so its dots are not treated as regex
+          # wildcards (3.0.0 must not match 3x0y0).
+          awk -v ver="$VERSION" '
+            BEGIN { gsub(/\./, "\\.", ver) }
+            $0 ~ "^## +" ver "([[:space:]]|$)" { capture = 1; next }
+            capture && /^## / { exit }
+            capture { print }
+          ' CHANGELOG.md > section.md || true
 
-          if [ -n "$PREV_TAG" ]; then
-            echo "" >> CHANGELOG.md
-            git log $PREV_TAG..HEAD --pretty=format:"- %s (%h)" --no-merges >> CHANGELOG.md
+          # Trim leading and trailing blank lines from the extracted section.
+          sed -i -e '/./,$!d' section.md
+          sed -i -e :a -e '/^\n*$/{$d;N;ba' -e '}' section.md
+
+          if [ -s section.md ]; then
+            echo "Using CHANGELOG.md entry for $VERSION"
+            {
+              echo "## Changes"
+              echo ""
+              cat section.md
+            } > RELEASE_NOTES.md
           else
-            echo "- Initial release" >> CHANGELOG.md
+            # No curated entry for this version — fall back to the commit log so a
+            # release still gets notes rather than an empty body.
+            echo "No CHANGELOG.md entry for $VERSION; falling back to commit log"
+            PREV_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+
+            echo "## Changes" > RELEASE_NOTES.md
+            if [ -n "$PREV_TAG" ]; then
+              echo "" >> RELEASE_NOTES.md
+              git log "$PREV_TAG"..HEAD --pretty=format:"- %s (%h)" --no-merges >> RELEASE_NOTES.md
+              echo "" >> RELEASE_NOTES.md
+            else
+              echo "- Initial release" >> RELEASE_NOTES.md
+            fi
           fi
 
-          echo "" >> CHANGELOG.md
-          echo "## Installation" >> CHANGELOG.md
-          echo "" >> CHANGELOG.md
-          echo '```bash' >> CHANGELOG.md
-          echo "npm install ${{ steps.package.outputs.name }}@${{ steps.package.outputs.version }}" >> CHANGELOG.md
-          echo '```' >> CHANGELOG.md
+          {
+            echo ""
+            echo "## Installation"
+            echo ""
+            echo '```bash'
+            echo "npm install ${PACKAGE_NAME}@${VERSION}"
+            echo '```'
+          } >> RELEASE_NOTES.md
 
-          # Output for GitHub release
-          cat CHANGELOG.md >> $GITHUB_STEP_SUMMARY
+          cat RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.package.outputs.version }}
           name: Release v${{ steps.package.outputs.version }}
-          body_path: CHANGELOG.md
+          body_path: RELEASE_NOTES.md
           draft: false
           prerelease: ${{ contains(steps.package.outputs.version, '-') }}
 
