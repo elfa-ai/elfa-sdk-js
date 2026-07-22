@@ -6,3 +6,4 @@ coverage/
 swagger.json
 package-lock.json
 .claude/
+.handoff/

@@ -1,12 +1,10 @@
 import {
   ElfaSDKError,
   ElfaApiError,
-  TwitterApiError,
   ValidationError,
   RateLimitError,
   AuthenticationError,
   NetworkError,
-  EnhancementError,
   isRetryableError,
   getErrorMessage,
 } from "../utils/errors";
@@ -45,14 +43,22 @@ describe("Error Classes", () => {
     });
   });
 
-  describe("TwitterApiError", () => {
-    it("should create Twitter API error", () => {
-      const error = new TwitterApiError("Twitter failed", 429);
+  describe("subclass instanceof", () => {
+    it("each subclass is instanceof itself, the base, and Error", () => {
+      const cases = [
+        [new ElfaApiError("a", 500), ElfaApiError],
+        [new ValidationError("b"), ValidationError],
+        [new RateLimitError("c"), RateLimitError],
+        [new AuthenticationError("d"), AuthenticationError],
+        [new NetworkError("e"), NetworkError],
+      ] as const;
 
-      expect(error).toBeInstanceOf(ElfaSDKError);
-      expect(error.name).toBe("TwitterApiError");
-      expect(error.code).toBe("TWITTER_API_ERROR");
-      expect(error.statusCode).toBe(429);
+      for (const [error, Cls] of cases) {
+        expect(error).toBeInstanceOf(Cls);
+        expect(error).toBeInstanceOf(ElfaSDKError);
+        expect(error).toBeInstanceOf(Error);
+        expect(error.constructor.name).toBe(Cls.name);
+      }
     });
   });
 
@@ -107,16 +113,6 @@ describe("Error Classes", () => {
       expect(error.name).toBe("NetworkError");
       expect(error.code).toBe("NETWORK_ERROR");
       expect(error.details).toBe(originalError);
-    });
-  });
-
-  describe("EnhancementError", () => {
-    it("should create enhancement error", () => {
-      const error = new EnhancementError("Enhancement failed");
-
-      expect(error).toBeInstanceOf(ElfaSDKError);
-      expect(error.name).toBe("EnhancementError");
-      expect(error.code).toBe("ENHANCEMENT_ERROR");
     });
   });
 });

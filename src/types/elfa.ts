@@ -83,15 +83,6 @@ export interface AccountSmartStatsResponse {
   };
 }
 
-export interface AccountSmartStatsResponseV1 {
-  success: boolean;
-  data: {
-    smartFollowingCount: number;
-    averageEngagement: number;
-    followerEngagementRatio: number;
-  };
-}
-
 export interface ProcessedMention {
   tweetId: string;
   link: string;
@@ -145,144 +136,6 @@ export interface TrendingCAsV2Response {
     page: number;
     total: number;
     data: TrendingContractAddress[];
-  };
-}
-
-export interface Account {
-  id: number;
-  username: string;
-  data: {
-    profileBannerUrl: string;
-    profileImageUrl: string;
-    description: string;
-    userSince: string;
-    location: string;
-    name: string;
-  };
-  followerCount?: number;
-  followingCount?: number;
-  isVerified: boolean;
-}
-
-export interface Mention {
-  id: number | string;
-  type: string;
-  content: string | null;
-  originalUrl: string;
-  data: any;
-  likeCount: number | null;
-  quoteCount: number | null;
-  replyCount: number | null;
-  repostCount: number | null;
-  viewCount: number | null;
-  mentionedAt: string;
-  bookmarkCount: number | null;
-  account?: Account;
-}
-
-export interface MentionResponse {
-  success: boolean;
-  data: Mention[];
-  metadata: {
-    offset: number;
-    limit: number;
-    total: number;
-  };
-}
-
-export interface TopMentionsResponse {
-  success: boolean;
-  data: {
-    pageSize: number;
-    page: number;
-    total: number;
-    data: Array<{
-      metrics: {
-        view_count: number;
-        repost_count: number;
-        reply_count: number;
-        like_count: number;
-      };
-      mentioned_at: string;
-      content: string;
-      id: number;
-    }>;
-  };
-}
-
-export interface AccountInfo {
-  username: string;
-  description?: string;
-  profileImageUrl?: string;
-}
-
-export interface SimpleMention {
-  id: number;
-  twitter_id: string;
-  twitter_user_id: string;
-  parent_tweet_id: string;
-  content: string;
-  mentioned_at: string;
-  type: string;
-  twitter_account_info?: AccountInfo;
-  metrics: {
-    view_count: number;
-    repost_count: number;
-    reply_count: number;
-    like_count: number;
-  };
-}
-
-export interface GetMentionsByKeywordsResponse {
-  success: boolean;
-  data: SimpleMention[];
-  metadata: {
-    cursor?: string;
-    total: number;
-  };
-}
-
-export interface BasicAccount {
-  twitterId: number;
-  username: string;
-  followerCount: number;
-  followingCount: number;
-  isVerified: boolean;
-  data: {
-    description: string;
-    userSince: string;
-    location: string;
-    name: string;
-  };
-}
-
-export interface BasicCoin {
-  name: string;
-  symbol: string;
-  coinId: string;
-}
-
-export interface MentionWithAccountAndToken {
-  mentionId: number;
-  content: string;
-  type: string;
-  originalUrl: string;
-  mentionedAt: string;
-  mentionedByType: "general" | "ct" | "smart";
-  sentiment:
-    | "very-bullish"
-    | "bullish"
-    | "very-bearish"
-    | "bearish"
-    | "neutral";
-  account: BasicAccount;
-  coins: BasicCoin[];
-}
-
-export interface GetTokenMentionsResponse {
-  success: boolean;
-  data: {
-    data: MentionWithAccountAndToken[];
   };
 }
 
@@ -361,16 +214,6 @@ export interface AccountSmartStatsParams {
   username: string;
 }
 
-export interface TopMentionsParams {
-  ticker: string;
-  timeWindow?: string;
-  from?: number;
-  to?: number;
-  page?: number;
-  pageSize?: number;
-  includeAccountDetails?: boolean;
-}
-
 export interface TopMentionsV2Params {
   ticker: string;
   timeWindow?: string;
@@ -379,42 +222,6 @@ export interface TopMentionsV2Params {
   page?: number;
   pageSize?: number;
   reposts?: boolean;
-}
-
-export interface MentionsByKeywordsParams {
-  keywords: string;
-  from: number;
-  to: number;
-  limit?: number;
-  searchType?: string;
-  cursor?: string;
-  reposts?: boolean;
-}
-
-export interface MentionsParams {
-  limit?: number;
-  offset?: number;
-}
-
-export interface MentionV2 {
-  tweetId: string;
-  link: string;
-  likeCount: number | null;
-  repostCount: number | null;
-  viewCount: number | null;
-  quoteCount: number | null;
-  replyCount: number | null;
-  bookmarkCount: number | null;
-  mentionedAt: string;
-  type: "repost" | "post" | "quote" | "reply";
-  repostBreakdown: {
-    ct: number;
-    smart: number;
-  };
-  account?: {
-    isVerified: boolean;
-    username: string;
-  };
 }
 
 export interface EventSummaryV2Response {
@@ -437,4 +244,28 @@ export interface EventSummaryV2Params {
   to?: number;
   timeWindow?: string;
   searchType?: string;
+}
+
+export interface TrendingNarrative {
+  narrative: string;
+  source_links: string[];
+  tweet_ids: string[];
+}
+
+export interface TrendingNarrativesResponse {
+  success: boolean;
+  data: {
+    trending_narratives: TrendingNarrative[];
+    metadata: {
+      total_narratives?: number;
+      total_tweets?: number;
+      error?: string;
+    };
+  };
+}
+
+export interface TrendingNarrativesParams {
+  timeFrame?: "day" | "week";
+  maxNarratives?: number;
+  maxTweetsPerNarrative?: number;
 }

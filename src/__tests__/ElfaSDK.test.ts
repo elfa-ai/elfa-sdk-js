@@ -1,17 +1,13 @@
 import { ElfaSDK } from "../client/ElfaSDK";
 import { ElfaV2Client } from "../client/ElfaV2Client";
-import { TwitterClient } from "../client/TwitterClient";
-import { ResponseEnhancer } from "../utils/enhancer";
+import { ValidationError } from "../utils/errors";
 
-// Mock the dependencies
 jest.mock("../client/ElfaV2Client");
-jest.mock("../client/TwitterClient");
-jest.mock("../utils/enhancer");
+jest.mock("../client/AutoClient");
+jest.mock("../client/TradeClient");
 
 describe("ElfaSDK", () => {
   let mockElfaClient: jest.Mocked<ElfaV2Client>;
-  let mockTwitterClient: jest.Mocked<TwitterClient>;
-  let mockEnhancer: jest.Mocked<ResponseEnhancer>;
 
   beforeEach(() => {
     mockElfaClient = {
@@ -19,40 +15,20 @@ describe("ElfaSDK", () => {
       getApiKeyStatus: jest.fn(),
       getTrendingTokens: jest.fn(),
       getAccountSmartStats: jest.fn(),
-      getV1AccountSmartStats: jest.fn(),
       getKeywordMentions: jest.fn(),
       getTokenNews: jest.fn(),
       getTrendingCAsTwitter: jest.fn(),
       getTrendingCAsTelegram: jest.fn(),
       getTopMentions: jest.fn(),
-      getV1TopMentions: jest.fn(),
-      getMentionsByKeywords: jest.fn(),
-      getMentions: jest.fn(),
       getEventSummary: jest.fn(),
+      getTrendingNarratives: jest.fn(),
+      chat: jest.fn(),
       testConnection: jest.fn(),
-    } as any;
-
-    mockTwitterClient = {
-      testConnection: jest.fn(),
-    } as any;
-
-    mockEnhancer = {
-      enhanceProcessedMentions: jest.fn(),
-      enhanceSimpleMentions: jest.fn(),
-      enhanceMentionsWithAccountAndToken: jest.fn(),
-      enhanceTopMentionsV1: jest.fn(),
-      enhanceTopMentionsV2: jest.fn(),
     } as any;
 
     (ElfaV2Client as jest.MockedClass<typeof ElfaV2Client>).mockImplementation(
       () => mockElfaClient,
     );
-    (
-      TwitterClient as jest.MockedClass<typeof TwitterClient>
-    ).mockImplementation(() => mockTwitterClient);
-    (
-      ResponseEnhancer as jest.MockedClass<typeof ResponseEnhancer>
-    ).mockImplementation(() => mockEnhancer);
   });
 
   afterEach(() => {
@@ -60,853 +36,145 @@ describe("ElfaSDK", () => {
   });
 
   describe("constructor", () => {
-    it("should create SDK instance with valid options", () => {
-      const sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-      });
+    it("creates the client with defaults", () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "test-api-key" });
 
       expect(sdk).toBeInstanceOf(ElfaSDK);
-      expect(sdk.isTwitterEnabled()).toBe(false);
-      expect(ElfaV2Client).toHaveBeenCalledWith({
-        apiKey: "test-api-key",
-        baseUrl: "https://api.elfa.ai",
-        timeout: 30000,
-        debug: false,
-      });
+      expect(sdk.auto).toBeDefined();
+      expect(sdk.trade).toBeDefined();
+      expect(ElfaV2Client).toHaveBeenCalledWith(
+        expect.objectContaining({
+          apiKey: "test-api-key",
+          baseUrl: "https://api.elfa.ai",
+          timeout: 30000,
+          debug: false,
+        }),
+      );
     });
 
-    it("should create SDK instance with Twitter API key", () => {
-      const sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        twitterApiKey: "test-twitter-key",
-      });
-
-      expect(sdk).toBeInstanceOf(ElfaSDK);
-      expect(sdk.isTwitterEnabled()).toBe(true);
-      expect(TwitterClient).toHaveBeenCalledWith({
-        bearerToken: "test-twitter-key",
-        timeout: 30000,
-      });
+    it("forwards hmacSecret when provided", () => {
+      new ElfaSDK({ elfaApiKey: "k", hmacSecret: "secret" });
+      expect(ElfaV2Client).toHaveBeenCalledWith(
+        expect.objectContaining({ hmacSecret: "secret" }),
+      );
     });
 
-    it("should create SDK instance with custom options", () => {
-      new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        baseUrl: "https://custom.api.com",
-        fetchRawTweets: true,
-        enhancementTimeout: 10000,
-        maxBatchSize: 50,
-        debug: true,
-      });
-
-      expect(ElfaV2Client).toHaveBeenCalledWith({
-        apiKey: "test-api-key",
-        baseUrl: "https://custom.api.com",
-        timeout: 10000,
-        debug: true,
-      });
-      expect(ResponseEnhancer).toHaveBeenCalledWith(undefined, 50);
+    it("throws when elfaApiKey is missing", () => {
+      expect(() => new ElfaSDK({} as any)).toThrow(
+        new ValidationError("elfaApiKey is required"),
+      );
     });
 
-    it("should throw ValidationError for missing elfaApiKey", () => {
-      expect(() => {
-        new ElfaSDK({} as any);
-      }).toThrow("elfaApiKey is required");
-    });
-
-    it("should throw ValidationError for invalid maxBatchSize", () => {
-      expect(() => {
-        new ElfaSDK({
-          elfaApiKey: "test-api-key",
-          maxBatchSize: 0,
-        });
-      }).toThrow("maxBatchSize must be between 1 and 100");
-
-      expect(() => {
-        new ElfaSDK({
-          elfaApiKey: "test-api-key",
-          maxBatchSize: 101,
-        });
-      }).toThrow("maxBatchSize must be between 1 and 100");
-    });
-
-    it("should throw ValidationError for invalid enhancementTimeout", () => {
-      expect(() => {
-        new ElfaSDK({
-          elfaApiKey: "test-api-key",
-          enhancementTimeout: 500,
-        });
-      }).toThrow("enhancementTimeout must be at least 1000ms");
+    it("throws when timeout is below 1000ms", () => {
+      expect(() => new ElfaSDK({ elfaApiKey: "k", timeout: 500 })).toThrow(
+        new ValidationError("timeout must be at least 1000ms"),
+      );
     });
   });
 
-  describe("basic API methods", () => {
+  describe("delegation", () => {
     let sdk: ElfaSDK;
 
     beforeEach(() => {
-      sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-      });
+      sdk = new ElfaSDK({ elfaApiKey: "k" });
     });
 
-    it("should call ping", async () => {
-      const mockResponse = {
-        success: true as const,
-        data: { message: "pong" },
-      };
-      mockElfaClient.ping.mockResolvedValue(mockResponse);
+    it("delegates getTrendingTokens", async () => {
+      const response = { success: true, data: { data: [] } };
+      mockElfaClient.getTrendingTokens.mockResolvedValue(response as any);
 
-      const result = await sdk.ping();
-
-      expect(mockElfaClient.ping).toHaveBeenCalled();
-      expect(result).toBe(mockResponse);
-    });
-
-    it("should call getApiKeyStatus", async () => {
-      const mockResponse = {
-        success: true as const,
-        data: {
-          id: 1,
-          name: "test-key",
-          status: "active" as const,
-          dailyRequestLimit: 1000,
-          monthlyRequestLimit: 10000,
-          expiresAt: "2024-12-31T23:59:59Z",
-          createdAt: "2024-01-01T00:00:00Z",
-          usage: { monthly: 100, daily: 10 },
-          limits: { monthly: 10000, daily: 1000 },
-          isExpired: false,
-          remainingRequests: { monthly: 9900, daily: 990 },
-        },
-      };
-      mockElfaClient.getApiKeyStatus.mockResolvedValue(mockResponse);
-
-      const result = await sdk.getApiKeyStatus();
-
-      expect(mockElfaClient.getApiKeyStatus).toHaveBeenCalled();
-      expect(result).toBe(mockResponse);
-    });
-
-    it("should call getTrendingTokens with parameters", async () => {
-      const mockResponse = {
-        success: true,
-        data: { data: [], total: 0, page: 1, pageSize: 10 },
-      };
-      mockElfaClient.getTrendingTokens.mockResolvedValue(mockResponse);
-
-      const result = await sdk.getTrendingTokens({
-        timeWindow: "24h",
-        page: 1,
-        pageSize: 10,
-      });
+      const result = await sdk.getTrendingTokens({ timeWindow: "24h" });
 
       expect(mockElfaClient.getTrendingTokens).toHaveBeenCalledWith({
         timeWindow: "24h",
-        page: 1,
-        pageSize: 10,
       });
-      expect(result).toBe(mockResponse);
+      expect(result).toBe(response);
     });
 
-    it("should call getAccountSmartStats", async () => {
-      const mockResponse = {
-        success: true as const,
-        data: {
-          smartFollowingCount: 10,
-          averageEngagement: 0.5,
-          followerEngagementRatio: 100,
-        },
-      };
-      mockElfaClient.getV1AccountSmartStats.mockResolvedValue(mockResponse);
+    it("delegates getKeywordMentions", async () => {
+      const response = { success: true, data: [] };
+      mockElfaClient.getKeywordMentions.mockResolvedValue(response as any);
 
-      const result = await sdk.getAccountSmartStats({
-        username: "testuser",
-      });
-
-      expect(mockElfaClient.getV1AccountSmartStats).toHaveBeenCalledWith({
-        username: "testuser",
-      });
-      expect(result).toBe(mockResponse);
-    });
-
-    it("should call getEventSummary", async () => {
-      const mockResponse = {
-        success: true as const,
-        data: [
-          {
-            tweetIds: ["123456789", "987654321"],
-            sourceLinks: [
-              "https://twitter.com/user/status/123456789",
-              "https://twitter.com/user/status/987654321",
-            ],
-            summary: "Bitcoin price discussion and market analysis",
-          },
-        ],
-        metadata: {
-          summaries: 1,
-          total_summarized: 2,
-          total: 10,
-        },
-      };
-      mockElfaClient.getEventSummary.mockResolvedValue(mockResponse);
-
-      const result = await sdk.getEventSummary({
-        keywords: "bitcoin",
-        from: 1640995200,
-        to: 1641081600,
-        timeWindow: "24h",
-      });
-
-      expect(mockElfaClient.getEventSummary).toHaveBeenCalledWith({
-        keywords: "bitcoin",
-        from: 1640995200,
-        to: 1641081600,
-        timeWindow: "24h",
-      });
-      expect(result).toBe(mockResponse);
-    });
-  });
-
-  describe("enhancement functionality", () => {
-    let sdk: ElfaSDK;
-
-    beforeEach(() => {
-      sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        twitterApiKey: "test-twitter-key",
-      });
-    });
-
-    it("should enhance keyword mentions when fetchRawTweets is true", async () => {
-      const mockResponse = {
-        success: true,
-        data: [
-          {
-            tweetId: "123456789",
-            link: "https://twitter.com/user/status/123456789",
-            likeCount: 20,
-            repostCount: 10,
-            viewCount: 1000,
-            quoteCount: 2,
-            replyCount: 5,
-            bookmarkCount: 3,
-            mentionedAt: "2023-01-01T00:00:00Z",
-            type: "post",
-            repostBreakdown: {
-              smart: 3,
-              ct: 7,
-            },
-          },
-        ],
-        metadata: { total: 1 },
-      };
-      const enhancedResponse = {
-        data: [
-          {
-            tweetId: "123456789",
-            link: "https://twitter.com/user/status/123456789",
-            likeCount: 20,
-            repostCount: 10,
-            viewCount: 1000,
-            quoteCount: 2,
-            replyCount: 5,
-            bookmarkCount: 3,
-            mentionedAt: "2023-01-01T00:00:00Z",
-            type: "post",
-            repostBreakdown: {
-              smart: 3,
-              ct: 7,
-            },
-            content: "Enhanced content",
-            data_source: "elfa+twitter" as const,
-          },
-        ],
-        enhancement_info: {
-          total_enhanced: 1,
-          failed_enhancements: 0,
-          twitter_api_used: true,
-        },
-      };
-
-      mockElfaClient.getKeywordMentions.mockResolvedValue(mockResponse);
-      mockEnhancer.enhanceProcessedMentions.mockResolvedValue(enhancedResponse);
-
-      const result = await sdk.getKeywordMentions({
-        keywords: "bitcoin",
-        fetchRawTweets: true,
-      });
+      const result = await sdk.getKeywordMentions({ keywords: "bitcoin" });
 
       expect(mockElfaClient.getKeywordMentions).toHaveBeenCalledWith({
         keywords: "bitcoin",
-        fetchRawTweets: true,
       });
-      expect(mockEnhancer.enhanceProcessedMentions).toHaveBeenCalledWith(
-        mockResponse.data,
-        {
-          includeContent: true,
-          includeMetrics: true,
-          fallbackToV2: true,
-          batchSize: 100,
-          timeout: 30000,
-        },
-      );
-      expect((result as any).enhancement_info).toBeDefined();
+      expect(result).toBe(response);
     });
 
-    it("should not enhance when fetchRawTweets is false", async () => {
-      const mockResponse = {
-        success: true,
-        data: [
-          {
-            tweetId: "123456789",
-            link: "https://twitter.com/user/status/123456789",
-            likeCount: 20,
-            repostCount: 10,
-            viewCount: 1000,
-            quoteCount: 2,
-            replyCount: 5,
-            bookmarkCount: 3,
-            mentionedAt: "2023-01-01T00:00:00Z",
-            type: "post",
-            repostBreakdown: {
-              smart: 3,
-              ct: 7,
-            },
-          },
-        ],
-        metadata: { total: 1 },
-      };
+    it("delegates getTopMentions", async () => {
+      const response = { success: true, data: [], metadata: {} };
+      mockElfaClient.getTopMentions.mockResolvedValue(response as any);
 
-      mockElfaClient.getKeywordMentions.mockResolvedValue(mockResponse);
-
-      const result = await sdk.getKeywordMentions({
-        keywords: "bitcoin",
-        fetchRawTweets: false,
-      });
-
-      expect(mockEnhancer.enhanceProcessedMentions).not.toHaveBeenCalled();
-      expect(result).toBe(mockResponse);
-    });
-
-    it("should not enhance when Twitter client is not available", async () => {
-      const sdkWithoutTwitter = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-      });
-
-      const mockResponse = {
-        success: true,
-        data: [
-          {
-            tweetId: "123456789",
-            link: "https://twitter.com/user/status/123456789",
-            likeCount: 20,
-            repostCount: 10,
-            viewCount: 1000,
-            quoteCount: 2,
-            replyCount: 5,
-            bookmarkCount: 3,
-            mentionedAt: "2023-01-01T00:00:00Z",
-            type: "post",
-            repostBreakdown: {
-              smart: 3,
-              ct: 7,
-            },
-          },
-        ],
-        metadata: { total: 1 },
-      };
-
-      mockElfaClient.getKeywordMentions.mockResolvedValue(mockResponse);
-
-      const result = await sdkWithoutTwitter.getKeywordMentions({
-        keywords: "bitcoin",
-        fetchRawTweets: true,
-      });
-
-      expect(mockEnhancer.enhanceProcessedMentions).not.toHaveBeenCalled();
-      expect(result).toBe(mockResponse);
-    });
-
-    it("should enhance token news when fetchRawTweets is true", async () => {
-      const mockResponse = {
-        success: true,
-        data: [
-          {
-            tweetId: "123456789",
-            link: "https://twitter.com/user/status/123456789",
-            likeCount: 20,
-            repostCount: 10,
-            viewCount: 1000,
-            quoteCount: 2,
-            replyCount: 5,
-            bookmarkCount: 3,
-            mentionedAt: "2023-01-01T00:00:00Z",
-            type: "post",
-            repostBreakdown: {
-              smart: 3,
-              ct: 7,
-            },
-          },
-        ],
-        metadata: { total: 1, page: 1, pageSize: 20 },
-      };
-      const enhancedResponse = {
-        data: [
-          {
-            tweetId: "123456789",
-            link: "https://twitter.com/user/status/123456789",
-            likeCount: 20,
-            repostCount: 10,
-            viewCount: 1000,
-            quoteCount: 2,
-            replyCount: 5,
-            bookmarkCount: 3,
-            mentionedAt: "2023-01-01T00:00:00Z",
-            type: "post",
-            repostBreakdown: {
-              smart: 3,
-              ct: 7,
-            },
-            content: "Enhanced news",
-            data_source: "elfa+twitter" as const,
-          },
-        ],
-        enhancement_info: {
-          total_enhanced: 1,
-          failed_enhancements: 0,
-          twitter_api_used: true,
-        },
-      };
-
-      mockElfaClient.getTokenNews.mockResolvedValue(mockResponse);
-      mockEnhancer.enhanceProcessedMentions.mockResolvedValue(enhancedResponse);
-
-      const result = await sdk.getTokenNews({
-        fetchRawTweets: true,
-      });
-
-      expect(mockEnhancer.enhanceProcessedMentions).toHaveBeenCalled();
-      expect((result as any).enhancement_info).toBeDefined();
-    });
-
-    it("should enhance mentions by keywords when fetchRawTweets is true", async () => {
-      const mockResponse = {
-        success: true,
-        data: [
-          {
-            id: 1,
-            twitter_id: "123",
-            twitter_user_id: "user123",
-            parent_tweet_id: "0",
-            content: "Bitcoin mention",
-            mentioned_at: "2023-01-01T00:00:00Z",
-            type: "tweet",
-            metrics: {
-              view_count: 1000,
-              repost_count: 10,
-              reply_count: 5,
-              like_count: 20,
-            },
-          },
-        ],
-        metadata: { total: 1 },
-      };
-      const enhancedResponse = {
-        data: [
-          {
-            id: 1,
-            twitter_id: "123",
-            twitter_user_id: "user123",
-            parent_tweet_id: "0",
-            content: "Enhanced mention",
-            mentioned_at: "2023-01-01T00:00:00Z",
-            type: "tweet",
-            metrics: {
-              view_count: 1000,
-              repost_count: 10,
-              reply_count: 5,
-              like_count: 20,
-            },
-            data_source: "elfa+twitter" as const,
-          },
-        ],
-        enhancement_info: {
-          total_enhanced: 1,
-          failed_enhancements: 0,
-          twitter_api_used: true,
-        },
-      };
-
-      mockElfaClient.getMentionsByKeywords.mockResolvedValue(mockResponse);
-      mockEnhancer.enhanceSimpleMentions.mockResolvedValue(enhancedResponse);
-
-      const result = await sdk.getMentionsByKeywords({
-        keywords: "bitcoin",
-        from: 1640995200,
-        to: 1641081600,
-        fetchRawTweets: true,
-      });
-
-      expect(mockEnhancer.enhanceSimpleMentions).toHaveBeenCalledWith(
-        mockResponse.data,
-        {
-          includeContent: true,
-          includeMetrics: true,
-          fallbackToV2: true,
-          batchSize: 100,
-          timeout: 30000,
-        },
-      );
-      expect((result as any).enhancement_info).toBeDefined();
-    });
-
-    it("should enhance getTopMentions (V1) when fetchRawTweets is true", async () => {
-      const mockResponse = {
-        success: true,
-        data: {
-          data: [
-            {
-              id: 1,
-              content: "test",
-              metrics: {
-                view_count: 100,
-                repost_count: 5,
-                reply_count: 2,
-                like_count: 10,
-              },
-              mentioned_at: "2025-01-01T00:00:00Z",
-            },
-          ],
-          total: 1,
-          page: 1,
-          pageSize: 20,
-        },
-      };
-      const enhancedResponse = {
-        data: {
-          ...mockResponse,
-          data: {
-            ...mockResponse.data,
-            data: [
-              {
-                ...mockResponse.data.data[0],
-                content: "enhanced content",
-                data_source: "elfa+twitter" as const,
-              },
-            ],
-          },
-        },
-        enhancement_info: {
-          total_enhanced: 1,
-          failed_enhancements: 0,
-          twitter_api_used: true,
-        },
-      };
-
-      mockElfaClient.getV1TopMentions.mockResolvedValue(mockResponse);
-      mockEnhancer.enhanceTopMentionsV1.mockResolvedValue(enhancedResponse);
-
-      const result = await sdk.getTopMentions({
-        ticker: "BTC",
-        fetchRawTweets: true,
-      });
-
-      expect(mockElfaClient.getV1TopMentions).toHaveBeenCalledWith({
-        ticker: "BTC",
-        fetchRawTweets: true,
-      });
-      expect(mockEnhancer.enhanceTopMentionsV1).toHaveBeenCalledWith(
-        mockResponse,
-        {
-          includeContent: true,
-          includeMetrics: true,
-          fallbackToV2: true,
-          batchSize: 100,
-          timeout: 30000,
-        },
-      );
-      expect((result as any).enhancement_info).toBeDefined();
-    });
-
-    it("should enhance getTopMentionsV2 when fetchRawTweets is true", async () => {
-      const mockResponse = {
-        success: true,
-        data: [
-          {
-            tweetId: "123456",
-            link: "https://x.com/user/status/123456",
-            likeCount: 10,
-            repostCount: 5,
-            viewCount: 100,
-            quoteCount: 1,
-            replyCount: 2,
-            bookmarkCount: 0,
-            mentionedAt: "2025-01-01T00:00:00Z",
-            type: "post",
-            repostBreakdown: { smart: 1, ct: 0 },
-          },
-        ],
-        metadata: { total: 1, page: 1, pageSize: 10 },
-      };
-      const enhancedResponse = {
-        data: [
-          {
-            ...mockResponse.data[0],
-            content: "Enhanced tweet content",
-            data_source: "elfa+twitter" as const,
-          },
-        ],
-        enhancement_info: {
-          total_enhanced: 1,
-          failed_enhancements: 0,
-          twitter_api_used: true,
-        },
-      };
-
-      mockElfaClient.getTopMentions.mockResolvedValue(mockResponse);
-      mockEnhancer.enhanceTopMentionsV2.mockResolvedValue(enhancedResponse);
-
-      const result = await sdk.getTopMentionsV2({
-        ticker: "BTC",
-        fetchRawTweets: true,
-      });
+      const result = await sdk.getTopMentions({ ticker: "BTC" });
 
       expect(mockElfaClient.getTopMentions).toHaveBeenCalledWith({
         ticker: "BTC",
-        fetchRawTweets: true,
       });
-      expect(mockEnhancer.enhanceTopMentionsV2).toHaveBeenCalledWith(
-        mockResponse.data,
-        {
-          includeContent: true,
-          includeMetrics: true,
-          fallbackToV2: true,
-          batchSize: 100,
-          timeout: 30000,
-        },
-      );
-      expect((result as any).enhancement_info).toBeDefined();
+      expect(result).toBe(response);
     });
-  });
 
-  describe("options management", () => {
-    let sdk: ElfaSDK;
+    it("delegates getAccountSmartStats", async () => {
+      const response = { success: true, data: {} };
+      mockElfaClient.getAccountSmartStats.mockResolvedValue(response as any);
 
-    beforeEach(() => {
-      sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        fetchRawTweets: false,
-        debug: false,
+      await sdk.getAccountSmartStats({ username: "cz_binance" });
+
+      expect(mockElfaClient.getAccountSmartStats).toHaveBeenCalledWith({
+        username: "cz_binance",
       });
     });
 
-    it("should return current options", () => {
-      const options = sdk.getOptions();
+    it("delegates getTrendingNarratives", async () => {
+      const response = { success: true, data: { trending_narratives: [] } };
+      mockElfaClient.getTrendingNarratives.mockResolvedValue(response as any);
 
-      expect(options.elfaApiKey).toBe("test-api-key");
-      expect(options.fetchRawTweets).toBe(false);
-      expect(options.debug).toBe(false);
-      expect(options.baseUrl).toBe("https://api.elfa.ai");
-    });
+      await sdk.getTrendingNarratives({ timeFrame: "day" });
 
-    it("should update options", () => {
-      sdk.updateOptions({
-        fetchRawTweets: true,
-        debug: true,
+      expect(mockElfaClient.getTrendingNarratives).toHaveBeenCalledWith({
+        timeFrame: "day",
       });
-
-      const options = sdk.getOptions();
-      expect(options.fetchRawTweets).toBe(true);
-      expect(options.debug).toBe(true);
     });
 
-    it("should not allow updating elfaApiKey", () => {
-      expect(() => {
-        sdk.updateOptions({
-          elfaApiKey: "new-key",
-        });
-      }).toThrow("Cannot update elfaApiKey after initialization");
-    });
+    it("delegates chat", async () => {
+      const response = { success: true, data: { message: "hi" } };
+      mockElfaClient.chat.mockResolvedValue(response as any);
 
-    it("should not allow updating twitterApiKey", () => {
-      expect(() => {
-        sdk.updateOptions({
-          twitterApiKey: "new-key",
-        });
-      }).toThrow("Cannot update twitterApiKey after initialization");
-    });
+      await sdk.chat({ message: "hello" });
 
-    it("should auto-enable fetchRawTweets when twitterApiKey is provided", () => {
-      const sdkWithTwitter = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        twitterApiKey: "test-twitter-key",
-      });
-
-      const options = sdkWithTwitter.getOptions();
-      expect(options.fetchRawTweets).toBe(true);
-      expect(sdkWithTwitter.isTwitterEnabled()).toBe(true);
-    });
-
-    it("should allow overriding auto-enabled fetchRawTweets", () => {
-      const sdkWithTwitterButDisabled = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        twitterApiKey: "test-twitter-key",
-        fetchRawTweets: false, // Explicitly disable
-      });
-
-      const options = sdkWithTwitterButDisabled.getOptions();
-      expect(options.fetchRawTweets).toBe(false);
-      expect(sdkWithTwitterButDisabled.isTwitterEnabled()).toBe(true);
-    });
-
-    it("should keep fetchRawTweets false when no twitterApiKey provided", () => {
-      const sdkWithoutTwitter = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-      });
-
-      const options = sdkWithoutTwitter.getOptions();
-      expect(options.fetchRawTweets).toBe(false);
-      expect(sdkWithoutTwitter.isTwitterEnabled()).toBe(false);
+      expect(mockElfaClient.chat).toHaveBeenCalledWith({ message: "hello" });
     });
   });
 
   describe("testConnection", () => {
-    it("should test both Elfa and Twitter connections when both are available", async () => {
-      const sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        twitterApiKey: "test-twitter-key",
-      });
-
-      mockElfaClient.testConnection.mockResolvedValue(true);
-      mockTwitterClient.testConnection.mockResolvedValue(true);
-
-      const result = await sdk.testConnection();
-
-      expect(result).toEqual({
-        elfa: true,
-        twitter: true,
-      });
-    });
-
-    it("should handle Elfa connection failure", async () => {
-      const sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        twitterApiKey: "test-twitter-key",
-      });
-
-      mockElfaClient.testConnection.mockRejectedValue(
-        new Error("Connection failed"),
-      );
-      mockTwitterClient.testConnection.mockResolvedValue(true);
-
-      const result = await sdk.testConnection();
-
-      expect(result).toEqual({
-        elfa: false,
-        twitter: true,
-      });
-    });
-
-    it("should handle Twitter connection failure", async () => {
-      const sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-        twitterApiKey: "test-twitter-key",
-      });
-
-      mockElfaClient.testConnection.mockResolvedValue(true);
-      mockTwitterClient.testConnection.mockRejectedValue(
-        new Error("Twitter failed"),
-      );
-
-      const result = await sdk.testConnection();
-
-      expect(result).toEqual({
-        elfa: true,
-        twitter: false,
-      });
-    });
-
-    it("should only test Elfa when Twitter is not enabled", async () => {
-      const sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-      });
-
+    it("returns the elfa client result", async () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "k" });
       mockElfaClient.testConnection.mockResolvedValue(true);
 
-      const result = await sdk.testConnection();
+      expect(await sdk.testConnection()).toBe(true);
+    });
 
-      expect(result).toEqual({
-        elfa: true,
-      });
-      expect(mockTwitterClient.testConnection).not.toHaveBeenCalled();
+    it("returns false when the check throws", async () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "k" });
+      mockElfaClient.testConnection.mockRejectedValue(new Error("boom"));
+
+      expect(await sdk.testConnection()).toBe(false);
     });
   });
 
-  describe("non-enhanced methods", () => {
-    let sdk: ElfaSDK;
-
-    beforeEach(() => {
-      sdk = new ElfaSDK({
-        elfaApiKey: "test-api-key",
-      });
+  describe("options", () => {
+    it("updateOptions rejects elfaApiKey changes", () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "k" });
+      expect(() => sdk.updateOptions({ elfaApiKey: "other" })).toThrow(
+        "Cannot update elfaApiKey after initialization",
+      );
     });
 
-    it("should call getTrendingCAsTwitter without enhancement", async () => {
-      const mockResponse = {
-        success: true,
-        data: { data: [], total: 0, page: 1, pageSize: 20 },
-      };
-      mockElfaClient.getTrendingCAsTwitter.mockResolvedValue(mockResponse);
-
-      const result = await sdk.getTrendingCAsTwitter({
-        timeWindow: "24h",
-      });
-
-      expect(mockElfaClient.getTrendingCAsTwitter).toHaveBeenCalledWith({
-        timeWindow: "24h",
-      });
-      expect(result).toBe(mockResponse);
-    });
-
-    it("should call getTrendingCAsTelegram without enhancement", async () => {
-      const mockResponse = {
-        success: true,
-        data: { data: [], total: 0, page: 1, pageSize: 20 },
-      };
-      mockElfaClient.getTrendingCAsTelegram.mockResolvedValue(mockResponse);
-
-      const result = await sdk.getTrendingCAsTelegram({
-        timeWindow: "24h",
-      });
-
-      expect(mockElfaClient.getTrendingCAsTelegram).toHaveBeenCalledWith({
-        timeWindow: "24h",
-      });
-      expect(result).toBe(mockResponse);
-    });
-
-    it("should call getMentions without enhancement (not implemented yet)", async () => {
-      const mockResponse = {
-        success: true,
-        data: [],
-        metadata: {
-          offset: 0,
-          limit: 10,
-          total: 0,
-        },
-      };
-      mockElfaClient.getMentions.mockResolvedValue(mockResponse);
-
-      const result = await sdk.getMentions({
-        limit: 10,
-        fetchRawTweets: true,
-      });
-
-      expect(mockElfaClient.getMentions).toHaveBeenCalledWith({
-        limit: 10,
-        fetchRawTweets: true,
-      });
-      expect(result).toBe(mockResponse);
+    it("updateOptions merges other options", () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "k" });
+      sdk.updateOptions({ debug: true });
+      expect(sdk.getOptions().debug).toBe(true);
     });
   });
 });

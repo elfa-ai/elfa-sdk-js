@@ -395,98 +395,6 @@ describe("ElfaV2Client", () => {
     });
   });
 
-  describe("getV1TopMentions", () => {
-    it("should call V1 top mentions endpoint", async () => {
-      const mockResponse = {
-        success: true,
-        data: { data: [], total: 0, page: 1, pageSize: 20 },
-      };
-      mockHttpClient.get.mockResolvedValue(mockResponse);
-
-      const result = await client.getV1TopMentions({
-        ticker: "BTC",
-        timeWindow: "24h",
-        includeAccountDetails: true,
-      });
-
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        "/v2/data/top-mentions?ticker=BTC&timeWindow=24h",
-      );
-      expect(result).toEqual(mockResponse);
-    });
-
-    it("should throw ValidationError if ticker is missing", async () => {
-      await expect(client.getV1TopMentions({} as any)).rejects.toThrow(
-        new ValidationError("Ticker is required"),
-      );
-    });
-  });
-
-  describe("getMentionsByKeywords", () => {
-    it("should call mentions by keywords endpoint", async () => {
-      const mockResponse = {
-        success: true,
-        data: [],
-        metadata: { total: 0 },
-      };
-      mockHttpClient.get.mockResolvedValue(mockResponse);
-
-      const result = await client.getMentionsByKeywords({
-        keywords: "bitcoin",
-        from: 1640995200,
-        to: 1641081600,
-        limit: 10,
-        searchType: "and",
-      });
-
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        "/v2/data/keyword-mentions?keywords=bitcoin&from=1640995200&to=1641081600&limit=10&searchType=and",
-      );
-      expect(result).toEqual(mockResponse);
-    });
-
-    it("should call mentions by keywords endpoint with reposts parameter", async () => {
-      const mockResponse = {
-        success: true,
-        data: [],
-        metadata: { total: 0 },
-      };
-      mockHttpClient.get.mockResolvedValue(mockResponse);
-
-      const result = await client.getMentionsByKeywords({
-        keywords: "bitcoin",
-        from: 1640995200,
-        to: 1641081600,
-        limit: 10,
-        reposts: false,
-      });
-
-      expect(mockHttpClient.get).toHaveBeenCalledWith(
-        "/v2/data/keyword-mentions?keywords=bitcoin&from=1640995200&to=1641081600&limit=10&reposts=false",
-      );
-      expect(result).toEqual(mockResponse);
-    });
-
-    it("should throw ValidationError if keywords are missing", async () => {
-      await expect(
-        client.getMentionsByKeywords({
-          from: 1640995200,
-          to: 1641081600,
-        } as any),
-      ).rejects.toThrow(new ValidationError("Keywords are required"));
-    });
-
-    it("should throw ValidationError if from/to timestamps are missing", async () => {
-      await expect(
-        client.getMentionsByKeywords({
-          keywords: "bitcoin",
-        } as any),
-      ).rejects.toThrow(
-        new ValidationError("Both from and to timestamps are required"),
-      );
-    });
-  });
-
   describe("getTopMentions", () => {
     it("should call top mentions V2 endpoint with timeWindow", async () => {
       const mockResponse = {
@@ -612,6 +520,74 @@ describe("ElfaV2Client", () => {
     it("should throw ValidationError if keywords are missing", async () => {
       await expect(client.getEventSummary({} as any)).rejects.toThrow(
         new ValidationError("Keywords are required"),
+      );
+    });
+  });
+
+  describe("getTrendingNarratives", () => {
+    it("should call trending-narratives with params", async () => {
+      const mockResponse = {
+        success: true,
+        data: { trending_narratives: [], metadata: {} },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      const result = await client.getTrendingNarratives({
+        timeFrame: "week",
+        maxNarratives: 3,
+        maxTweetsPerNarrative: 2,
+      });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/trending-narratives?timeFrame=week&maxNarratives=3&maxTweetsPerNarrative=2",
+      );
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should call trending-narratives with no params", async () => {
+      const mockResponse = {
+        success: true,
+        data: { trending_narratives: [], metadata: {} },
+      };
+      mockHttpClient.get.mockResolvedValue(mockResponse);
+
+      await client.getTrendingNarratives();
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        "/v2/data/trending-narratives",
+      );
+    });
+  });
+
+  describe("chat", () => {
+    it("should post to /v2/chat", async () => {
+      const mockResponse = {
+        success: true,
+        data: { message: "hi", sessionId: "s1", creditsConsumed: 2 },
+      };
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await client.chat({ message: "hello" });
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith("/v2/chat", {
+        message: "hello",
+      });
+      expect(result).toEqual(mockResponse);
+    });
+
+    it("should post non-chat analysisType without a message", async () => {
+      mockHttpClient.post.mockResolvedValue({ success: true });
+
+      await client.chat({ analysisType: "macro" });
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith("/v2/chat", {
+        analysisType: "macro",
+      });
+    });
+
+    it("should throw ValidationError when chat message is missing", async () => {
+      await expect(client.chat({})).rejects.toThrow(
+        new ValidationError("message is required for chat analysis"),
       );
     });
   });

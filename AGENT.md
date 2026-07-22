@@ -8,10 +8,9 @@ This file provides universal base instructions for AI coding assistants working 
 
 ### Core Architecture
 
-- **Dual API Design**: Elfa V2 (primary) + Twitter API (enhancement)
-- **V1 Compatibility**: Drop-in replacement for legacy users
-- **Enhancement Pattern**: Optional raw content enrichment with graceful fallback
-- **Error Resilience**: Twitter API failures don't break core functionality
+- **Clients**: `ElfaV2Client` (data + chat), `AutoClient` (`/v2/auto/*`), `TradeClient` (`/v2/trade/*`)
+- **Signing**: HMAC-SHA256 for Auto/Trade mutations; SSE for Auto streams
+- **Data policy**: processed data + tweet links only; no raw tweet content exposed
 
 ## Development Standards
 
@@ -25,17 +24,14 @@ This file provides universal base instructions for AI coding assistants working 
 
 ### Key Patterns to Follow
 
-- **Response Enhancement**: Primary data from Elfa V2, optional Twitter enrichment
 - **Configuration**: Options-based initialization with validation
 - **Pagination**: Helper utilities for cursor-based and page-based pagination
 - **Rate Limiting**: Built-in respect for API limits and retry logic
 
 ### Architecture Constraints
 
-- **No Breaking Changes**: Maintain backward compatibility with existing APIs
-- **Graceful Degradation**: Core functionality works without Twitter API
-- **Type Safety**: All responses properly typed with enhanced variants
-- **Modular Design**: Clear separation between clients, utils, and compatibility layers
+- **Type Safety**: All responses properly typed
+- **Modular Design**: Clear separation between clients and utils
 
 ## File Organization
 
@@ -43,8 +39,7 @@ This file provides universal base instructions for AI coding assistants working 
 src/
 ├── client/          # Core SDK and API client implementations
 ├── types/           # TypeScript definitions (generated from OpenAPI)
-├── utils/           # HTTP, errors, pagination, enhancement logic
-├── compatibility/   # V1 migration layer
+├── utils/           # HTTP, HMAC signing, SSE, errors, pagination
 ├── examples/        # Usage examples and demos
 └── __tests__/       # Test suites
 ```
@@ -70,13 +65,12 @@ npm run validate-schema   # Validate current schema compatibility
 
 ### Adding New API Endpoints
 
-1. Update schema/swagger.json with new endpoint definition
-2. Run `npm run generate-types` to create TypeScript interfaces
-3. Add method to appropriate client class (ElfaV2Client)
-4. Add enhancement support if applicable (ResponseEnhancer)
-5. Update main SDK class (ElfaSDK) with new method
-6. Add comprehensive tests
-7. Update documentation and examples
+1. Update `swagger.json` (`npm run update-schema`)
+2. Add method to the appropriate client (`ElfaV2Client`, `AutoClient`, or `TradeClient`)
+3. Add types under `src/types/`
+4. Update the main SDK class (`ElfaSDK`) if exposed there
+5. Add tests
+6. Update documentation and examples
 
 ### Updating Dependencies
 
@@ -113,12 +107,12 @@ npm run validate-schema   # Validate current schema compatibility
 - Import paths must use `.js` extensions for ESM compatibility
 - Error classes use name-based checking (not instanceof) for better compatibility
 - Optional properties require careful undefined checking due to `exactOptionalPropertyTypes: false`
-- Twitter API enhancement is optional - always provide fallback behavior
+- HMAC-signed mutations must sign the exact JSON bytes that are sent (see `utils/hmac`)
 
 ### Testing Philosophy
 
 - Test public APIs, not internal implementation details
-- Mock external API calls (Elfa API, Twitter API)
+- Mock external API calls; gate live integration tests behind `ELFA_API_KEY`
 - Test error conditions and edge cases
 - Maintain high coverage on core functionality
 

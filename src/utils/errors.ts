@@ -18,7 +18,7 @@ export class ElfaSDKError extends Error {
     if (details !== undefined) {
       this.details = details;
     }
-    Object.setPrototypeOf(this, ElfaSDKError.prototype);
+    Object.setPrototypeOf(this, new.target.prototype);
   }
 }
 
@@ -26,13 +26,6 @@ export class ElfaApiError extends ElfaSDKError {
   constructor(message: string, statusCode: number, details?: any) {
     super(message, "ELFA_API_ERROR", statusCode, details);
     this.name = "ElfaApiError";
-  }
-}
-
-export class TwitterApiError extends ElfaSDKError {
-  constructor(message: string, statusCode?: number, details?: any) {
-    super(message, "TWITTER_API_ERROR", statusCode, details);
-    this.name = "TwitterApiError";
   }
 }
 
@@ -66,13 +59,6 @@ export class NetworkError extends ElfaSDKError {
   constructor(message: string, originalError?: Error) {
     super(message, "NETWORK_ERROR", undefined, originalError);
     this.name = "NetworkError";
-  }
-}
-
-export class EnhancementError extends ElfaSDKError {
-  constructor(message: string, details?: any) {
-    super(message, "ENHANCEMENT_ERROR", undefined, details);
-    this.name = "EnhancementError";
   }
 }
 

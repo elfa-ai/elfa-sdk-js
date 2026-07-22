@@ -106,10 +106,10 @@ export class PaginationHelper {
 
       yield response.data;
 
-      const totalPages = Math.ceil(
-        response.metadata.total / response.metadata.pageSize,
-      );
-      if (currentPage >= totalPages) {
+      const size = response.metadata.pageSize || pageSize;
+      const totalPages =
+        size > 0 ? Math.ceil(response.metadata.total / size) : 0;
+      if (currentPage >= totalPages || response.data.length === 0) {
         break;
       }
 
@@ -137,11 +137,12 @@ export class PaginationHelper {
 
       yield response.data;
 
-      if (!response.metadata.cursor) {
+      const nextCursor = response.metadata.cursor;
+      if (!nextCursor || nextCursor === cursor) {
         break;
       }
 
-      cursor = response.metadata.cursor;
+      cursor = nextCursor;
     }
   }
 
