@@ -53,16 +53,34 @@ jobs:
     needs: validate
     environment: production
 
+    # Trusted publishing (OIDC) — no long-lived NPM_TOKEN. npm mints a
+    # short-lived credential from the id-token, and the trust relationship is
+    # configured on npmjs.com against this repo, this workflow filename and the
+    # `production` environment above. Changing any of those three breaks
+    # publishing until the npm-side config is updated to match.
+    permissions:
+      id-token: write # required for OIDC
+      contents: read
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      # Trusted publishing requires Node >= 22.14.0 and npm >= 11.5.1. Node 20
+      # ships npm 10.x, which does not understand OIDC publishing. This only
+      # sets the runner's toolchain — the package still targets node >= 18 per
+      # `engines`, and the build output is unaffected.
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "20.x"
+          node-version: "24.x"
           cache: "npm"
           registry-url: "https://registry.npmjs.org"
+
+      - name: Upgrade npm for trusted publishing
+        run: |
+          npm install -g npm@latest
+          npm --version
 
       - name: Install dependencies
         run: npm ci
@@ -70,14 +88,11 @@ jobs:
       - name: Build package
         run: npm run build
 
+      # No NODE_AUTH_TOKEN: npm detects the OIDC credential itself. Provenance
+      # attestations are generated automatically under trusted publishing, so
+      # --provenance is not needed.
       - name: Publish to NPM
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
-          # Configure npm
-          npm config set //registry.npmjs.org/:_authToken $NODE_AUTH_TOKEN
-
-          # Publish package
           npm publish --access public
 
           echo "✅ Package published successfully"
