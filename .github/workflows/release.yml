@@ -179,7 +179,7 @@ jobs:
           cat RELEASE_NOTES.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ steps.package.outputs.version }}
           name: Release v${{ steps.package.outputs.version }}
