@@ -41,6 +41,21 @@ export class TradeClient {
     this.httpClient.setAuthHeader(options.apiKey);
   }
 
+  public updateOptions(
+    options: Partial<Omit<TradeClientOptions, "apiKey">>,
+  ): void {
+    if (options.hmacSecret !== undefined) this.hmacSecret = options.hmacSecret;
+
+    this.httpClient.updateOptions({
+      baseURL: options.baseUrl,
+      timeout: options.timeout,
+      retries: options.retries,
+      retryDelay: options.retryDelay,
+      headers: options.headers,
+      debug: options.debug,
+    });
+  }
+
   public previewOrder(input: PlaceOrderInput): Promise<TradePreviewResponse> {
     return this.post("/orders/preview", input);
   }

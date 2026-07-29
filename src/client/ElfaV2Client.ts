@@ -74,6 +74,21 @@ export class ElfaV2Client {
     this.httpClient.setAuthHeader(this.options.apiKey);
   }
 
+  public updateOptions(
+    options: Partial<Omit<ElfaV2ClientOptions, "apiKey">>,
+  ): void {
+    this.options = { ...this.options, ...options };
+
+    this.httpClient.updateOptions({
+      baseURL: this.options.baseUrl,
+      timeout: this.options.timeout,
+      retries: this.options.retries,
+      retryDelay: this.options.retryDelay,
+      headers: this.options.headers,
+      debug: this.options.debug,
+    });
+  }
+
   private validateTimeWindowOrFromTo(params: {
     timeWindow?: string;
     from?: number;

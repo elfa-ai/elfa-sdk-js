@@ -12,6 +12,7 @@ describe("TradeClient", () => {
       post: jest.fn(),
       delete: jest.fn(),
       setAuthHeader: jest.fn(),
+      updateOptions: jest.fn(),
     } as any;
     (HttpClient as jest.MockedClass<typeof HttpClient>).mockImplementation(
       () => mockHttpClient,
@@ -60,6 +61,24 @@ describe("TradeClient", () => {
         "x-elfa-timestamp": expect.any(String),
         "x-elfa-signature": expect.any(String),
       }),
+    );
+  });
+
+  it("applies updateOptions to signing and the http client", async () => {
+    const client = new TradeClient({ apiKey: "k" });
+    mockHttpClient.post.mockResolvedValue({ success: true });
+
+    client.updateOptions({ hmacSecret: "secret", debug: true });
+
+    expect(mockHttpClient.updateOptions).toHaveBeenCalledWith(
+      expect.objectContaining({ debug: true }),
+    );
+
+    await client.placeOrder(order);
+
+    const [, , config] = mockHttpClient.post.mock.calls[0];
+    expect(config?.headers).toEqual(
+      expect.objectContaining({ "x-elfa-signature": expect.any(String) }),
     );
   });
 

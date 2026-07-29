@@ -12,6 +12,7 @@ describe("AutoClient", () => {
       post: jest.fn(),
       delete: jest.fn(),
       setAuthHeader: jest.fn(),
+      updateOptions: jest.fn(),
     } as any;
     (HttpClient as jest.MockedClass<typeof HttpClient>).mockImplementation(
       () => mockHttpClient,
@@ -29,6 +30,31 @@ describe("AutoClient", () => {
       expiresIn: "1h",
     },
   };
+
+  it("applies updateOptions to signing and the http client", async () => {
+    const client = new AutoClient({ apiKey: "k" });
+    mockHttpClient.post.mockResolvedValue({ valid: true });
+
+    client.updateOptions({
+      hmacSecret: "secret",
+      baseUrl: "https://staging.api.elfa.ai",
+      debug: true,
+    });
+
+    expect(mockHttpClient.updateOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        baseURL: "https://staging.api.elfa.ai",
+        debug: true,
+      }),
+    );
+
+    await client.createQuery(eql);
+
+    const [, , config] = mockHttpClient.post.mock.calls[0];
+    expect(config?.headers).toEqual(
+      expect.objectContaining({ "x-elfa-signature": expect.any(String) }),
+    );
+  });
 
   it("posts validateQuery unsigned", async () => {
     const client = new AutoClient({ apiKey: "k" });

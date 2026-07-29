@@ -177,6 +177,22 @@ export class HttpClient {
     return this.request<T>({ ...config, method: "DELETE", url });
   }
 
+  public updateOptions(options: Partial<HttpClientOptions>): void {
+    this.options = { ...this.options, ...options };
+
+    if (options.baseURL !== undefined) {
+      this.client.defaults.baseURL = options.baseURL;
+    }
+
+    if (options.timeout !== undefined) {
+      this.client.defaults.timeout = options.timeout;
+    }
+
+    if (options.headers !== undefined) {
+      Object.assign(this.client.defaults.headers.common, options.headers);
+    }
+  }
+
   public setAuthHeader(token: string): void {
     this.client.defaults.headers.common["x-elfa-api-key"] = token;
   }

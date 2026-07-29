@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- `updateOptions()` now propagates to the internal clients. Previously it only
+  mutated the object returned by `getOptions()`, so changes to `debug`,
+  `timeout`, `retries`, `retryDelay`, `headers`, `baseUrl` and `hmacSecret`
+  never reached the HTTP layer — e.g. `updateOptions({ debug: false })` left
+  request/response logging on.
+
 ## 3.0.0
 
 ### Added
