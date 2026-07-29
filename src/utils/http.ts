@@ -178,7 +178,10 @@ export class HttpClient {
   }
 
   public updateOptions(options: Partial<HttpClientOptions>): void {
-    this.options = { ...this.options, ...options };
+    const patch = Object.fromEntries(
+      Object.entries(options).filter(([, value]) => value !== undefined),
+    );
+    this.options = { ...this.options, ...patch };
 
     if (options.baseURL !== undefined) {
       this.client.defaults.baseURL = options.baseURL;

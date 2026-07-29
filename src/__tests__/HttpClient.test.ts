@@ -212,10 +212,18 @@ describe("HttpClient", () => {
       );
     });
 
-    it("should apply retry settings to subsequent requests", async () => {
+    it("should ignore undefined values and apply retry settings", async () => {
       const { NetworkError } = await import("../utils/errors");
       mockAxiosInstance.request.mockRejectedValue(new NetworkError("boom"));
 
+      httpClient.updateOptions({ retries: undefined });
+
+      await expect(
+        httpClient.request({ url: "/test", method: "GET", retryDelay: 0 }),
+      ).rejects.toThrow("boom");
+      expect(mockAxiosInstance.request).toHaveBeenCalledTimes(3);
+
+      mockAxiosInstance.request.mockClear();
       httpClient.updateOptions({ retries: 0 });
 
       await expect(
