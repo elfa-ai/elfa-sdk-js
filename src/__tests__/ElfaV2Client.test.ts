@@ -17,6 +17,7 @@ describe("ElfaV2Client", () => {
       delete: jest.fn(),
       setAuthHeader: jest.fn(),
       setTwitterAuthHeader: jest.fn(),
+      updateOptions: jest.fn(),
       request: jest.fn(),
     } as any;
 
@@ -57,6 +58,21 @@ describe("ElfaV2Client", () => {
         baseURL: "https://custom.api.com",
         timeout: 5000,
         retries: 1,
+        debug: true,
+      });
+    });
+  });
+
+  describe("updateOptions", () => {
+    it("should forward merged options to the http client", () => {
+      client.updateOptions({ debug: true, timeout: 5000 });
+
+      expect(mockHttpClient.updateOptions).toHaveBeenCalledWith({
+        baseURL: "https://api.elfa.ai",
+        timeout: 5000,
+        retries: 3,
+        retryDelay: undefined,
+        headers: undefined,
         debug: true,
       });
     });

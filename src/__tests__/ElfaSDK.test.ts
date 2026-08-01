@@ -24,6 +24,7 @@ describe("ElfaSDK", () => {
       getTrendingNarratives: jest.fn(),
       chat: jest.fn(),
       testConnection: jest.fn(),
+      updateOptions: jest.fn(),
     } as any;
 
     (ElfaV2Client as jest.MockedClass<typeof ElfaV2Client>).mockImplementation(
@@ -175,6 +176,21 @@ describe("ElfaSDK", () => {
       const sdk = new ElfaSDK({ elfaApiKey: "k" });
       sdk.updateOptions({ debug: true });
       expect(sdk.getOptions().debug).toBe(true);
+    });
+
+    it("updateOptions propagates to every client", () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "k", debug: true });
+
+      sdk.updateOptions({ debug: false, timeout: 5000 });
+
+      const expected = expect.objectContaining({
+        apiKey: "k",
+        debug: false,
+        timeout: 5000,
+      });
+      expect(mockElfaClient.updateOptions).toHaveBeenCalledWith(expected);
+      expect(sdk.auto.updateOptions).toHaveBeenCalledWith(expected);
+      expect(sdk.trade.updateOptions).toHaveBeenCalledWith(expected);
     });
   });
 });

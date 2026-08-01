@@ -178,6 +178,61 @@ describe("HttpClient", () => {
     });
   });
 
+  describe("updateOptions", () => {
+    it("should toggle request logging without recreating the client", () => {
+      const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+      const onRequest =
+        mockAxiosInstance.interceptors.request.use.mock.calls[0][0];
+
+      httpClient.updateOptions({ debug: true });
+      onRequest({ method: "get", url: "/v2/ping" });
+      expect(logSpy).toHaveBeenCalled();
+
+      logSpy.mockClear();
+      httpClient.updateOptions({ debug: false });
+      onRequest({ method: "get", url: "/v2/ping" });
+      expect(logSpy).not.toHaveBeenCalled();
+
+      logSpy.mockRestore();
+    });
+
+    it("should apply baseURL, timeout and headers to the axios defaults", () => {
+      httpClient.updateOptions({
+        baseURL: "https://staging.api.example.com",
+        timeout: 1234,
+        headers: { "x-custom": "value" },
+      });
+
+      expect(mockAxiosInstance.defaults.baseURL).toBe(
+        "https://staging.api.example.com",
+      );
+      expect(mockAxiosInstance.defaults.timeout).toBe(1234);
+      expect(mockAxiosInstance.defaults.headers.common["x-custom"]).toBe(
+        "value",
+      );
+    });
+
+    it("should ignore undefined values and apply retry settings", async () => {
+      const { NetworkError } = await import("../utils/errors");
+      mockAxiosInstance.request.mockRejectedValue(new NetworkError("boom"));
+
+      httpClient.updateOptions({ retries: undefined });
+
+      await expect(
+        httpClient.request({ url: "/test", method: "GET", retryDelay: 0 }),
+      ).rejects.toThrow("boom");
+      expect(mockAxiosInstance.request).toHaveBeenCalledTimes(3);
+
+      mockAxiosInstance.request.mockClear();
+      httpClient.updateOptions({ retries: 0 });
+
+      await expect(
+        httpClient.request({ url: "/test", method: "GET", retryDelay: 0 }),
+      ).rejects.toThrow("boom");
+      expect(mockAxiosInstance.request).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe("error handling", () => {
     let handleResponseError: (error: AxiosError) => Promise<never>;
 

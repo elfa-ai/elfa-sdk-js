@@ -65,6 +65,23 @@ export class AutoClient {
     this.httpClient.setAuthHeader(this.apiKey);
   }
 
+  public updateOptions(
+    options: Partial<Omit<AutoClientOptions, "apiKey">>,
+  ): void {
+    if (options.baseUrl !== undefined) this.baseUrl = options.baseUrl;
+    if (options.hmacSecret !== undefined) this.hmacSecret = options.hmacSecret;
+    if (options.headers !== undefined) this.headers = options.headers;
+
+    this.httpClient.updateOptions({
+      baseURL: this.baseUrl,
+      timeout: options.timeout,
+      retries: options.retries,
+      retryDelay: options.retryDelay,
+      headers: this.headers,
+      debug: options.debug,
+    });
+  }
+
   public chat(params: AutoChatParams): Promise<AutoChatResponse> {
     return this.post<AutoChatResponse>("/chat", params);
   }

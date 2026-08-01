@@ -45,7 +45,15 @@ export class ElfaSDK {
       ...options,
     };
 
-    const clientOptions = {
+    const clientOptions = this.buildClientOptions();
+
+    this.elfaClient = new ElfaV2Client(clientOptions);
+    this.auto = new AutoClient(clientOptions);
+    this.trade = new TradeClient(clientOptions);
+  }
+
+  private buildClientOptions() {
+    return {
       apiKey: this.options.elfaApiKey,
       baseUrl: this.options.baseUrl,
       timeout: this.options.timeout,
@@ -57,10 +65,6 @@ export class ElfaSDK {
         : {}),
       ...(this.options.headers ? { headers: this.options.headers } : {}),
     };
-
-    this.elfaClient = new ElfaV2Client(clientOptions);
-    this.auto = new AutoClient(clientOptions);
-    this.trade = new TradeClient(clientOptions);
   }
 
   private validateOptions(options: SDKOptions): void {
@@ -159,5 +163,11 @@ export class ElfaSDK {
     }
 
     this.options = { ...this.options, ...newOptions };
+
+    const clientOptions = this.buildClientOptions();
+
+    this.elfaClient.updateOptions(clientOptions);
+    this.auto.updateOptions(clientOptions);
+    this.trade.updateOptions(clientOptions);
   }
 }
