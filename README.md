@@ -6,14 +6,13 @@
 [![codecov](https://codecov.io/gh/elfa-ai/elfa-sdk-js/branch/main/graph/badge.svg)](https://codecov.io/gh/elfa-ai/elfa-sdk-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official TypeScript/JavaScript SDK for the Elfa API v2 - social intelligence, AI chat, and the Auto/Trade engines for crypto.
+Official TypeScript/JavaScript SDK for the Elfa API v2 - social intelligence, AI chat, and the Auto condition engine for crypto.
 
 ## Features
 
 - **Social Intelligence**: Trending tokens, mentions, narratives, smart stats, and event summaries
-- **AI Chat**: Market analysis and conversational chat via `elfa.chat`
+- **AI Chat**: Market analysis and conversational chat via `elfa.chat`, streamed via `elfa.chatStream`
 - **Auto Condition Engine**: Build EQL queries that notify or trade via `elfa.auto`
-- **Direct Trading**: Place orders and manage positions via `elfa.trade`
 - **TypeScript First**: Comprehensive type definitions and IDE support
 - **Smart Error Handling**: Typed error classes with built-in retries and rate-limit handling
 - **Rate Limiting**: Built-in respect for API rate limits
@@ -142,6 +141,31 @@ await elfa.chat({
 });
 ```
 
+#### `chatStream(params, signal?)`
+
+The same analysis as `chat`, delivered incrementally over Server-Sent Events.
+Requires a PAYG or Enterprise key. Each event is the parsed `data:` payload,
+discriminated on `type`, and the generator returns when the stream ends.
+
+```typescript
+for await (const event of elfa.chatStream({
+  message: "Why is BTC moving today?",
+  speed: "expert",
+})) {
+  switch (event.type) {
+    case "text":
+      process.stdout.write(event.content);
+      break;
+    case "complete":
+      console.log("credits:", event.creditsConsumed);
+      break;
+  }
+}
+```
+
+Event types are `session_info`, `title`, `text`, `text_complete`, `status`,
+`credits`, `complete`, `invalid_request` and `error`.
+
 ### Auto (Condition Engine)
 
 `elfa.auto` drives the Auto condition engine — EQL queries that watch markets and
@@ -184,37 +208,12 @@ for await (const event of elfa.auto.streamQuery(created.id!)) {
 }
 ```
 
-### Trade (Direct Trading)
-
-`elfa.trade` places synchronous orders on your linked exchange account. All writes
-require an HMAC secret; previews are unsigned.
-
-```typescript
-const elfa = new ElfaSDK({ elfaApiKey: "...", hmacSecret: "..." });
-
-const preview = await elfa.trade.previewOrder({
-  exchange: "hyperliquid",
-  symbol: "BTC",
-  side: "buy",
-  orderType: "market",
-  amount: "100",
-});
-
-const result = await elfa.trade.placeOrder({
-  exchange: "hyperliquid",
-  symbol: "BTC",
-  side: "buy",
-  orderType: "market",
-  amount: "100",
-});
-```
-
 ### Configuration Options
 
 ```typescript
 interface SDKOptions {
   elfaApiKey: string; // Required: Your Elfa API key
-  hmacSecret?: string; // Optional: HMAC secret for Auto/Trade signed mutations
+  hmacSecret?: string; // Optional: HMAC secret for Auto signed mutations
   baseUrl?: string; // Optional: API base URL (default: https://api.elfa.ai)
   timeout?: number; // Optional: request timeout in ms (default: 30000)
   retries?: number; // Optional: retries for idempotent requests (default: 3)
@@ -258,7 +257,7 @@ try {
 Check out the [examples directory](./src/examples/) for comprehensive usage examples:
 
 - [Basic Usage](./src/examples/basic.ts) - V2 API with processed data
-- [Auto & Trade](./src/examples/auto.ts) - Condition engine queries and direct trading
+- [Auto](./src/examples/auto.ts) - Condition engine queries
 
 ## Contributing
 

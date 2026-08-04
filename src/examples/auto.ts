@@ -1,7 +1,7 @@
 import { ElfaSDK } from "../client/ElfaSDK.js";
 import type { AutoQueryInput } from "../types/auto.js";
 
-export async function autoAndTradeExample(): Promise<void> {
+export async function autoExample(): Promise<void> {
   const elfa = new ElfaSDK({
     elfaApiKey: "your-elfa-api-key",
     hmacSecret: "your-hmac-secret",
@@ -41,13 +41,4 @@ export async function autoAndTradeExample(): Promise<void> {
 
   const status = await elfa.auto.getQuery(queryId as string);
   console.log("Status:", status.status);
-
-  const orderPreview = await elfa.trade.previewOrder({
-    exchange: "hyperliquid",
-    symbol: "BTC",
-    side: "buy",
-    orderType: "market",
-    amount: "100",
-  });
-  console.log("Order would execute:", orderPreview.wouldExecute);
 }

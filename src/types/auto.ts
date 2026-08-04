@@ -218,12 +218,37 @@ export interface AutoListExchangesResponse {
   connections: AutoExchangeConnection[];
 }
 
-export interface AutoConnectExchangeInput {
-  exchange: TradableExchange;
+export interface AutoConnectAgentWalletExchangeInput {
+  exchange: "hyperliquid" | "gmx";
   credentialType: string;
   metadata?: Record<string, unknown>;
   credentials?: Record<string, unknown>;
 }
+
+export interface AutoConnectBinanceExchangeInput {
+  exchange: "binance";
+  credentialType: string;
+  metadata?: Record<string, unknown>;
+  credentials: {
+    apiKey: string;
+    secret: string;
+  };
+}
+
+export interface AutoConnectPacificaExchangeInput {
+  exchange: "pacifica";
+  credentialType: string;
+  metadata?: Record<string, unknown>;
+  credentials: {
+    privateKey: string;
+    walletAddress: string;
+  };
+}
+
+export type AutoConnectExchangeInput =
+  | AutoConnectAgentWalletExchangeInput
+  | AutoConnectBinanceExchangeInput
+  | AutoConnectPacificaExchangeInput;
 
 export interface AutoValidateSymbolResponse {
   supported: "true" | "false";

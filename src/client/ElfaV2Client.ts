@@ -1,6 +1,11 @@
-import { HttpClient } from "../utils/http.js";
-import { ValidationError } from "../utils/errors.js";
-import type { ChatParams, ChatResponse } from "../types/chat.js";
+import { HttpClient, throwForFetchResponse } from "../utils/http.js";
+import { NetworkError, ValidationError } from "../utils/errors.js";
+import { readSSE } from "../utils/sse.js";
+import type {
+  ChatParams,
+  ChatResponse,
+  ChatStreamEvent,
+} from "../types/chat.js";
 import type {
   PingResponse,
   ApiKeyStatusResponse,
@@ -388,6 +393,49 @@ export class ElfaV2Client {
       "/v2/chat",
       this.buildChatBody(params),
     );
+  }
+
+  public async *chatStream(
+    params: ChatParams,
+    signal?: AbortSignal,
+  ): AsyncGenerator<ChatStreamEvent> {
+    const response = await fetch(`${this.options.baseUrl}/v2/chat/stream`, {
+      method: "POST",
+      headers: {
+        ...this.options.headers,
+        "x-elfa-api-key": this.options.apiKey,
+        "Content-Type": "application/json",
+        Accept: "text/event-stream",
+      },
+      body: JSON.stringify(this.buildChatBody(params)),
+      ...(signal ? { signal } : {}),
+    });
+
+    if (!response.ok) {
+      await throwForFetchResponse(response);
+    }
+    if (!response.body) {
+      throw new NetworkError("Chat stream returned no response body");
+    }
+
+    try {
+      for await (const message of readSSE(response.body)) {
+        if (!message.data || message.data === "[DONE]") {
+          if (message.data === "[DONE]") return;
+          continue;
+        }
+        let event: ChatStreamEvent;
+        try {
+          event = JSON.parse(message.data) as ChatStreamEvent;
+        } catch {
+          continue;
+        }
+        if (typeof event?.type !== "string") continue;
+        yield event;
+      }
+    } finally {
+      await response.body.cancel().catch(() => {});
+    }
   }
 
   private buildChatBody(params: ChatParams): ChatParams {
