@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is the **Elfa AI SDK** - a TypeScript SDK for the Elfa API v2 that provides social intelligence for crypto: data endpoints, AI chat, and the Auto and Trade engines.
+This is the **Elfa AI SDK** - a TypeScript SDK for the Elfa API v2 that provides social intelligence for crypto: data endpoints, AI chat, and the Auto condition engine.
 
 ## Development Commands
 
@@ -43,9 +43,9 @@ npm run lint               # Check code style
 
 ### Core Structure
 
-- **Main SDK Class**: `ElfaSDK` exposes the data endpoints and `chat`, plus `auto` and `trade` sub-clients
-- **Clients**: `ElfaV2Client` (data + chat), `AutoClient` (`/v2/auto/*`), `TradeClient` (`/v2/trade/*`)
-- **Signing**: HMAC-SHA256 request signing (`utils/hmac`) for Auto/Trade mutations
+- **Main SDK Class**: `ElfaSDK` exposes the data endpoints, `chat` and `chatStream`, plus the `auto` sub-client
+- **Clients**: `ElfaV2Client` (data + chat), `AutoClient` (`/v2/auto/*`)
+- **Signing**: HMAC-SHA256 request signing (`utils/hmac`) for Auto mutations
 
 ### Key Directories
 
@@ -80,5 +80,5 @@ npm run lint               # Check code style
 - All imports use `.js` extensions for proper ESM compatibility
 - Axios for HTTP requests with custom error transformation
 - Pagination helper utilities for large result sets
-- HMAC signing + SSE streaming for the Auto engine
+- HMAC signing for the Auto engine; SSE streaming for chat and Auto notifications
 - The SDK returns processed data and tweet links only; it does not expose raw tweet content

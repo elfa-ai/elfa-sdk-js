@@ -1,6 +1,5 @@
 import { ElfaV2Client } from "./ElfaV2Client.js";
 import { AutoClient } from "./AutoClient.js";
-import { TradeClient } from "./TradeClient.js";
 import { ValidationError } from "../utils/errors.js";
 import type { SDKOptions } from "../types/options.js";
 import type {
@@ -23,11 +22,14 @@ import type {
   TrendingNarrativesResponse,
   TrendingNarrativesParams,
 } from "../types/elfa.js";
-import type { ChatParams, ChatResponse } from "../types/chat.js";
+import type {
+  ChatParams,
+  ChatResponse,
+  ChatStreamEvent,
+} from "../types/chat.js";
 
 export class ElfaSDK {
   public readonly auto: AutoClient;
-  public readonly trade: TradeClient;
   private elfaClient: ElfaV2Client;
   private options: SDKOptions & {
     baseUrl: string;
@@ -49,7 +51,6 @@ export class ElfaSDK {
 
     this.elfaClient = new ElfaV2Client(clientOptions);
     this.auto = new AutoClient(clientOptions);
-    this.trade = new TradeClient(clientOptions);
   }
 
   private buildClientOptions() {
@@ -143,6 +144,13 @@ export class ElfaSDK {
     return this.elfaClient.chat(params);
   }
 
+  public chatStream(
+    params: ChatParams,
+    signal?: AbortSignal,
+  ): AsyncGenerator<ChatStreamEvent> {
+    return this.elfaClient.chatStream(params, signal);
+  }
+
   public async testConnection(): Promise<boolean> {
     try {
       return await this.elfaClient.testConnection();
@@ -168,6 +176,5 @@ export class ElfaSDK {
 
     this.elfaClient.updateOptions(clientOptions);
     this.auto.updateOptions(clientOptions);
-    this.trade.updateOptions(clientOptions);
   }
 }

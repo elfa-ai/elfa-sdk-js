@@ -8,8 +8,8 @@ This file provides universal base instructions for AI coding assistants working 
 
 ### Core Architecture
 
-- **Clients**: `ElfaV2Client` (data + chat), `AutoClient` (`/v2/auto/*`), `TradeClient` (`/v2/trade/*`)
-- **Signing**: HMAC-SHA256 for Auto/Trade mutations; SSE for Auto streams
+- **Clients**: `ElfaV2Client` (data + chat), `AutoClient` (`/v2/auto/*`)
+- **Signing**: HMAC-SHA256 for Auto mutations; SSE for chat and Auto streams
 - **Data policy**: processed data + tweet links only; no raw tweet content exposed
 
 ## Development Standards
@@ -68,7 +68,7 @@ npm run check-schema-updates  # Diff the published schema against the local copy
 ### Adding New API Endpoints
 
 1. Update `swagger.json` (`npm run update-schema`) and diff it for the new shape
-2. Add method to the appropriate client (`ElfaV2Client`, `AutoClient`, or `TradeClient`)
+2. Add method to the appropriate client (`ElfaV2Client` or `AutoClient`)
 3. Add types under `src/types/` by hand — nothing generates them
 4. Update the main SDK class (`ElfaSDK`) if exposed there
 5. Add tests

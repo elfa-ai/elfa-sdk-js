@@ -608,6 +608,87 @@ describe("ElfaV2Client", () => {
     });
   });
 
+  describe("chatStream", () => {
+    const sseBody = (frames: string) =>
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(frames));
+          controller.close();
+        },
+      });
+
+    it("should post to /v2/chat/stream and yield parsed events", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody(
+          'data: {"type":"session_info","sessionId":"s1","analysisType":"chat"}\n\n' +
+            'data: {"type":"text","content":"he"}\n\n' +
+            ": keep-alive\n\n" +
+            'data: {"type":"complete","success":true,"sessionId":"s1","creditsConsumed":3}\n\n' +
+            "data: [DONE]\n\n",
+        ),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const events = [];
+      for await (const event of client.chatStream({ message: "hello" })) {
+        events.push(event);
+      }
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://api.elfa.ai/v2/chat/stream",
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ message: "hello" }),
+          headers: expect.objectContaining({
+            "x-elfa-api-key": "test-api-key",
+            Accept: "text/event-stream",
+          }),
+        }),
+      );
+      expect(events).toEqual([
+        { type: "session_info", sessionId: "s1", analysisType: "chat" },
+        { type: "text", content: "he" },
+        {
+          type: "complete",
+          success: true,
+          sessionId: "s1",
+          creditsConsumed: 3,
+        },
+      ]);
+    });
+
+    it("should stop at [DONE] and skip unparsable frames", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody(
+          "data: not-json\n\n" +
+            'data: {"type":"text","content":"a"}\n\n' +
+            "data: [DONE]\n\n" +
+            'data: {"type":"text","content":"never"}\n\n',
+        ),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const events = [];
+      for await (const event of client.chatStream({ message: "hello" })) {
+        events.push(event);
+      }
+
+      expect(events).toEqual([{ type: "text", content: "a" }]);
+    });
+
+    it("should throw ValidationError before opening the stream", async () => {
+      const fetchMock = jest.fn();
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      await expect(client.chatStream({}).next()).rejects.toThrow(
+        new ValidationError("message is required for chat analysis"),
+      );
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+  });
+
   describe("testConnection", () => {
     it("should return true when ping succeeds", async () => {
       mockHttpClient.get.mockResolvedValue({ success: true });

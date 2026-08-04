@@ -1,5 +1,42 @@
 # Changelog
 
+## 4.0.0
+
+### Removed
+
+- **`elfa.trade` and the `TradeClient` have been removed.** The direct Trade API
+  (`/v2/trade/*`) is no longer part of the published Elfa API surface, so every
+  method on it — `previewOrder`, `placeOrder`, `cancelOrder`, `modifyOrder`,
+  `previewClosePosition`, `closePosition`, `previewSetPositionTpsl`,
+  `setPositionTpsl` — called an endpoint that is no longer documented. The
+  `TradeClient` export, the `src/types/trade.ts` types (`TradeExchange`,
+  `PlaceOrderInput`, `CancelOrderInput`, `ModifyOrderInput`,
+  `ClosePositionInput`, `SetPositionTpslInput`, `TradeResultResponse`,
+  `TradePreviewResponse`) and the trade example are gone. Place orders through
+  Auto trade actions (`market_order` / `limit_order`) via `elfa.auto` instead.
+
+### Added
+
+- `chatStream` — AI chat delivered incrementally over Server-Sent Events
+  (`POST /v2/chat/stream`). Returns an async generator of `ChatStreamEvent`,
+  the parsed `data:` payload discriminated on `type` (`session_info`, `title`,
+  `text`, `text_complete`, `status`, `credits`, `complete`,
+  `invalid_request`, `error`). Keep-alive comments and unparsable frames are
+  skipped, and the generator returns on the terminating `[DONE]` frame.
+  Requires a PAYG or Enterprise key.
+
+### Changed
+
+- `AutoConnectExchangeInput` is now a discriminated union on `exchange`,
+  matching the per-venue request bodies in the API spec:
+  `AutoConnectAgentWalletExchangeInput` (`hyperliquid` / `gmx`, `credentials`
+  optional), `AutoConnectBinanceExchangeInput` (`credentials` required, with
+  `apiKey` and `secret`) and `AutoConnectPacificaExchangeInput` (`credentials`
+  required, with `privateKey` and `walletAddress`). A Binance or Pacifica
+  connection that omits or misspells its credentials is now a type error rather
+  than a runtime `400`.
+- `hmacSecret` now signs Auto mutations only.
+
 ## 3.0.1
 
 ### Fixed

@@ -4,7 +4,6 @@ import { ValidationError } from "../utils/errors";
 
 jest.mock("../client/ElfaV2Client");
 jest.mock("../client/AutoClient");
-jest.mock("../client/TradeClient");
 
 describe("ElfaSDK", () => {
   let mockElfaClient: jest.Mocked<ElfaV2Client>;
@@ -42,7 +41,6 @@ describe("ElfaSDK", () => {
 
       expect(sdk).toBeInstanceOf(ElfaSDK);
       expect(sdk.auto).toBeDefined();
-      expect(sdk.trade).toBeDefined();
       expect(ElfaV2Client).toHaveBeenCalledWith(
         expect.objectContaining({
           apiKey: "test-api-key",
@@ -190,7 +188,6 @@ describe("ElfaSDK", () => {
       });
       expect(mockElfaClient.updateOptions).toHaveBeenCalledWith(expected);
       expect(sdk.auto.updateOptions).toHaveBeenCalledWith(expected);
-      expect(sdk.trade.updateOptions).toHaveBeenCalledWith(expected);
     });
   });
 });
