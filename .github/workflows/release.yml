@@ -74,8 +74,8 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "24.x"
-          cache: "npm"
           registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
 
       - name: Upgrade npm for trusted publishing
         run: |
