@@ -37,15 +37,18 @@ jobs:
           npm run build
 
       - name: Validate version
-        if: github.event.inputs.version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+          TAG_NAME: ${{ github.ref_name }}
         run: |
+          set -euo pipefail
           PACKAGE_VERSION=$(node -p "require('./package.json').version")
-          INPUT_VERSION="${{ github.event.inputs.version }}"
-          if [ "$PACKAGE_VERSION" != "$INPUT_VERSION" ]; then
-            echo "❌ Version mismatch: package.json has $PACKAGE_VERSION but input is $INPUT_VERSION"
+          EXPECTED="${INPUT_VERSION:-${TAG_NAME#v}}"
+          if [ "$PACKAGE_VERSION" != "$EXPECTED" ]; then
+            echo "❌ Version mismatch: package.json has $PACKAGE_VERSION but release asks for $EXPECTED"
             exit 1
           fi
-          echo "✅ Version validation passed"
+          echo "✅ Version validation passed for $PACKAGE_VERSION"
 
   publish:
     name: Publish to NPM
