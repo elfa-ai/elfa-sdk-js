@@ -1,7 +1,7 @@
 export interface PaginationResult<T> {
   data: T[];
   hasNextPage: boolean;
-  nextCursor?: string;
+  nextCursor?: number;
   nextPage?: number;
   totalCount?: number;
   currentPage?: number;
@@ -9,7 +9,7 @@ export interface PaginationResult<T> {
 }
 
 export interface CursorPaginationParams {
-  cursor?: string;
+  cursor?: string | number;
   limit?: number;
 }
 
@@ -21,7 +21,7 @@ export interface PagePaginationParams {
 export class PaginationHelper {
   public static createCursorResult<T>(
     data: T[],
-    metadata: { cursor?: string; total?: number },
+    metadata: { cursor?: number; total?: number },
     _requestedLimit?: number,
   ): PaginationResult<T> {
     const result: PaginationResult<T> = {
@@ -123,7 +123,7 @@ export class PaginationHelper {
   >(
     fetchPage: (params: TParams) => Promise<{
       data: TResponse[];
-      metadata: { cursor?: string; total?: number };
+      metadata: { cursor?: number; total?: number };
     }>,
     initialParams: TParams,
   ): AsyncGenerator<TResponse[], void, unknown> {
@@ -138,7 +138,7 @@ export class PaginationHelper {
       yield response.data;
 
       const nextCursor = response.metadata.cursor;
-      if (!nextCursor || nextCursor === cursor) {
+      if (!nextCursor || String(nextCursor) === String(cursor)) {
         break;
       }
 
@@ -176,7 +176,7 @@ export class PaginationHelper {
   >(
     fetchPage: (params: TParams) => Promise<{
       data: TResponse[];
-      metadata: { cursor?: string; total?: number };
+      metadata: { cursor?: number; total?: number };
     }>,
     params: TParams,
     maxItems?: number,

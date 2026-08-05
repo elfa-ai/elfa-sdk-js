@@ -108,7 +108,7 @@ export interface KeywordMentionsV2Response {
   success: boolean;
   data: ProcessedMention[];
   metadata: {
-    cursor?: string;
+    cursor?: number;
     total: number;
   };
 }
@@ -187,7 +187,7 @@ export interface KeywordMentionsParams {
   to?: number;
   limit?: number;
   searchType?: string;
-  cursor?: string;
+  cursor?: string | number;
   reposts?: boolean;
 }
 

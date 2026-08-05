@@ -4,14 +4,14 @@ describe("PaginationHelper", () => {
   describe("createCursorResult", () => {
     it("should create cursor pagination result with cursor", () => {
       const data = [{ id: 1 }, { id: 2 }];
-      const metadata = { cursor: "next-cursor", total: 100 };
+      const metadata = { cursor: 1785905420000, total: 100 };
 
       const result = PaginationHelper.createCursorResult(data, metadata, 10);
 
       expect(result).toEqual({
         data,
         hasNextPage: true,
-        nextCursor: "next-cursor",
+        nextCursor: 1785905420000,
         totalCount: 100,
       });
     });
@@ -31,14 +31,14 @@ describe("PaginationHelper", () => {
 
     it("should create cursor pagination result without total", () => {
       const data = [{ id: 1 }];
-      const metadata = { cursor: "next-cursor" };
+      const metadata = { cursor: 1785905420000 };
 
       const result = PaginationHelper.createCursorResult(data, metadata);
 
       expect(result).toEqual({
         data,
         hasNextPage: true,
-        nextCursor: "next-cursor",
+        nextCursor: 1785905420000,
       });
     });
   });
@@ -271,5 +271,25 @@ describe("PaginationHelper", () => {
 
       expect(allItems).toEqual([{ id: 1 }, { id: 2 }, { id: 3 }]);
     });
+  });
+});
+
+describe("cursor round-trip", () => {
+  it("stops when the API repeats a cursor the caller supplied as a string", async () => {
+    const fetchPage = jest.fn(async () => ({
+      data: [{ id: 1 }],
+      metadata: { cursor: 1785905420000, total: 1 },
+    }));
+
+    const pages: { id: number }[][] = [];
+    for await (const page of PaginationHelper.iterateCursor(fetchPage, {
+      cursor: "1785905420000",
+    })) {
+      pages.push(page);
+      if (pages.length > 3) break;
+    }
+
+    expect(fetchPage).toHaveBeenCalledTimes(1);
+    expect(pages).toHaveLength(1);
   });
 });

@@ -201,8 +201,8 @@ export class ElfaV2Client {
     if (params.searchType) {
       searchParams.append("searchType", params.searchType);
     }
-    if (params.cursor) {
-      searchParams.append("cursor", params.cursor);
+    if (params.cursor !== undefined) {
+      searchParams.append("cursor", String(params.cursor));
     }
     if (params.reposts !== undefined) {
       searchParams.append("reposts", params.reposts.toString());
