@@ -7,12 +7,22 @@ export interface PingResponse {
 
 export interface ApiKeyStatus {
   id: number;
+  key?: string;
   name: string;
   status: "active" | "revoked" | "expired" | "payment_required";
   dailyRequestLimit: number;
   monthlyRequestLimit: number;
+  requestsPerMinute?: number;
   expiresAt: string;
   createdAt: string;
+  updatedAt?: string;
+  email?: string;
+  project?: string;
+  tier?: string;
+  billingMode?: "deposit" | "arrears";
+  depositCredits?: number;
+  allowOverage?: boolean;
+  maxOverage?: number;
   usage: {
     monthly: number;
     daily: number;
@@ -83,6 +93,9 @@ export interface AccountSmartStatsResponse {
   };
 }
 
+export type MentionType =
+  "repost" | "post" | "quote" | "reply" | "note" | "article";
+
 export interface ProcessedMention {
   tweetId: string;
   link: string;
@@ -93,7 +106,7 @@ export interface ProcessedMention {
   replyCount: number | null;
   bookmarkCount: number | null;
   mentionedAt: string;
-  type: string;
+  type: MentionType;
   account?: {
     isVerified: boolean;
     username: string;
@@ -149,7 +162,7 @@ export interface TopMentionV2 {
   replyCount: number;
   bookmarkCount: number;
   mentionedAt: string;
-  type: string;
+  type: MentionType;
   account?: {
     isVerified: boolean;
     username: string;
