@@ -27,6 +27,12 @@ export interface RequestConfig extends AxiosRequestConfig {
   retryDelay?: number;
 }
 
+/**
+ * Longest we are willing to sit on a server-provided rate-limit reset before
+ * handing the decision back to the caller via `RateLimitError.resetTime`.
+ */
+export const MAX_RATE_LIMIT_WAIT_MS = 60000;
+
 export class HttpClient {
   private client: AxiosInstance;
   private options: HttpClientOptions;
@@ -137,13 +143,24 @@ export class HttpClient {
           break;
         }
 
+        const wait = resolveRetryWait(
+          lastError,
+          retryDelay * Math.pow(2, attempt),
+        );
+
+        // The server asked us to wait longer than we are willing to block for.
+        // Surface the RateLimitError so the caller can act on `resetTime`.
+        if (wait === undefined) {
+          break;
+        }
+
         if (this.options.debug) {
           console.log(
-            `[HTTP] Retry attempt ${attempt + 1}/${maxRetries} after ${retryDelay}ms`,
+            `[HTTP] Retry attempt ${attempt + 1}/${maxRetries} after ${wait}ms`,
           );
         }
 
-        await this.delay(retryDelay * Math.pow(2, attempt));
+        await this.delay(wait);
       }
     }
 
@@ -252,6 +269,39 @@ export async function throwForFetchResponse(
   }
 
   throw new ElfaApiError(message, response.status, data);
+}
+
+/**
+ * How long to wait before the next attempt.
+ *
+ * A 429 carries the server's own reset hint (`x-ratelimit-reset` or
+ * `Retry-After`), already parsed onto `RateLimitError.resetTime`. Honour it
+ * instead of the blind backoff, otherwise every retry lands inside the window
+ * the server just told us to sit out. Returns `undefined` when the wait exceeds
+ * `maxWaitMs`, meaning: stop retrying and let the caller decide.
+ */
+export function resolveRetryWait(
+  error: Error,
+  backoffMs: number,
+  now: number = Date.now(),
+  maxWaitMs: number = MAX_RATE_LIMIT_WAIT_MS,
+): number | undefined {
+  if (error.name !== "RateLimitError") {
+    return backoffMs;
+  }
+
+  const resetTime = (error as RateLimitError).resetTime;
+  if (!(resetTime instanceof Date) || Number.isNaN(resetTime.getTime())) {
+    return backoffMs;
+  }
+
+  const waitMs = resetTime.getTime() - now;
+  if (waitMs > maxWaitMs) {
+    return undefined;
+  }
+
+  // A reset that already elapsed should not shorten the normal backoff.
+  return Math.max(waitMs, backoffMs);
 }
 
 export function computeRateLimitReset(
