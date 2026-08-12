@@ -9,20 +9,16 @@ export type EqlConditionSource =
   | "cron"
   | "llm"
   | "tweet"
+  | "telegram"
   | "news"
+  | "sec"
   | "kalshi"
   | "polymarket"
   | "funding"
   | "liquidation"
   | "fear_greed";
 
-export type EqlActionType =
-  | "webhook"
-  | "notify"
-  | "telegram_bot"
-  | "llm"
-  | "market_order"
-  | "limit_order";
+export type EqlActionType = "webhook" | "notify" | "telegram_bot" | "llm";
 
 export interface EqlConditionLeaf {
   source: EqlConditionSource;
@@ -203,52 +199,6 @@ export interface AutoListExecutionsResponse {
 }
 
 export type TradableExchange = "hyperliquid" | "gmx" | "binance" | "pacifica";
-
-export interface AutoExchangeConnection {
-  exchange: TradableExchange;
-  credentialType: string;
-  metadata: Record<string, unknown>;
-  isActive: boolean;
-  id: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface AutoListExchangesResponse {
-  connections: AutoExchangeConnection[];
-}
-
-export interface AutoConnectAgentWalletExchangeInput {
-  exchange: "hyperliquid" | "gmx";
-  credentialType: string;
-  metadata?: Record<string, unknown>;
-  credentials?: Record<string, unknown>;
-}
-
-export interface AutoConnectBinanceExchangeInput {
-  exchange: "binance";
-  credentialType: string;
-  metadata?: Record<string, unknown>;
-  credentials: {
-    apiKey: string;
-    secret: string;
-  };
-}
-
-export interface AutoConnectPacificaExchangeInput {
-  exchange: "pacifica";
-  credentialType: string;
-  metadata?: Record<string, unknown>;
-  credentials: {
-    privateKey: string;
-    walletAddress: string;
-  };
-}
-
-export type AutoConnectExchangeInput =
-  | AutoConnectAgentWalletExchangeInput
-  | AutoConnectBinanceExchangeInput
-  | AutoConnectPacificaExchangeInput;
 
 export interface AutoValidateSymbolResponse {
   supported: "true" | "false";
