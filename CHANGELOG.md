@@ -1,5 +1,38 @@
 # Changelog
 
+## 5.0.0
+
+### Removed
+
+- **Auto exchange connections have been removed.** `auto.listExchanges`,
+  `auto.connectExchange` and `auto.disconnectExchange` are gone, along with the
+  `AutoExchangeConnection`, `AutoListExchangesResponse`,
+  `AutoConnectAgentWalletExchangeInput`, `AutoConnectBinanceExchangeInput`,
+  `AutoConnectPacificaExchangeInput` and `AutoConnectExchangeInput` types.
+  Exchange connections are no longer part of the documented Auto surface.
+- **Order actions have been removed from `EqlActionType`.** `market_order` and
+  `limit_order` are rejected on new queries and drafts with
+  `EQL_INVALID_ACTION`, at top level and in `llm` callbacks. The allowed action
+  types are `webhook`, `notify`, `telegram_bot` and `llm`.
+
+### Added
+
+- `EqlConditionSource` gains `telegram` (Telegram channel Signal triggers) and
+  `sec` (SEC filing triggers keyed on an issuer CIK).
+- `ApiKeyStatus` now covers the full documented key-status contract:
+  `key` (masked), `updatedAt`, `requestsPerMinute`, `email`, `project`,
+  `allowOverage`, `maxOverage`, `spendCapCredits`, `bonusCredits`,
+  `bonusCreditsExpiresAt`, `emailNotificationsEnabled`, `lastEmailSentAt`,
+  `lastUsagePercentNotified`, `spendAlertThreshold`,
+  `spendAlertMaxFrequencyHours`, `totalSpendAlerted`, `hmacEnabled`,
+  `athenaEnabled`, `scopes`, `tier`, `depositCredits` and `billingMode`.
+
+### Kept
+
+- `auto.validateSymbol` and `TradableExchange`. The symbol check is still
+  documented as a pre-flight for `price` / `ta` conditions and still accepts all
+  four venues.
+
 ## 4.0.0
 
 ### Removed

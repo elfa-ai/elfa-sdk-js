@@ -12,7 +12,7 @@ Official TypeScript/JavaScript SDK for the Elfa API v2 - social intelligence, AI
 
 - **Social Intelligence**: Trending tokens, mentions, narratives, smart stats, and event summaries
 - **AI Chat**: Market analysis and conversational chat via `elfa.chat`, streamed via `elfa.chatStream`
-- **Auto Condition Engine**: Build EQL queries that notify or trade via `elfa.auto`
+- **Auto Condition Engine**: Build EQL queries that watch markets and notify via `elfa.auto`
 - **TypeScript First**: Comprehensive type definitions and IDE support
 - **Smart Error Handling**: Typed error classes with built-in retries and rate-limit handling
 - **Rate Limiting**: Built-in respect for API rate limits
@@ -169,8 +169,8 @@ Event types are `session_info`, `title`, `text`, `text_complete`, `status`,
 ### Auto (Condition Engine)
 
 `elfa.auto` drives the Auto condition engine — EQL queries that watch markets and
-fire notifications or trades. Trade-action and exchange mutations need an HMAC
-secret (`hmacSecret`); notification-only queries do not.
+fire notifications. Mutations that are not plain notifications need an HMAC secret
+(`hmacSecret`); notification-only queries do not.
 
 ```typescript
 const query = {

@@ -7,12 +7,34 @@ export interface PingResponse {
 
 export interface ApiKeyStatus {
   id: number;
+  key: string;
   name: string;
   status: "active" | "revoked" | "expired" | "payment_required";
   dailyRequestLimit: number;
   monthlyRequestLimit: number;
   expiresAt: string;
   createdAt: string;
+  updatedAt: string;
+  requestsPerMinute: number | null;
+  email: string | null;
+  project: string | null;
+  allowOverage: boolean | null;
+  maxOverage: number | null;
+  spendCapCredits: number | null;
+  bonusCredits: number;
+  bonusCreditsExpiresAt: string | null;
+  emailNotificationsEnabled: boolean;
+  lastEmailSentAt: string | null;
+  lastUsagePercentNotified: number;
+  spendAlertThreshold: string | number | null;
+  spendAlertMaxFrequencyHours: number;
+  totalSpendAlerted: string | number;
+  hmacEnabled: boolean;
+  athenaEnabled: boolean;
+  scopes: string[];
+  tier: string;
+  depositCredits: number;
+  billingMode: string;
   usage: {
     monthly: number;
     daily: number;

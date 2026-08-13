@@ -20,9 +20,6 @@ import type {
   AutoListExecutionsParams,
   AutoListExecutionsResponse,
   AutoExecution,
-  AutoListExchangesResponse,
-  AutoConnectExchangeInput,
-  AutoExchangeConnection,
   AutoValidateSymbolResponse,
   AutoStreamEvent,
   TradableExchange,
@@ -158,22 +155,6 @@ export class AutoClient {
 
   public getExecution(executionId: string): Promise<AutoExecution> {
     return this.get<AutoExecution>(`/executions/${executionId}`);
-  }
-
-  public listExchanges(): Promise<AutoListExchangesResponse> {
-    return this.get<AutoListExchangesResponse>("/exchanges");
-  }
-
-  public connectExchange(
-    input: AutoConnectExchangeInput,
-  ): Promise<AutoExchangeConnection> {
-    return this.post<AutoExchangeConnection>("/exchanges", input);
-  }
-
-  public disconnectExchange(
-    exchange: TradableExchange,
-  ): Promise<{ success: true }> {
-    return this.delete<{ success: true }>(`/exchanges/${exchange}`);
   }
 
   public validateSymbol(
