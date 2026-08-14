@@ -272,6 +272,18 @@ try {
 }
 ```
 
+### Rate limits and retries
+
+On a `429`, retries follow the server's own reset (`x-ratelimit-reset` or
+`Retry-After`) rather than the exponential backoff, so an attempt is not spent
+inside a window the server already told us to sit out. That means a single call
+can block for as long as the reset asks — **up to 60 seconds**.
+
+Past 60 seconds the SDK stops retrying and throws `RateLimitError` with
+`resetTime` set, so the decision to wait longer is yours. Retries only apply to
+`GET`/`HEAD`; a rate-limited write throws immediately. Responses with no
+rate-limit headers keep the plain exponential backoff.
+
 ## Examples
 
 Check out the [examples directory](./src/examples/) for comprehensive usage examples:

@@ -1,9 +1,12 @@
 import axios, { type AxiosError } from "axios";
 import {
   HttpClient,
+  MAX_RATE_LIMIT_WAIT_MS,
   computeRateLimitReset,
   extractErrorMessage,
+  resolveRetryWait,
 } from "../utils/http";
+import { RateLimitError } from "../utils/errors";
 import { VERSION } from "../version";
 
 // Mock axios
@@ -126,6 +129,60 @@ describe("HttpClient", () => {
       ).rejects.toThrow("boom");
 
       expect(mockAxiosInstance.request).toHaveBeenCalledTimes(3);
+    });
+
+    it("should wait for the rate-limit reset instead of the backoff", async () => {
+      const { RateLimitError } = await import("../utils/errors");
+      const resetTime = new Date(Date.now() + 300);
+
+      mockAxiosInstance.request
+        .mockRejectedValueOnce(new RateLimitError("slow down", resetTime))
+        .mockResolvedValue({ data: { success: true } });
+
+      const started = Date.now();
+      const result = await httpClient.request({
+        url: "/test",
+        retries: 1,
+        retryDelay: 1,
+      });
+      const elapsed = Date.now() - started;
+
+      expect(result).toEqual({ success: true });
+      // the 1ms backoff would have retried straight back into the closed window
+      expect(elapsed).toBeGreaterThanOrEqual(250);
+    });
+
+    it("should stop retrying when the reset is further out than we will wait", async () => {
+      const { RateLimitError } = await import("../utils/errors");
+      const resetTime = new Date(Date.now() + 60 * 60 * 1000);
+
+      mockAxiosInstance.request.mockRejectedValue(
+        new RateLimitError("slow down", resetTime),
+      );
+
+      await expect(
+        httpClient.request({ url: "/test", retries: 3, retryDelay: 1 }),
+      ).rejects.toMatchObject({ name: "RateLimitError", resetTime });
+
+      // one attempt only: blocking the caller for an hour is not ours to decide
+      expect(mockAxiosInstance.request).toHaveBeenCalledTimes(1);
+    });
+
+    it("should keep the plain backoff for retryable errors without a reset", async () => {
+      const { NetworkError } = await import("../utils/errors");
+
+      mockAxiosInstance.request
+        .mockRejectedValueOnce(new NetworkError("boom"))
+        .mockResolvedValue({ data: { success: true } });
+
+      const result = await httpClient.request({
+        url: "/test",
+        retries: 1,
+        retryDelay: 0,
+      });
+
+      expect(result).toEqual({ success: true });
+      expect(mockAxiosInstance.request).toHaveBeenCalledTimes(2);
     });
   });
 
@@ -384,6 +441,42 @@ describe("HttpClient", () => {
         expect(error.resetTime).toBeInstanceOf(Date);
       }
     });
+  });
+});
+
+describe("resolveRetryWait", () => {
+  const now = 1_700_000_000_000;
+
+  it("falls back to the backoff for errors that carry no reset", () => {
+    expect(resolveRetryWait(new Error("boom"), 500, now)).toBe(500);
+  });
+
+  it("falls back to the backoff when a RateLimitError has no resetTime", () => {
+    const error = new RateLimitError("slow down");
+    expect(resolveRetryWait(error, 500, now)).toBe(500);
+  });
+
+  it("honours the reset when it is longer than the backoff", () => {
+    const error = new RateLimitError("slow down", new Date(now + 30000));
+    expect(resolveRetryWait(error, 500, now)).toBe(30000);
+  });
+
+  it("keeps the backoff when the reset has already elapsed", () => {
+    const error = new RateLimitError("slow down", new Date(now - 5000));
+    expect(resolveRetryWait(error, 500, now)).toBe(500);
+  });
+
+  it("gives up when the reset is beyond the maximum wait", () => {
+    const error = new RateLimitError("slow down", new Date(now + 3600000));
+    expect(resolveRetryWait(error, 500, now)).toBeUndefined();
+  });
+
+  it("waits right up to the maximum", () => {
+    const error = new RateLimitError(
+      "slow down",
+      new Date(now + MAX_RATE_LIMIT_WAIT_MS),
+    );
+    expect(resolveRetryWait(error, 500, now)).toBe(MAX_RATE_LIMIT_WAIT_MS);
   });
 });
 
