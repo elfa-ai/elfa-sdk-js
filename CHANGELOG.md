@@ -1,5 +1,44 @@
 # Changelog
 
+## 6.1.0
+
+Thanks to [@web3xDev](https://github.com/web3xDev), who reported and fixed the
+rate-limit bug below and found the mention `type` narrowing.
+
+### Fixed
+
+- **`429` retries now honour the server's reset.** `RateLimitError.resetTime`
+  was parsed but never used: the retry loop always slept
+  `retryDelay * 2 ** attempt`, so a `429` asking for 20s was retried at 1s, 2s
+  and 4s and burned every attempt inside the window the server asked us to sit
+  out. Waits now follow the reset, an already-elapsed reset can no longer
+  shorten the backoff, and a reset further out than 60s stops the retry loop and
+  throws `RateLimitError` with `resetTime` rather than blocking you for an hour.
+  Retries still apply only to `GET`/`HEAD`; responses without rate-limit headers
+  are unaffected.
+
+### Added
+
+- **`MentionType`** — `"repost" | "post" | "quote" | "reply" | "note" |
+"article"`, matching the enum the spec declares on `MentionV2` and
+  `KeywordMentionV2`.
+- **`BillingMode`** — `"deposit" | "arrears"`, as the spec enumerates.
+- **`isRateLimitError`** — a type guard for `RateLimitError`. Checks `name`
+  rather than `instanceof`, which is unreliable across the CJS/ESM boundary
+  where an error built in one module copy fails `instanceof` against the class
+  from the other.
+
+### Changed
+
+- **`ProcessedMention.type` and `TopMentionV2.type` are now `MentionType`, and
+  `ApiKeyStatus.billingMode` is `BillingMode`** — all three were `string`. This
+  is what makes a `switch` over them exhaustiveness-checked. Reading responses
+  is unaffected; code that _builds_ one of these objects from an untyped source
+  may now need a cast or a narrowed input.
+- `swagger.json` refreshed against the live spec: the `credits` field on Builder
+  Chat, response schemas no longer closed, and the `/v2/auto/exchanges`
+  endpoints dropped in 5.0.0 removed.
+
 ## 6.0.0
 
 ### Removed
