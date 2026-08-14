@@ -286,6 +286,11 @@ Check out the [examples directory](./src/examples/) for comprehensive usage exam
 
 ## Development
 
+Contributing requires **Node.js 22.22.1 or newer** — `lint-staged` 17, which
+runs the pre-commit hook, sets that floor. The published SDK itself still
+supports Node 18+ (`engines.node: >=18.0.0`) and CI tests against 18, 20 and 22;
+this floor applies only to working on the repo.
+
 ```bash
 # Install dependencies
 npm install
