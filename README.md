@@ -24,6 +24,9 @@ Official TypeScript/JavaScript SDK for the Elfa API v2 - social intelligence, AI
 npm install @elfa-ai/sdk
 ```
 
+Requires **Node.js 22 or newer**. Node 18 and 20 have both reached end of life
+and are no longer supported as of v6 — stay on `@elfa-ai/sdk@5` if you need them.
+
 ## Quick Start
 
 ### Basic V2 Usage
@@ -286,10 +289,9 @@ Check out the [examples directory](./src/examples/) for comprehensive usage exam
 
 ## Development
 
-Contributing requires **Node.js 22.22.1 or newer** — `lint-staged` 17, which
-runs the pre-commit hook, sets that floor. The published SDK itself still
-supports Node 18+ (`engines.node: >=18.0.0`) and CI tests against 18, 20 and 22;
-this floor applies only to working on the repo.
+Requires **Node.js 22.22.1 or newer**. The SDK itself supports Node 22+
+(`engines.node: >=22.0.0`) and CI tests against 22 and 24; the extra patch
+precision comes from `lint-staged` 17, which runs the pre-commit hook.
 
 ```bash
 # Install dependencies

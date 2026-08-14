@@ -1,5 +1,21 @@
 # Changelog
 
+## 6.0.0
+
+### Removed
+
+- **Node 18 and 20 are no longer supported.** `engines.node` is now `>=22.0.0`.
+  Node 18 reached end of life in April 2025 and Node 20 in April 2026, so
+  neither receives security patches. Nothing in the SDK's runtime code required
+  the change — no API is used that Node 18 lacks — so if you are pinned to an
+  EOL runtime, `@elfa-ai/sdk@5` keeps working against the same API. It will not
+  receive further updates.
+
+### Changed
+
+- CI now tests against Node 22 and 24 instead of 18, 20 and 22. Coverage upload
+  moved to the 22.x job with the matrix.
+
 ## 5.1.0
 
 ### Added
