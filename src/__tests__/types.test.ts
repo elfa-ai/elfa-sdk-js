@@ -1,5 +1,6 @@
 import type {
   ApiKeyStatus,
+  BillingMode,
   MentionType,
   ProcessedMention,
   TopMentionV2,
@@ -44,18 +45,32 @@ describe("response types match swagger.json", () => {
   });
 
   it("narrows `billingMode` to the documented enum", () => {
-    const status: Pick<ApiKeyStatus, "billingMode"> = {
+    const deposit: Pick<ApiKeyStatus, "billingMode"> = {
       billingMode: "deposit",
+    };
+    const arrears: Pick<ApiKeyStatus, "billingMode"> = {
+      billingMode: "arrears",
     };
 
     const invalid: Pick<ApiKeyStatus, "billingMode"> = {
       // @ts-expect-error "invoice" is not in the schema's enum
       billingMode: "invoice",
     };
+    const alsoInvalid: Pick<ApiKeyStatus, "billingMode"> = {
+      // @ts-expect-error an arbitrary string is not in the schema's enum
+      billingMode: "prepaid",
+    };
 
-    expect([status.billingMode, invalid.billingMode]).toEqual([
-      "deposit",
-      "invoice",
-    ]);
+    expect([
+      deposit.billingMode,
+      arrears.billingMode,
+      invalid.billingMode,
+      alsoInvalid.billingMode,
+    ]).toEqual(["deposit", "arrears", "invoice", "prepaid"]);
+  });
+
+  it("exposes BillingMode as its own type", () => {
+    const modes: BillingMode[] = ["deposit", "arrears"];
+    expect(modes).toHaveLength(2);
   });
 });

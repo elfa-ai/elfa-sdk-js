@@ -9,6 +9,7 @@ import {
   NetworkError,
   RateLimitError,
   AuthenticationError,
+  isRateLimitError,
   isRetryableError,
 } from "./errors.js";
 import { VERSION } from "../version.js";
@@ -286,11 +287,11 @@ export function resolveRetryWait(
   now: number = Date.now(),
   maxWaitMs: number = MAX_RATE_LIMIT_WAIT_MS,
 ): number | undefined {
-  if (error.name !== "RateLimitError") {
+  if (!isRateLimitError(error)) {
     return backoffMs;
   }
 
-  const resetTime = (error as RateLimitError).resetTime;
+  const resetTime = error.resetTime;
   if (!(resetTime instanceof Date) || Number.isNaN(resetTime.getTime())) {
     return backoffMs;
   }

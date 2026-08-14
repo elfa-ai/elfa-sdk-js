@@ -39,6 +39,33 @@ npm run typecheck          # Ensure TypeScript compilation
 npm run lint               # Check code style
 ```
 
+## Before Merging a PR
+
+**A green check does not mean a clean review.** Sourcery reviews this repo and
+posts its findings as a `COMMENTED` review — which does not block, and whose
+check run reports `pass` regardless of what it found. `gh pr checks` showing all
+green proves the reviewer _ran_, not that it had nothing to say.
+
+Read the actual review content before merging:
+
+```bash
+gh api repos/elfa-ai/elfa-sdk-js/pulls/<n>/reviews  --jq '.[]|"[\(.user.login)] \(.body)"'
+gh api repos/elfa-ai/elfa-sdk-js/pulls/<n>/comments --jq '.[]|"\(.path):\(.line) \(.body)"'
+gh pr view <n> --comments
+```
+
+Triage every finding: fix it, or reply on the comment saying why not. This is
+not hypothetical — #95, #96 and #97 were merged on the strength of a green
+Sourcery check, and all three carried valid findings that had to be fixed
+afterwards in #98 (coverage upload keyed to a version string, an untested
+`NaN` guard, a fragile cast).
+
+**Squash merges discard commit authorship.** GitHub attributes the squashed
+commit to whoever opened the PR. When a PR contains someone else's commits, put
+a `Co-authored-by:` trailer in your own commit _before_ merging — afterwards the
+attribution cannot be recovered without rewriting `main`. #96 kept its
+contributor credit this way; #97 lost it.
+
 ## Architecture Overview
 
 ### Core Structure

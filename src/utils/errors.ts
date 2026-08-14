@@ -62,6 +62,18 @@ export class NetworkError extends ElfaSDKError {
   }
 }
 
+/**
+ * Narrows an error to `RateLimitError`.
+ *
+ * Checks `name` rather than `instanceof`: this package ships both CJS and ESM
+ * builds, and an error constructed in one module copy fails `instanceof`
+ * against the class from the other. Keeping that check here means callers do
+ * not each re-implement a string comparison and a cast.
+ */
+export function isRateLimitError(error: Error): error is RateLimitError {
+  return error.name === "RateLimitError";
+}
+
 export function isRetryableError(error: Error): boolean {
   // Check by error name for better compatibility
   if (error.name === "RateLimitError") {

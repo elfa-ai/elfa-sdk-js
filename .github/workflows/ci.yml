@@ -14,6 +14,13 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x, 24.x]
+        # `coverage` marks the one job that uploads to Codecov. Keyed off this
+        # flag rather than a version string, so changing the matrix moves the
+        # upload with it instead of silently dropping coverage — which is what
+        # nearly happened when 20.x left the matrix.
+        include:
+          - node-version: 22.x
+            coverage: true
 
     steps:
       - name: Checkout code
@@ -41,7 +48,7 @@ jobs:
         run: npm run build
 
       - name: Upload coverage reports
-        if: matrix.node-version == '22.x'
+        if: matrix.coverage
         uses: codecov/codecov-action@v7
         with:
           # v4 renamed this input from `file` to `files`. Left as `file` it is

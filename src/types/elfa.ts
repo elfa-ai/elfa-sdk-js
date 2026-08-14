@@ -1,3 +1,6 @@
+/** `ApiKeyStatusDataV2.billingMode` enumerates these in the spec. */
+export type BillingMode = "deposit" | "arrears";
+
 export interface PingResponse {
   success: true;
   data: {
@@ -34,7 +37,7 @@ export interface ApiKeyStatus {
   scopes: string[];
   tier: string;
   depositCredits: number;
-  billingMode: "deposit" | "arrears";
+  billingMode: BillingMode;
   usage: {
     monthly: number;
     daily: number;

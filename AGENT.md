@@ -80,6 +80,25 @@ npm run check-schema-updates  # Diff the published schema against the local copy
 - **Dev deps**: Regular updates for tooling improvements
 - **Type definitions**: Keep in sync with runtime dependencies
 
+### Before Merging a PR
+
+**A green check does not mean a clean review.** Sourcery posts findings as a
+`COMMENTED` review: it does not block, and its check run reports `pass` whatever
+it found. All-green `gh pr checks` proves the reviewer ran, nothing more.
+
+```bash
+gh api repos/elfa-ai/elfa-sdk-js/pulls/<n>/reviews  --jq '.[]|"[\(.user.login)] \(.body)"'
+gh api repos/elfa-ai/elfa-sdk-js/pulls/<n>/comments --jq '.[]|"\(.path):\(.line) \(.body)"'
+```
+
+Fix each finding or reply saying why not. #95/#96/#97 were merged off a green
+check with unread findings; all three were valid and needed a follow-up (#98).
+
+**Squash merges discard commit authorship** — the squashed commit is attributed
+to whoever opened the PR. If a PR carries someone else's commits, add a
+`Co-authored-by:` trailer to your own commit before merging; afterwards it
+cannot be fixed without rewriting `main`.
+
 ### Release Process
 
 Releases run through `.github/workflows/release.yml`, which publishes to npm and
@@ -91,11 +110,21 @@ creates the GitHub release. Do not publish by hand.
    version string (`validate` fails the run if it disagrees with `package.json`)
 3. The workflow runs typecheck, lint, tests and build, then publishes and tags
 
-**Dispatch from `main` — do not push a `v*.*.*` tag.** The workflow declares that
-tag trigger, but `publish` runs in the `production` environment, whose deployment
-policy allows only the `dev` and `main` branches. A tag ref matches no branch rule,
-so a tag-triggered run is blocked at the environment gate. Every release to date
-has used `workflow_dispatch`.
+**Either trigger works — pushing a `v*.*.*` tag or dispatching from `main`.** This
+previously said tags were blocked, because the `production` environment's
+deployment policy allowed only the `dev` and `main` branches and a tag ref matched
+no rule. The policy now includes a `tag v*` rule, and 5.1.0 and 6.0.0 were both
+released by tag push. Verify with:
+
+```bash
+gh api repos/elfa-ai/elfa-sdk-js/environments/production/deployment-branch-policies
+```
+
+If you release by tag, tag the commit whose `package.json` already carries that
+version — `validate` compares the two and fails the run on a mismatch. That
+ordering matters when a version bump is still in flight: 5.1.0 had to be tagged
+off `main` _before_ the 6.0.0 bump merged, or the tag would have found 6.0.0 in
+`package.json`.
 
 **Publishing uses OIDC trusted publishing — there is no npm token.** npm mints a
 short-lived credential from the workflow's id-token, so nothing needs rotating.
