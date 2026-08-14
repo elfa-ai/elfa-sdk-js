@@ -21,7 +21,14 @@ describe("response types match swagger.json", () => {
       "note",
       "article",
     ];
-    expect(types).toHaveLength(6);
+    expect(types).toEqual([
+      "repost",
+      "post",
+      "quote",
+      "reply",
+      "note",
+      "article",
+    ]);
   });
 
   it("rejects a mention type the schema does not enumerate", () => {
@@ -71,6 +78,6 @@ describe("response types match swagger.json", () => {
 
   it("exposes BillingMode as its own type", () => {
     const modes: BillingMode[] = ["deposit", "arrears"];
-    expect(modes).toHaveLength(2);
+    expect(modes).toEqual(["deposit", "arrears"]);
   });
 });

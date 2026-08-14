@@ -21,6 +21,8 @@ jobs:
         include:
           - node-version: 22.x
             coverage: true
+          - node-version: 24.x
+            coverage: false
 
     steps:
       - name: Checkout code
