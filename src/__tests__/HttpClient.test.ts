@@ -466,6 +466,11 @@ describe("resolveRetryWait", () => {
     expect(resolveRetryWait(error, 500, now)).toBe(500);
   });
 
+  it("keeps the backoff when the reset is an invalid date", () => {
+    const error = new RateLimitError("slow down", new Date(NaN));
+    expect(resolveRetryWait(error, 500, now)).toBe(500);
+  });
+
   it("gives up when the reset is beyond the maximum wait", () => {
     const error = new RateLimitError("slow down", new Date(now + 3600000));
     expect(resolveRetryWait(error, 500, now)).toBeUndefined();

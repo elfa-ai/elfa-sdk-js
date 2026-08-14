@@ -36,12 +36,19 @@ export class ValidationError extends ElfaSDKError {
   }
 }
 
+/**
+ * The `name` both the class and `isRateLimitError` depend on. Shared so a
+ * rename cannot silently decouple the guard from the class it narrows to —
+ * which would disable rate-limit-aware retries with nothing failing.
+ */
+const RATE_LIMIT_ERROR_NAME = "RateLimitError";
+
 export class RateLimitError extends ElfaSDKError {
   public readonly resetTime?: Date;
 
   constructor(message: string, resetTime?: Date, details?: any) {
     super(message, "RATE_LIMIT_ERROR", 429, details);
-    this.name = "RateLimitError";
+    this.name = RATE_LIMIT_ERROR_NAME;
     if (resetTime !== undefined) {
       this.resetTime = resetTime;
     }
@@ -62,9 +69,21 @@ export class NetworkError extends ElfaSDKError {
   }
 }
 
+/**
+ * Narrows an error to `RateLimitError`.
+ *
+ * Checks `name` rather than `instanceof`: this package ships both CJS and ESM
+ * builds, and an error constructed in one module copy fails `instanceof`
+ * against the class from the other. Keeping that check here means callers do
+ * not each re-implement a string comparison and a cast.
+ */
+export function isRateLimitError(error: Error): error is RateLimitError {
+  return error.name === RATE_LIMIT_ERROR_NAME;
+}
+
 export function isRetryableError(error: Error): boolean {
   // Check by error name for better compatibility
-  if (error.name === "RateLimitError") {
+  if (isRateLimitError(error)) {
     return true;
   }
 
