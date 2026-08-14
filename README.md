@@ -208,6 +208,23 @@ for await (const event of elfa.auto.streamQuery(created.id!)) {
 }
 ```
 
+Builder Chat is dynamically priced, so it reports what the turn cost:
+
+```typescript
+const reply = await elfa.auto.chat({
+  message: "Alert me when BTC breaks 100k",
+});
+console.log(reply.credits); // e.g. 104 — same total as the x-elfa-credits header
+```
+
+### Response shapes are extensible
+
+The SDK types responses; it does not validate them at runtime. Fields the API
+adds are passed through and never throw. Do the same in your own code — pinning
+an Elfa response with an exact-shape assertion (`z.strictObject`,
+`additionalProperties: false`, Pydantic `extra="forbid"`) means the next additive
+field breaks your client even though the API stayed backwards compatible.
+
 ### Configuration Options
 
 ```typescript

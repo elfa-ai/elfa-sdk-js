@@ -1,5 +1,23 @@
 # Changelog
 
+## 5.1.0
+
+### Added
+
+- **`AutoChatResponse.credits`** — `POST /v2/auto/chat` returns the credits the
+  call cost, and the type now declares it (optional, so responses from older API
+  deployments still type-check). The same total is on the `x-elfa-credits`
+  response header that every v2 route now sends. Builder Chat is dynamically
+  priced, so read this instead of assuming a flat cost.
+
+### Note on response shapes
+
+The SDK does not validate response bodies — it types them. New fields the API
+adds are passed through untouched and never throw. Treat v2 response bodies as
+extensible: do not pin them with exact-shape assertions (`z.strictObject`,
+`additionalProperties: false`, Pydantic `extra="forbid"`), or an additive field
+like `credits` will break your client even though the API did not.
+
 ## 5.0.0
 
 ### Removed
