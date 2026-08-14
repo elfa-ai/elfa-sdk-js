@@ -34,7 +34,7 @@ export interface ApiKeyStatus {
   scopes: string[];
   tier: string;
   depositCredits: number;
-  billingMode: string;
+  billingMode: "deposit" | "arrears";
   usage: {
     monthly: number;
     daily: number;
@@ -105,6 +105,13 @@ export interface AccountSmartStatsResponse {
   };
 }
 
+/**
+ * Post kinds `keyword-mentions`, `top-mentions` and `token-news` enumerate on
+ * `type`. Narrowed from `string` so a switch over it is exhaustiveness-checked.
+ */
+export type MentionType =
+  "repost" | "post" | "quote" | "reply" | "note" | "article";
+
 export interface ProcessedMention {
   tweetId: string;
   link: string;
@@ -115,7 +122,7 @@ export interface ProcessedMention {
   replyCount: number | null;
   bookmarkCount: number | null;
   mentionedAt: string;
-  type: string;
+  type: MentionType;
   account?: {
     isVerified: boolean;
     username: string;
@@ -171,7 +178,7 @@ export interface TopMentionV2 {
   replyCount: number;
   bookmarkCount: number;
   mentionedAt: string;
-  type: string;
+  type: MentionType;
   account?: {
     isVerified: boolean;
     username: string;
