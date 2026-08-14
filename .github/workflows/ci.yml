@@ -44,7 +44,10 @@ jobs:
         if: matrix.node-version == '20.x'
         uses: codecov/codecov-action@v7
         with:
-          file: ./coverage/lcov.info
+          # v4 renamed this input from `file` to `files`. Left as `file` it is
+          # silently ignored and the action falls back to scanning the
+          # workspace for coverage.
+          files: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
