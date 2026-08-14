@@ -57,6 +57,11 @@ export interface AutoChatResponse {
   title: string | null;
   reasoning: string | null;
   planIds: string[];
+  /**
+   * Credits this call cost, same total as the `x-elfa-credits` response header.
+   * Optional because keys on older API deployments do not return it.
+   */
+  credits?: number;
 }
 
 export interface AutoQueryInput {
