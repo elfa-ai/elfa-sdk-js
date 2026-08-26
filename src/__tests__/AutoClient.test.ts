@@ -31,12 +31,11 @@ describe("AutoClient", () => {
     },
   };
 
-  it("applies updateOptions to signing and the http client", async () => {
+  it("applies updateOptions to the http client", async () => {
     const client = new AutoClient({ apiKey: "k" });
     mockHttpClient.post.mockResolvedValue({ valid: true });
 
     client.updateOptions({
-      hmacSecret: "secret",
       baseUrl: "https://staging.api.elfa.ai",
       debug: true,
     });
@@ -47,16 +46,9 @@ describe("AutoClient", () => {
         debug: true,
       }),
     );
-
-    await client.createQuery(eql);
-
-    const [, , config] = mockHttpClient.post.mock.calls[0];
-    expect(config?.headers).toEqual(
-      expect.objectContaining({ "x-elfa-signature": expect.any(String) }),
-    );
   });
 
-  it("posts validateQuery unsigned", async () => {
+  it("posts validateQuery", async () => {
     const client = new AutoClient({ apiKey: "k" });
     mockHttpClient.post.mockResolvedValue({ valid: true });
 
@@ -65,7 +57,6 @@ describe("AutoClient", () => {
     expect(mockHttpClient.post).toHaveBeenCalledWith(
       "/v2/auto/queries/validate",
       JSON.stringify(eql),
-      undefined,
     );
   });
 
@@ -89,7 +80,7 @@ describe("AutoClient", () => {
     expect(mockHttpClient.get).toHaveBeenCalledWith("/v2/auto/queries/q1");
   });
 
-  it("cancels with no body and no signature when unsigned", async () => {
+  it("cancels with no body", async () => {
     const client = new AutoClient({ apiKey: "k" });
     mockHttpClient.post.mockResolvedValue({});
 
@@ -98,24 +89,18 @@ describe("AutoClient", () => {
     expect(mockHttpClient.post).toHaveBeenCalledWith(
       "/v2/auto/queries/q1/cancel",
       undefined,
-      undefined,
     );
   });
 
-  it("signs mutations when hmacSecret is set", async () => {
-    const client = new AutoClient({ apiKey: "k", hmacSecret: "secret" });
+  it("sends mutations with the api key alone", async () => {
+    const client = new AutoClient({ apiKey: "k" });
     mockHttpClient.post.mockResolvedValue({});
 
     await client.createQuery(eql);
 
-    const [url, body, config] = mockHttpClient.post.mock.calls[0];
-    expect(url).toBe("/v2/auto/queries");
-    expect(body).toBe(JSON.stringify(eql));
-    expect(config?.headers).toEqual(
-      expect.objectContaining({
-        "x-elfa-timestamp": expect.any(String),
-        "x-elfa-signature": expect.any(String),
-      }),
+    expect(mockHttpClient.post).toHaveBeenCalledWith(
+      "/v2/auto/queries",
+      JSON.stringify(eql),
     );
   });
 
@@ -125,10 +110,7 @@ describe("AutoClient", () => {
 
     await client.deleteQuery("q1");
 
-    expect(mockHttpClient.delete).toHaveBeenCalledWith(
-      "/v2/auto/queries/q1",
-      undefined,
-    );
+    expect(mockHttpClient.delete).toHaveBeenCalledWith("/v2/auto/queries/q1");
   });
 
   it("validates a symbol with encoded path", async () => {

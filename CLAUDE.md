@@ -72,13 +72,12 @@ contributor credit this way; #97 lost it.
 
 - **Main SDK Class**: `ElfaSDK` exposes the data endpoints, `chat` and `chatStream`, plus the `auto` sub-client
 - **Clients**: `ElfaV2Client` (data + chat), `AutoClient` (`/v2/auto/*`)
-- **Signing**: HMAC-SHA256 request signing (`utils/hmac`) for Auto mutations
 
 ### Key Directories
 
 - `src/client/` - Core SDK and API client implementations
 - `src/types/` - TypeScript definitions for all APIs and responses
-- `src/utils/` - HTTP, HMAC signing, SSE, error handling, and pagination
+- `src/utils/` - HTTP, SSE, error handling, and pagination
 - `src/examples/` - Usage examples for different scenarios
 - `src/__tests__/` - Jest test suites
 
@@ -107,5 +106,5 @@ contributor credit this way; #97 lost it.
 - All imports use `.js` extensions for proper ESM compatibility
 - Axios for HTTP requests with custom error transformation
 - Pagination helper utilities for large result sets
-- HMAC signing for the Auto engine; SSE streaming for chat and Auto notifications
+- SSE streaming for chat and Auto notifications
 - The SDK returns processed data and tweet links only; it does not expose raw tweet content

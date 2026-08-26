@@ -9,7 +9,7 @@ This file provides universal base instructions for AI coding assistants working 
 ### Core Architecture
 
 - **Clients**: `ElfaV2Client` (data + chat), `AutoClient` (`/v2/auto/*`)
-- **Signing**: HMAC-SHA256 for Auto mutations; SSE for chat and Auto streams
+- **Streaming**: SSE for chat and Auto streams
 - **Data policy**: processed data + tweet links only; no raw tweet content exposed
 
 ## Development Standards
@@ -39,7 +39,7 @@ This file provides universal base instructions for AI coding assistants working 
 src/
 ├── client/          # Core SDK and API client implementations
 ├── types/           # TypeScript definitions (hand-written; see note below)
-├── utils/           # HTTP, HMAC signing, SSE, errors, pagination
+├── utils/           # HTTP, SSE, errors, pagination
 ├── examples/        # Usage examples and demos
 └── __tests__/       # Test suites
 ```
@@ -168,7 +168,6 @@ package exists.
 - Import paths must use `.js` extensions for ESM compatibility
 - Error classes use name-based checking (not instanceof) for better compatibility
 - Optional properties require careful undefined checking due to `exactOptionalPropertyTypes: false`
-- HMAC-signed mutations must sign the exact JSON bytes that are sent (see `utils/hmac`)
 
 ### Testing Philosophy
 

@@ -1,5 +1,27 @@
 # Changelog
 
+## 7.0.0
+
+### Removed
+
+- **HMAC request signing has been removed.** The `hmacSecret` option is gone
+  from `SDKOptions`, `AutoClientOptions` and `AutoClient.updateOptions`, along
+  with the `signRequest` helper. `/v2/auto/*` routes are no longer documented as
+  taking `x-elfa-timestamp` or `x-elfa-signature`; the API key alone
+  authenticates every route, including mutations.
+
+  **Migration:** delete `hmacSecret` from your client construction. Nothing
+  replaces it. If you pass it today, TypeScript will now reject the property and
+  the header was already redundant on every documented action type.
+
+### Changed
+
+- `swagger.json` refreshed to API `2.6.1`. A credit is now $0.0145, so the x402
+  reference prices in the spec move to $0.0145 (1 credit), $0.0725 (5 credits)
+  and $0.261 (18 credits). Accounts already on PAYG keep $0.009 per credit until
+  28 September 2026, 16:00 UTC. This affects documentation strings only — no
+  method signature changes.
+
 ## 6.1.0
 
 Thanks to [@web3xDev](https://github.com/web3xDev), who reported and fixed the
