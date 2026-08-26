@@ -32,7 +32,6 @@ export interface ApiKeyStatus {
   spendAlertThreshold: string | number | null;
   spendAlertMaxFrequencyHours: number;
   totalSpendAlerted: string | number;
-  hmacEnabled: boolean;
   athenaEnabled: boolean;
   scopes: string[];
   tier: string;

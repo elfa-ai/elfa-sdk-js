@@ -14,12 +14,22 @@
   replaces it. If you pass it today, TypeScript will now reject the property and
   the header was already redundant on every documented action type.
 
+- **`ApiKeyStatus.hmacEnabled` is gone.** The API no longer returns the field,
+  so the SDK no longer declares it. Reading `status.data.hmacEnabled` is now a
+  type error. There is no replacement — nothing about a key's Auto access
+  depends on signing any more.
+
+- **`"pacifica"` is no longer a `TradableExchange`.** The published
+  `GET /v2/auto/validate-symbol/{exchange}/{symbol}` enum is now
+  `hyperliquid | gmx | binance`. Passing `"pacifica"` to `validateSymbol` is a
+  type error; it would have been rejected by the API regardless.
+
 ### Changed
 
-- `swagger.json` refreshed to API `2.6.1`. A credit is now $0.0145, so the x402
+- `swagger.json` refreshed to API `2.6.3`. A credit is now $0.0145, so the x402
   reference prices in the spec move to $0.0145 (1 credit), $0.0725 (5 credits)
   and $0.261 (18 credits). Accounts already on PAYG keep $0.009 per credit until
-  28 September 2026, 16:00 UTC. This affects documentation strings only — no
+  28 September 2026, 16:00 UTC. Pricing affects documentation strings only — no
   method signature changes.
 
 ## 6.1.0
