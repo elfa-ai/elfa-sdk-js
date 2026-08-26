@@ -4,7 +4,6 @@ import type { AutoQueryInput } from "../types/auto.js";
 export async function autoExample(): Promise<void> {
   const elfa = new ElfaSDK({
     elfaApiKey: "your-elfa-api-key",
-    hmacSecret: "your-hmac-secret",
   });
 
   const input: AutoQueryInput = {

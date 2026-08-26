@@ -1,6 +1,5 @@
 import { HttpClient, throwForFetchResponse } from "../utils/http.js";
 import { NetworkError } from "../utils/errors.js";
-import { signRequest } from "../utils/hmac.js";
 import { readSSE } from "../utils/sse.js";
 import type {
   AutoChatParams,
@@ -28,7 +27,6 @@ import type {
 export interface AutoClientOptions {
   apiKey: string;
   baseUrl?: string;
-  hmacSecret?: string;
   timeout?: number;
   retries?: number;
   retryDelay?: number;
@@ -42,13 +40,11 @@ export class AutoClient {
   private httpClient: HttpClient;
   private baseUrl: string;
   private apiKey: string;
-  private hmacSecret?: string;
   private headers?: Record<string, string>;
 
   constructor(options: AutoClientOptions) {
     this.baseUrl = options.baseUrl ?? "https://api.elfa.ai";
     this.apiKey = options.apiKey;
-    if (options.hmacSecret) this.hmacSecret = options.hmacSecret;
     if (options.headers) this.headers = options.headers;
 
     this.httpClient = new HttpClient({
@@ -66,7 +62,6 @@ export class AutoClient {
     options: Partial<Omit<AutoClientOptions, "apiKey">>,
   ): void {
     if (options.baseUrl !== undefined) this.baseUrl = options.baseUrl;
-    if (options.hmacSecret !== undefined) this.hmacSecret = options.hmacSecret;
     if (options.headers !== undefined) this.headers = options.headers;
 
     this.httpClient.updateOptions({
@@ -182,30 +177,14 @@ export class AutoClient {
   }
 
   private async post<T>(path: string, body?: unknown): Promise<T> {
-    const bodyStr = body === undefined ? "" : JSON.stringify(body);
-    const headers = this.sign("POST", path, bodyStr);
     return this.httpClient.post<T>(
       `${MOUNT}${path}`,
-      body === undefined ? undefined : bodyStr,
-      headers ? { headers } : undefined,
+      body === undefined ? undefined : JSON.stringify(body),
     );
   }
 
   private async delete<T>(path: string): Promise<T> {
-    const headers = this.sign("DELETE", path, "");
-    return this.httpClient.delete<T>(
-      `${MOUNT}${path}`,
-      headers ? { headers } : undefined,
-    );
-  }
-
-  private sign(
-    method: string,
-    path: string,
-    body: string,
-  ): Record<string, string> | undefined {
-    if (!this.hmacSecret) return undefined;
-    return signRequest(this.hmacSecret, method, path, body);
+    return this.httpClient.delete<T>(`${MOUNT}${path}`);
   }
 
   private async *stream(

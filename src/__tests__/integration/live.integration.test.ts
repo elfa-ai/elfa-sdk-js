@@ -2,7 +2,6 @@ import { ElfaSDK } from "../../index";
 
 const apiKey = process.env.ELFA_API_KEY;
 const baseUrl = process.env.ELFA_BASE_URL;
-const hmacSecret = process.env.ELFA_HMAC_SECRET;
 const extraHeaders = process.env.ELFA_TEST_HEADERS
   ? (JSON.parse(process.env.ELFA_TEST_HEADERS) as Record<string, string>)
   : undefined;
@@ -14,7 +13,6 @@ function makeSdk(): ElfaSDK {
     elfaApiKey: apiKey as string,
     timeout: 90000,
     ...(baseUrl ? { baseUrl } : {}),
-    ...(hmacSecret ? { hmacSecret } : {}),
     ...(extraHeaders ? { headers: extraHeaders } : {}),
   });
 }

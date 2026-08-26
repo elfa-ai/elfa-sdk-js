@@ -172,8 +172,7 @@ Event types are `session_info`, `title`, `text`, `text_complete`, `status`,
 ### Auto (Condition Engine)
 
 `elfa.auto` drives the Auto condition engine — EQL queries that watch markets and
-fire notifications. Mutations that are not plain notifications need an HMAC secret
-(`hmacSecret`); notification-only queries do not.
+fire notifications. Every route authenticates with the API key alone.
 
 ```typescript
 const query = {
@@ -233,7 +232,6 @@ field breaks your client even though the API stayed backwards compatible.
 ```typescript
 interface SDKOptions {
   elfaApiKey: string; // Required: Your Elfa API key
-  hmacSecret?: string; // Optional: HMAC secret for Auto signed mutations
   baseUrl?: string; // Optional: API base URL (default: https://api.elfa.ai)
   timeout?: number; // Optional: request timeout in ms (default: 30000)
   retries?: number; // Optional: retries for idempotent requests (default: 3)

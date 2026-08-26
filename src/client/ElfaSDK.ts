@@ -61,9 +61,6 @@ export class ElfaSDK {
       retries: this.options.retries,
       retryDelay: this.options.retryDelay,
       debug: this.options.debug,
-      ...(this.options.hmacSecret
-        ? { hmacSecret: this.options.hmacSecret }
-        : {}),
       ...(this.options.headers ? { headers: this.options.headers } : {}),
     };
   }

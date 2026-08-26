@@ -51,13 +51,6 @@ describe("ElfaSDK", () => {
       );
     });
 
-    it("forwards hmacSecret when provided", () => {
-      new ElfaSDK({ elfaApiKey: "k", hmacSecret: "secret" });
-      expect(ElfaV2Client).toHaveBeenCalledWith(
-        expect.objectContaining({ hmacSecret: "secret" }),
-      );
-    });
-
     it("throws when elfaApiKey is missing", () => {
       expect(() => new ElfaSDK({} as any)).toThrow(
         new ValidationError("elfaApiKey is required"),
