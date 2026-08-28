@@ -92,8 +92,8 @@ export class ElfaSDK {
   /**
    * @deprecated `GET /v2/account/smart-stats` is legacy and is removed on
    * 28 October 2026. It returns raw account metrics, not a reputation score,
-   * and is not being extended. Rank on the account context returned by
-   * {@link getKeywordMentions} instead.
+   * and is not being extended. Use {@link getKeywordMentions} instead, which
+   * returns the posting account alongside each mention's engagement metrics.
    */
   public async getAccountSmartStats(
     params: AccountSmartStatsParams,

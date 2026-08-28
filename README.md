@@ -104,8 +104,9 @@ const trendingCAs = await elfa.getTrendingCAsTwitter({
 #### `getAccountSmartStats(params)`
 
 Get smart stats for a Twitter account. **Legacy — removed on 28 October 2026.**
-It returns raw metrics, not a reputation score, and is not being extended; rank
-on the account context that `getKeywordMentions` returns instead.
+It returns raw metrics, not a reputation score, and is not being extended; use
+`getKeywordMentions` instead, which returns the posting account alongside each
+mention's engagement metrics.
 
 ```typescript
 const stats = await elfa.getAccountSmartStats({
