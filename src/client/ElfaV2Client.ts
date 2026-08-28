@@ -154,6 +154,12 @@ export class ElfaV2Client {
     return this.httpClient.get<TrendingTokensResponse>(url);
   }
 
+  /**
+   * @deprecated `GET /v2/account/smart-stats` is legacy and is removed on
+   * 28 October 2026. It returns raw account metrics, not a reputation score,
+   * and is not being extended. Rank on the account context returned by
+   * {@link getKeywordMentions} instead.
+   */
   public async getAccountSmartStats(
     params: AccountSmartStatsParams,
   ): Promise<AccountSmartStatsResponse> {

@@ -80,7 +80,8 @@ const mentions = await elfa.getKeywordMentions({
 
 #### `getTokenNews(params?)`
 
-Get token-related news mentions.
+Get token-related news mentions. Results are X posts from accounts tagged as
+news sources, not articles published by news outlets.
 
 ```typescript
 const news = await elfa.getTokenNews({
@@ -102,7 +103,9 @@ const trendingCAs = await elfa.getTrendingCAsTwitter({
 
 #### `getAccountSmartStats(params)`
 
-Get smart stats for a Twitter account.
+Get smart stats for a Twitter account. **Legacy — removed on 28 October 2026.**
+It returns raw metrics, not a reputation score, and is not being extended; rank
+on the account context that `getKeywordMentions` returns instead.
 
 ```typescript
 const stats = await elfa.getAccountSmartStats({
