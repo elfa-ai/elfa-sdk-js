@@ -6,7 +6,7 @@ import {
   extractErrorMessage,
   resolveRetryWait,
 } from "../utils/http";
-import { RateLimitError } from "../utils/errors";
+import { RateLimitError, ValidationError } from "../utils/errors";
 import { VERSION } from "../version";
 
 // Mock axios
@@ -58,11 +58,48 @@ describe("HttpClient", () => {
         baseURL: "https://api.example.com",
         timeout: 5000,
         headers: {
-          "User-Agent": `@elfa-ai/sdk/${VERSION}`,
+          "User-Agent": `elfa-sdk-js/${VERSION}`,
           Accept: "application/json",
           "Content-Type": "application/json",
         },
       });
+    });
+
+    it("appends appName to the User-Agent", () => {
+      new HttpClient({
+        baseURL: "https://api.example.com",
+        appName: "my-bot/1.2",
+      });
+
+      expect(mockedAxios.create).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            "User-Agent": `elfa-sdk-js/${VERSION} my-bot/1.2`,
+          }),
+        }),
+      );
+    });
+
+    it("leaves the User-Agent to a caller header in any casing", () => {
+      new HttpClient({
+        baseURL: "https://api.example.com",
+        headers: { "user-agent": "custom/1" },
+        appName: "my-bot/1.2",
+      });
+
+      const headers = mockedAxios.create.mock.lastCall?.[0]?.headers;
+      expect(headers).toEqual({
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "user-agent": "custom/1",
+      });
+    });
+
+    it("rejects an invalid appName at construction", () => {
+      expect(
+        () =>
+          new HttpClient({ baseURL: "https://api.example.com", appName: " " }),
+      ).toThrow(ValidationError);
     });
 
     it("should setup interceptors", () => {

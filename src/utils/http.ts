@@ -12,7 +12,7 @@ import {
   isRateLimitError,
   isRetryableError,
 } from "./errors.js";
-import { VERSION } from "../version.js";
+import { userAgentHeader } from "./userAgent.js";
 
 export interface HttpClientOptions {
   baseURL: string;
@@ -20,6 +20,7 @@ export interface HttpClientOptions {
   retries?: number;
   retryDelay?: number;
   headers?: Record<string, string>;
+  appName?: string;
   debug?: boolean;
 }
 
@@ -50,7 +51,7 @@ export class HttpClient {
     const clientConfig: any = {
       baseURL: this.options.baseURL,
       headers: {
-        "User-Agent": `@elfa-ai/sdk/${VERSION}`,
+        ...userAgentHeader(this.options.headers, this.options.appName),
         Accept: "application/json",
         "Content-Type": "application/json",
         ...this.options.headers,
@@ -211,6 +212,17 @@ export class HttpClient {
 
     if (options.headers !== undefined) {
       Object.assign(this.client.defaults.headers.common, options.headers);
+      // The SDK's User-Agent is a top-level default, which outranks `common`
+      // in axios, so a caller's replacement would otherwise never be sent.
+      if (
+        Object.keys(options.headers).some(
+          (name) => name.toLowerCase() === "user-agent",
+        )
+      ) {
+        delete (this.client.defaults.headers as Record<string, unknown>)[
+          "User-Agent"
+        ];
+      }
     }
   }
 

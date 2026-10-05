@@ -1,5 +1,6 @@
 import { ElfaSDK } from "../client/ElfaSDK";
 import { ElfaV2Client } from "../client/ElfaV2Client";
+import { AutoClient } from "../client/AutoClient";
 import { ValidationError } from "../utils/errors";
 
 jest.mock("../client/ElfaV2Client");
@@ -161,6 +162,36 @@ describe("ElfaSDK", () => {
       expect(() => sdk.updateOptions({ elfaApiKey: "other" })).toThrow(
         "Cannot update elfaApiKey after initialization",
       );
+    });
+
+    it("passes appName to every client", () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "k", appName: "my-bot/1.2" });
+
+      const expected = expect.objectContaining({ appName: "my-bot/1.2" });
+      expect(ElfaV2Client).toHaveBeenCalledWith(expected);
+      expect(sdk.auto).toBeDefined();
+      expect(AutoClient).toHaveBeenCalledWith(expected);
+    });
+
+    it("rejects an invalid appName at construction", () => {
+      expect(
+        () => new ElfaSDK({ elfaApiKey: "k", appName: "bot\r\nx-evil: 1" }),
+      ).toThrow(ValidationError);
+    });
+
+    it("updateOptions rejects appName changes", () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "k" });
+      expect(() => sdk.updateOptions({ appName: "my-bot/1.2" })).toThrow(
+        "Cannot update appName after initialization",
+      );
+    });
+
+    it("updateOptions rejects clearing appName", () => {
+      const sdk = new ElfaSDK({ elfaApiKey: "k", appName: "my-bot/1.2" });
+      expect(() => sdk.updateOptions({ appName: undefined })).toThrow(
+        "Cannot update appName after initialization",
+      );
+      expect(sdk.getOptions().appName).toBe("my-bot/1.2");
     });
 
     it("updateOptions merges other options", () => {

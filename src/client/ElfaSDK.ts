@@ -1,6 +1,7 @@
 import { ElfaV2Client } from "./ElfaV2Client.js";
 import { AutoClient } from "./AutoClient.js";
 import { ValidationError } from "../utils/errors.js";
+import { normalizeAppName } from "../utils/userAgent.js";
 import type { SDKOptions } from "../types/options.js";
 import type {
   PingResponse,
@@ -62,6 +63,9 @@ export class ElfaSDK {
       retryDelay: this.options.retryDelay,
       debug: this.options.debug,
       ...(this.options.headers ? { headers: this.options.headers } : {}),
+      ...(this.options.appName !== undefined
+        ? { appName: this.options.appName }
+        : {}),
     };
   }
 
@@ -73,6 +77,8 @@ export class ElfaSDK {
     if (options.timeout !== undefined && options.timeout < 1000) {
       throw new ValidationError("timeout must be at least 1000ms");
     }
+
+    normalizeAppName(options.appName);
   }
 
   public async ping(): Promise<PingResponse> {
@@ -172,6 +178,10 @@ export class ElfaSDK {
       throw new ValidationError(
         "Cannot update elfaApiKey after initialization",
       );
+    }
+
+    if ("appName" in newOptions) {
+      throw new ValidationError("Cannot update appName after initialization");
     }
 
     this.options = { ...this.options, ...newOptions };

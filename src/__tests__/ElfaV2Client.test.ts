@@ -1,6 +1,7 @@
 import { ElfaV2Client } from "../client/ElfaV2Client";
 import { HttpClient } from "../utils/http";
 import { ValidationError } from "../utils/errors";
+import { VERSION } from "../version";
 
 // Mock the HttpClient
 jest.mock("../utils/http");
@@ -641,6 +642,7 @@ describe("ElfaV2Client", () => {
           method: "POST",
           body: JSON.stringify({ message: "hello" }),
           headers: expect.objectContaining({
+            "User-Agent": `elfa-sdk-js/${VERSION}`,
             "x-elfa-api-key": "test-api-key",
             Accept: "text/event-stream",
           }),
@@ -676,6 +678,69 @@ describe("ElfaV2Client", () => {
       }
 
       expect(events).toEqual([{ type: "text", content: "a" }]);
+    });
+
+    it("sends the SDK User-Agent with the appName", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody("data: [DONE]\n\n"),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+      const named = new ElfaV2Client({
+        apiKey: "test-api-key",
+        appName: "my-bot/1.2",
+      });
+
+      for await (const _ of named.chatStream({ message: "hello" })) {
+        // drain
+      }
+
+      expect(fetchMock.mock.calls[0][1].headers["User-Agent"]).toBe(
+        `elfa-sdk-js/${VERSION} my-bot/1.2`,
+      );
+    });
+
+    it("ignores an appName slipped into updateOptions", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody("data: [DONE]\n\n"),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+      const named = new ElfaV2Client({
+        apiKey: "test-api-key",
+        appName: "my-bot/1.2",
+      });
+
+      named.updateOptions({ appName: "other/9" } as never);
+      for await (const _ of named.chatStream({ message: "hello" })) {
+        // drain
+      }
+
+      expect(fetchMock.mock.calls[0][1].headers["User-Agent"]).toBe(
+        `elfa-sdk-js/${VERSION} my-bot/1.2`,
+      );
+    });
+
+    it("leaves the User-Agent to a caller header in any casing", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody("data: [DONE]\n\n"),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+      const custom = new ElfaV2Client({
+        apiKey: "test-api-key",
+        headers: { "user-agent": "custom/1" },
+      });
+
+      for await (const _ of custom.chatStream({ message: "hello" })) {
+        // drain
+      }
+
+      const headers = fetchMock.mock.calls[0][1].headers;
+      expect(
+        Object.keys(headers).filter((k) => k.toLowerCase() === "user-agent"),
+      ).toEqual(["user-agent"]);
+      expect(headers["user-agent"]).toBe("custom/1");
     });
 
     it("should throw ValidationError before opening the stream", async () => {
