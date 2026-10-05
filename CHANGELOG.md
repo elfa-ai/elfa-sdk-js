@@ -44,6 +44,13 @@
   `auto.streamQuery` and `auto.streamAll` use `fetch` rather than the shared
   HTTP client, and until now went out with the runtime's default `User-Agent`.
 
+- **`axios` now requires `^1.20.0`** (was `^1.12.0`). 1.20.0 patches the axios
+  advisories published on 30 September 2026, among them
+  [GHSA-m8m8-qj5v-23w3](https://github.com/advisories/GHSA-m8m8-qj5v-23w3) and
+  [GHSA-r4gj-5m52-g5wh](https://github.com/advisories/GHSA-r4gj-5m52-g5wh), so
+  upgrading to 7.0.0 brings in a patched axios even if your lockfile still holds
+  an older 1.x.
+
 - `swagger.json` refreshed to API `2.6.3`. A credit is now $0.0145, so the x402
   reference prices in the spec move to $0.0145 (1 credit), $0.0725 (5 credits)
   and $0.261 (18 credits). Accounts already on PAYG keep $0.009 per credit until
