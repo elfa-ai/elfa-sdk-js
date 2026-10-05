@@ -1,6 +1,7 @@
 import { HttpClient, throwForFetchResponse } from "../utils/http.js";
 import { NetworkError, ValidationError } from "../utils/errors.js";
 import { readSSE } from "../utils/sse.js";
+import { userAgentHeader } from "../utils/userAgent.js";
 import type {
   ChatParams,
   ChatResponse,
@@ -34,6 +35,7 @@ export interface ElfaV2ClientOptions {
   retries?: number;
   retryDelay?: number;
   headers?: Record<string, string>;
+  appName?: string;
   debug?: boolean;
 }
 
@@ -70,6 +72,10 @@ export class ElfaV2Client {
       httpOptions.headers = this.options.headers;
     }
 
+    if (this.options.appName !== undefined) {
+      httpOptions.appName = this.options.appName;
+    }
+
     if (this.options.debug !== undefined) {
       httpOptions.debug = this.options.debug;
     }
@@ -80,9 +86,11 @@ export class ElfaV2Client {
   }
 
   public updateOptions(
-    options: Partial<Omit<ElfaV2ClientOptions, "apiKey">>,
+    options: Partial<Omit<ElfaV2ClientOptions, "apiKey" | "appName">>,
   ): void {
-    this.options = { ...this.options, ...options };
+    const { appName: _fixedAtConstruction, ...rest } =
+      options as Partial<ElfaV2ClientOptions>;
+    this.options = { ...this.options, ...rest };
 
     this.httpClient.updateOptions({
       baseURL: this.options.baseUrl,
@@ -409,6 +417,7 @@ export class ElfaV2Client {
     const response = await fetch(`${this.options.baseUrl}/v2/chat/stream`, {
       method: "POST",
       headers: {
+        ...userAgentHeader(this.options.headers, this.options.appName),
         ...this.options.headers,
         "x-elfa-api-key": this.options.apiKey,
         "Content-Type": "application/json",

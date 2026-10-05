@@ -241,6 +241,7 @@ interface SDKOptions {
   retries?: number; // Optional: retries for idempotent requests (default: 3)
   retryDelay?: number; // Optional: base retry delay in ms (default: 1000)
   headers?: Record<string, string>; // Optional: extra headers sent with every request
+  appName?: string; // Optional: your product, appended to the User-Agent, e.g. "my-bot/1.2"
   debug?: boolean; // Optional: Enable debug logging (default: false)
 }
 ```

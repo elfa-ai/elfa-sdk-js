@@ -1,5 +1,6 @@
 import { AutoClient } from "../client/AutoClient";
 import { HttpClient } from "../utils/http";
+import { VERSION } from "../version";
 
 jest.mock("../utils/http");
 
@@ -122,5 +123,68 @@ describe("AutoClient", () => {
     expect(mockHttpClient.get).toHaveBeenCalledWith(
       "/v2/auto/validate-symbol/hyperliquid/BTC",
     );
+  });
+
+  describe("streams", () => {
+    const sseBody = (frames: string) =>
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(frames));
+          controller.close();
+        },
+      });
+
+    const originalFetch = global.fetch;
+    afterEach(() => {
+      global.fetch = originalFetch;
+    });
+
+    it("sends the SDK User-Agent with the appName on streamQuery", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody('event: status\ndata: {"state":"active"}\n\n'),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+      const client = new AutoClient({ apiKey: "k", appName: "my-bot/1.2" });
+
+      const events = [];
+      for await (const event of client.streamQuery("q1")) {
+        events.push(event);
+      }
+
+      expect(fetchMock).toHaveBeenCalledWith(
+        "https://api.elfa.ai/v2/auto/queries/q1/stream",
+        expect.objectContaining({
+          headers: {
+            "User-Agent": `elfa-sdk-js/${VERSION} my-bot/1.2`,
+            "x-elfa-api-key": "k",
+            Accept: "text/event-stream",
+          },
+        }),
+      );
+      expect(events).toHaveLength(1);
+    });
+
+    it("leaves the User-Agent to a caller header on streamAll", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody(""),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+      const client = new AutoClient({
+        apiKey: "k",
+        headers: { "USER-AGENT": "custom/1" },
+      });
+
+      for await (const _ of client.streamAll()) {
+        // drain
+      }
+
+      expect(fetchMock.mock.calls[0][1].headers).toEqual({
+        "USER-AGENT": "custom/1",
+        "x-elfa-api-key": "k",
+        Accept: "text/event-stream",
+      });
+    });
   });
 });

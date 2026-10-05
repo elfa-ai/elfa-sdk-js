@@ -24,7 +24,25 @@
   `hyperliquid | gmx | binance`. Passing `"pacifica"` to `validateSymbol` is a
   type error; it would have been rejected by the API regardless.
 
+### Added
+
+- **`appName` adds your product to the `User-Agent`.** Pass
+  `appName: "my-bot/1.2"` to `ElfaSDK`, `ElfaV2Client` or `AutoClient` and every
+  request carries `User-Agent: elfa-sdk-js/7.0.0 my-bot/1.2`. It must be 1-100
+  printable ASCII characters; anything else throws `ValidationError` at
+  construction. It is fixed for the client's lifetime:
+  `ElfaSDK.updateOptions({ appName })` throws.
+
 ### Changed
+
+- **The `User-Agent` is now `elfa-sdk-js/<version>`**, replacing
+  `@elfa-ai/sdk/<version>`, so it lines up with the Python SDK's
+  `elfa-sdk-python/<version>`. A `User-Agent` you pass in `headers`, in any
+  casing, still replaces it.
+
+- **Streaming requests send the `User-Agent` too.** `chatStream`,
+  `auto.streamQuery` and `auto.streamAll` use `fetch` rather than the shared
+  HTTP client, and until now went out with the runtime's default `User-Agent`.
 
 - `swagger.json` refreshed to API `2.6.3`. A credit is now $0.0145, so the x402
   reference prices in the spec move to $0.0145 (1 credit), $0.0725 (5 credits)
