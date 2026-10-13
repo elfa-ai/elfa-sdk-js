@@ -1,4 +1,5 @@
 import { HttpClient } from "../utils/http.js";
+import { ValidationError } from "../utils/errors.js";
 import type {
   AssetClassV3,
   EntitiesV3Params,
@@ -239,12 +240,25 @@ function query<P extends object>(
   params: P,
   keys: ReadonlyArray<keyof P>,
 ): string {
+  const unknown = Object.keys(params).filter(
+    (key) => !keys.includes(key as keyof P),
+  );
+  if (unknown.length > 0) {
+    throw new ValidationError(
+      `Unknown parameter for this endpoint: ${unknown.join(", ")}`,
+    );
+  }
   const search = new URLSearchParams();
   for (const key of keys) {
     const value = params[key];
     if (value === undefined || value === null) continue;
     if (Array.isArray(value)) {
-      if (value.length > 0) search.append(String(key), value.join(","));
+      if (value.length === 0) {
+        throw new ValidationError(
+          `${String(key)} is an empty list. Omit it, or pass at least one value`,
+        );
+      }
+      search.append(String(key), value.join(","));
     } else {
       search.append(String(key), String(value));
     }

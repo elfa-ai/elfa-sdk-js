@@ -4,7 +4,7 @@ This file provides universal base instructions for AI coding assistants working 
 
 ## Project Context
 
-**Elfa AI SDK** - TypeScript SDK for Elfa API v2 and v3 providing social intelligence for crypto markets, plus v3 events, calls and market data across crypto and equities.
+**Elfa AI SDK** - TypeScript SDK for the Elfa API: v2 social intelligence for crypto markets, and v3 events, calls and market data across crypto and equities.
 
 ### Core Architecture
 
@@ -37,16 +37,20 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 ```
 
 - Times are unix seconds; milliseconds are a `400`. `from` is required on list
-  endpoints except when fetching by id or searching with `q`; entities, arcs,
-  positioning and top accounts take no range; mindshare takes a `period` and an
-  optional `to`.
+  endpoints except when fetching by id or searching with `q`, and
+  `getEvents({ sort: "relevant" })` refuses it; entities, arcs, positioning and
+  top accounts take no range; mindshare takes a `period` and an optional `to`.
 - Entity filters take ids from `getEntities`, never tickers.
 - History depends on the plan (30 days PAYG, 60 days Grow, 2 years Enterprise);
   `getKeyStatus()` returns its start as `historyFrom`.
 - PAYG, Grow and Enterprise keys can call every v3 endpoint; the v3 API is free
   on the Pay-as-you-go and Grow plans. A Free key can call only `/v3/key-status`.
-- Unknown query parameters are a `400`, so each method sends only the parameters
-  its endpoint declares. List parameters are arrays, sent comma-separated.
+- Unknown query parameters are a `400`, so each method throws `ValidationError`
+  for a parameter its endpoint does not declare. List parameters are arrays, sent
+  comma-separated; an empty array throws `ValidationError`.
+- On a `400`, `message` reads `Invalid parameters`; the reasons are in
+  `error.details.details[]`.
+- `PaginationHelper` pages v2 only. For v3, pass `nextCursor` back as `cursor`.
 
 ## Development Standards
 

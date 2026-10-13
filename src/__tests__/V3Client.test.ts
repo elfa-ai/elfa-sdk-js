@@ -1,6 +1,6 @@
 import { V3Client } from "../client/V3Client";
 import { HttpClient } from "../utils/http";
-import { ElfaApiError } from "../utils/errors";
+import { ElfaApiError, ValidationError } from "../utils/errors";
 
 jest.mock("../utils/http");
 
@@ -90,18 +90,18 @@ describe("V3Client", () => {
     expect(mockHttpClient.get).toHaveBeenCalledWith("/v3/events");
   });
 
-  it("drops undeclared and empty params", async () => {
-    mockHttpClient.get.mockResolvedValue({ events: [], ...page });
+  it("refuses an empty list instead of dropping the filter", async () => {
+    await expect(
+      client.getEvents({ entityIds: [], from: 1 }),
+    ).rejects.toBeInstanceOf(ValidationError);
+    expect(mockHttpClient.get).not.toHaveBeenCalled();
+  });
 
-    await client.getEvents({
-      eventIds: [ID1],
-      entityIds: [],
-      timeWindow: "24h",
-    } as any);
-
-    expect(mockHttpClient.get).toHaveBeenCalledWith(
-      `/v3/events?eventIds=${ID1}`,
-    );
+  it("refuses a parameter the endpoint does not declare", async () => {
+    await expect(
+      client.getEvents({ eventIds: [ID1], timeWindow: "24h" } as any),
+    ).rejects.toThrow(/Unknown parameter for this endpoint: timeWindow/);
+    expect(mockHttpClient.get).not.toHaveBeenCalled();
   });
 
   it("lists storylines", async () => {
@@ -125,14 +125,14 @@ describe("V3Client", () => {
       hasMore: false,
     });
 
-    await client.getArcs({
-      assetClass: "crypto",
-      sort: "events",
-      from: 1,
-    } as any);
+    await client.getArcs({ assetClass: "crypto", sort: "events" });
 
     expect(mockHttpClient.get).toHaveBeenCalledWith(
       "/v3/events/arcs?assetClass=crypto&sort=events",
+    );
+
+    await expect(client.getArcs({ from: 1 } as any)).rejects.toThrow(
+      /Unknown parameter for this endpoint: from/,
     );
   });
 
@@ -276,7 +276,8 @@ describe("V3Client", () => {
   it("propagates API errors", async () => {
     const body = {
       code: "ERR_INVALID_PARAMETER",
-      message: "from is required",
+      message: "Invalid parameters",
+      details: [{ field: "query.from", message: "from is required" }],
       errorId: "8d935689",
       requestId: "4b181263",
     };

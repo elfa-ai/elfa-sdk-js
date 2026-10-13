@@ -151,10 +151,10 @@ await elfa.chat({
 
 Set `includeSources: true` to receive `data.sources`: the links the research
 behind the answer read, in the order it read them, without duplicates (at most
-50). Each has a `url`, a `kind` and an optional `title`. `kind` is a string, not
-an enum — current values are `x_post`, `x_account`, `telegram`, `dex`,
-`explorer`, `prediction_market` and `web`; treat a value you do not recognise as
-`web`. A source was read, not necessarily cited in `message`. Without the flag
+50). Each has a `url`, a `kind` and an optional `title` naming the research
+step, such as "Searched X". `kind` is a string, not an enum — current values
+are `x_post`, `x_account`, `telegram`, `dex`, `explorer`, `prediction_market`
+and `web`; treat a value you do not recognise as `web`. A source was read, not necessarily cited in `message`. Without the flag
 the response is unchanged.
 
 ```typescript
@@ -296,7 +296,8 @@ The rules every v3 endpoint follows:
   `getKeyStatus()`; the rest throw `ElfaApiError` with status `403`.
 - **Times are unix seconds**, UTC, in requests and responses. Milliseconds are a
   `400`: divide by 1000. `from` is required, except when fetching by id or
-  searching with `q`. Entities, arcs, positioning and top accounts take no
+  searching with `q`; `getEvents({ sort: "relevant" })` ranks the last 24 hours
+  and refuses `from`. Entities, arcs, positioning and top accounts take no
   range; mindshare takes a `period` and an optional `to`.
 - **Entity ids, not tickers.** Every entity filter takes an id from
   `getEntities`, never a name. Resolve once and cache the id.
@@ -306,10 +307,13 @@ The rules every v3 endpoint follows:
 - **Paging.** Pass `nextCursor` back as `cursor`. `hasMore: false` and
   `nextCursor: null` mark the last page. There is no offset and no total.
 - **Lists.** List parameters such as `entityIds` take an array, sent
-  comma-separated. A list of ids takes at most 30.
-- **Errors.** An unknown parameter is a `400`, never ignored, so the SDK only
-  sends the parameters each endpoint declares. Errors throw the same classes as
-  v2; `error.details` holds the body `{ code, message, details?, errorId, requestId }`.
+  comma-separated. A list of ids takes at most 30. An empty array throws
+  `ValidationError` rather than silently dropping the filter.
+- **Errors.** The API answers an unknown parameter with a `400`, so the SDK
+  throws `ValidationError` for a parameter the endpoint does not declare. API
+  errors throw the same classes as v2; `error.details` holds the body
+  `{ code, message, details?, errorId, requestId }`. On a `400`, `message` reads
+  `Invalid parameters`: the field and the reason are in `error.details.details[]`.
 
 ### Response shapes are extensible
 
