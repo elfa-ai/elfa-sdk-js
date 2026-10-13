@@ -6,6 +6,7 @@ import type {
   TopMentionV2,
 } from "../types/elfa";
 import type { TradableExchange } from "../types/auto";
+import type { EventsV3Params } from "../types/v3";
 
 // Compile-time assertions. `@ts-expect-error` fails the build when the
 // expression it guards stops being an error, so these are real checks: if a
@@ -89,5 +90,14 @@ describe("response types match swagger.json", () => {
     const gmx: TradableExchange = "gmx";
 
     expect([...exchanges, gmx]).toEqual(["hyperliquid", "binance", "gmx"]);
+  });
+
+  it("keeps spam out of the events filter, which the API refuses", () => {
+    const ok: EventsV3Params = { eventType: "listing" };
+
+    // @ts-expect-error eventType=spam is a 400
+    const spam: EventsV3Params = { eventType: "spam" };
+
+    expect([ok.eventType, spam.eventType]).toEqual(["listing", "spam"]);
   });
 });

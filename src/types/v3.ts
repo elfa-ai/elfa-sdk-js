@@ -164,7 +164,7 @@ export interface EventsV3Params {
   to?: number;
   eventIds?: string[];
   eventClass?: EventClassV3;
-  eventType?: EventTypeV3;
+  eventType?: Exclude<EventTypeV3, "spam">;
   implication?: ImplicationV3;
   entityIds?: string[];
   assetClass?: AssetClassV3;
