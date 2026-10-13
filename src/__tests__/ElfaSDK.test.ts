@@ -1,10 +1,12 @@
 import { ElfaSDK } from "../client/ElfaSDK";
 import { ElfaV2Client } from "../client/ElfaV2Client";
 import { AutoClient } from "../client/AutoClient";
+import { V3Client } from "../client/V3Client";
 import { ValidationError } from "../utils/errors";
 
 jest.mock("../client/ElfaV2Client");
 jest.mock("../client/AutoClient");
+jest.mock("../client/V3Client");
 
 describe("ElfaSDK", () => {
   let mockElfaClient: jest.Mocked<ElfaV2Client>;
@@ -42,6 +44,7 @@ describe("ElfaSDK", () => {
 
       expect(sdk).toBeInstanceOf(ElfaSDK);
       expect(sdk.auto).toBeDefined();
+      expect(sdk.v3).toBeDefined();
       expect(ElfaV2Client).toHaveBeenCalledWith(
         expect.objectContaining({
           apiKey: "test-api-key",
@@ -171,6 +174,7 @@ describe("ElfaSDK", () => {
       expect(ElfaV2Client).toHaveBeenCalledWith(expected);
       expect(sdk.auto).toBeDefined();
       expect(AutoClient).toHaveBeenCalledWith(expected);
+      expect(V3Client).toHaveBeenCalledWith(expected);
     });
 
     it("rejects an invalid appName at construction", () => {
@@ -212,6 +216,7 @@ describe("ElfaSDK", () => {
       });
       expect(mockElfaClient.updateOptions).toHaveBeenCalledWith(expected);
       expect(sdk.auto.updateOptions).toHaveBeenCalledWith(expected);
+      expect(sdk.v3.updateOptions).toHaveBeenCalledWith(expected);
     });
   });
 });

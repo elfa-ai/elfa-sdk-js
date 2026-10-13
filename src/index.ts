@@ -3,6 +3,7 @@ import { ElfaSDK } from "./client/ElfaSDK.js";
 export { ElfaSDK } from "./client/ElfaSDK.js";
 export { ElfaV2Client } from "./client/ElfaV2Client.js";
 export { AutoClient } from "./client/AutoClient.js";
+export { V3Client } from "./client/V3Client.js";
 
 export * from "./types/index.js";
 

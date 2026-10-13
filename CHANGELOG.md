@@ -1,5 +1,42 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **API v3 via `elfa.v3`.** A new `V3Client`, exposed on `ElfaSDK` as `v3` and
+  sharing its options the same way `auto` does, with one method per published
+  `/v3` endpoint: `getEntities`, `getEvents`, `getStorylines`, `getArcs`,
+  `getCallBook(market, params)`, `getMindshare(market, params)`,
+  `getTrendingContracts`, `getCalls`, `getCallEpisodes`, `getPositioning`,
+  `getTopAccounts` and `getKeyStatus`. `market` is `"crypto"` or `"equity"`.
+  Request and response types are in `src/types/v3.ts` and exported from the
+  package root. List parameters take arrays and are sent comma-separated; each
+  method sends only the parameters its endpoint declares, since v3 answers an
+  unknown parameter with `400`. Times are unix seconds. PAYG, Grow and
+  Enterprise keys can call every v3 endpoint; a Free key can call only
+  `getKeyStatus()`. See [API v3](https://docs.elfa.ai/v3/overview).
+
+- **`includeSources` on `chat` and `chatStream`.** Set `includeSources: true` to
+  receive the links the research behind the answer read: `data.sources` on
+  `chat`, `sources` on the final `complete` stream event. Each `ChatSource` has
+  a `url`, a `kind` and an optional `title`. `kind` is typed as `string`, not an
+  enum, so new kinds do not break your build; treat an unknown value as `web`.
+
+### Removed
+
+- **`"gmx"` is no longer a `TradableExchange`.** The published
+  `GET /v2/auto/validate-symbol/{exchange}/{symbol}` enum is now
+  `hyperliquid | binance`. This is a type-level breaking change: passing
+  `"gmx"` to `validateSymbol` is now a type error. The API already rejects it.
+
+### Changed
+
+- `swagger.json` refreshed to the published API `2.10.0`, which adds the `/v3`
+  endpoints and chat sources, drops `gmx`, and no longer lists
+  `/v2/data/market-events`. The SDK never referenced market events, so nothing
+  else changes.
+
 ## 7.0.0
 
 ### Removed

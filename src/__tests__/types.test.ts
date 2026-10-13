@@ -5,6 +5,7 @@ import type {
   ProcessedMention,
   TopMentionV2,
 } from "../types/elfa";
+import type { TradableExchange } from "../types/auto";
 
 // Compile-time assertions. `@ts-expect-error` fails the build when the
 // expression it guards stops being an error, so these are real checks: if a
@@ -79,5 +80,14 @@ describe("response types match swagger.json", () => {
   it("exposes BillingMode as its own type", () => {
     const modes: BillingMode[] = ["deposit", "arrears"];
     expect(modes).toEqual(["deposit", "arrears"]);
+  });
+
+  it("limits TradableExchange to the validate-symbol enum", () => {
+    const exchanges: TradableExchange[] = ["hyperliquid", "binance"];
+
+    // @ts-expect-error "gmx" was removed from the schema's enum
+    const gmx: TradableExchange = "gmx";
+
+    expect([...exchanges, gmx]).toEqual(["hyperliquid", "binance", "gmx"]);
   });
 });

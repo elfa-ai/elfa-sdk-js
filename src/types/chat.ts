@@ -21,6 +21,13 @@ export interface ChatParams {
   analysisType?: ChatAnalysisType;
   speed?: ChatSpeed;
   assetMetadata?: ChatAssetMetadata;
+  includeSources?: boolean;
+}
+
+export interface ChatSource {
+  url: string;
+  kind: string;
+  title?: string;
 }
 
 export interface ChatStreamSessionInfoEvent {
@@ -58,6 +65,7 @@ export interface ChatStreamCompleteEvent {
   success: boolean;
   sessionId: string;
   creditsConsumed: number;
+  sources?: ChatSource[];
 }
 
 export interface ChatStreamInvalidRequestEvent {
@@ -87,5 +95,6 @@ export interface ChatResponse {
     message: string;
     sessionId: string;
     creditsConsumed: number;
+    sources?: ChatSource[];
   };
 }

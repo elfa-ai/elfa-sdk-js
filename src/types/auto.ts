@@ -203,7 +203,7 @@ export interface AutoListExecutionsResponse {
   pagination?: unknown;
 }
 
-export type TradableExchange = "hyperliquid" | "gmx" | "binance";
+export type TradableExchange = "hyperliquid" | "binance";
 
 export interface AutoValidateSymbolResponse {
   supported: "true" | "false";
