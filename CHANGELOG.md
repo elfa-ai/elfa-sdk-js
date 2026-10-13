@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 7.1.0
 
 ### Added
 
@@ -27,8 +27,8 @@
 
 - **`"gmx"` is no longer a `TradableExchange`.** The published
   `GET /v2/auto/validate-symbol/{exchange}/{symbol}` enum is now
-  `hyperliquid | binance`. This is a type-level breaking change: passing
-  `"gmx"` to `validateSymbol` is now a type error. The API already rejects it.
+  `hyperliquid | binance`. Passing `"gmx"` to `validateSymbol` is now a type
+  error; the API already rejected it, so no working call changes.
 
 ### Changed
 
