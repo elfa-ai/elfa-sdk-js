@@ -304,6 +304,11 @@ The rules every v3 endpoint follows:
 - **History by plan.** 30 days on PAYG, 60 days on Grow, 2 years on Enterprise,
   counted from midnight UTC. `getKeyStatus()` returns the start as
   `historyFrom`. An earlier `from` is cut, and `servedFrom` says where.
+- **Top accounts by track record.** `getTopAccounts({ metric })` ranks by
+  `standing` (the default) or by a caller's track: `alphaScore`, `hitRate` or
+  `avgReturn`. For the best callers use `alphaScore`; `avgReturn` is not
+  adjusted for the market. Track metrics rank only accounts with at least 20
+  scored positions.
 - **Paging.** Pass `nextCursor` back as `cursor`. `hasMore: false` and
   `nextCursor: null` mark the last page. There is no offset and no total.
 - **Lists.** List parameters such as `entityIds` take an array, sent

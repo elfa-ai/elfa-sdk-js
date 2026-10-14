@@ -72,7 +72,8 @@ export type CallStatusV3 = "open" | "closed";
 
 export type CloseReasonV3 = "close" | "reverse" | "stopOut" | "expiry";
 
-export type AccountMetricV3 = "standing";
+export type AccountMetricV3 =
+  "standing" | "alphaScore" | "hitRate" | "avgReturn";
 
 export type PlanV3 = "payg" | "grow" | "enterprise";
 
