@@ -5,6 +5,8 @@ import type {
   ProcessedMention,
   TopMentionV2,
 } from "../types/elfa";
+import type { EqlConditionSource, TradableExchange } from "../types/auto";
+import type { EventsV3Params } from "../types/v3";
 
 // Compile-time assertions. `@ts-expect-error` fails the build when the
 // expression it guards stops being an error, so these are real checks: if a
@@ -79,5 +81,34 @@ describe("response types match swagger.json", () => {
   it("exposes BillingMode as its own type", () => {
     const modes: BillingMode[] = ["deposit", "arrears"];
     expect(modes).toEqual(["deposit", "arrears"]);
+  });
+
+  it("limits TradableExchange to the validate-symbol enum", () => {
+    const exchanges: TradableExchange[] = ["hyperliquid", "binance"];
+
+    // @ts-expect-error "gmx" was removed from the schema's enum
+    const gmx: TradableExchange = "gmx";
+
+    expect([...exchanges, gmx]).toEqual(["hyperliquid", "binance", "gmx"]);
+  });
+
+  it("covers the documented condition sources", () => {
+    const sources: EqlConditionSource[] = [
+      "events",
+      "x_follow_received",
+      "x_follow_made",
+      "x_follow_overlap",
+    ];
+
+    expect(sources).toHaveLength(4);
+  });
+
+  it("keeps spam out of the events filter, which the API refuses", () => {
+    const ok: EventsV3Params = { eventType: "listing" };
+
+    // @ts-expect-error eventType=spam is a 400
+    const spam: EventsV3Params = { eventType: "spam" };
+
+    expect([ok.eventType, spam.eventType]).toEqual(["listing", "spam"]);
   });
 });

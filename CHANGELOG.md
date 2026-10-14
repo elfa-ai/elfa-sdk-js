@@ -1,5 +1,49 @@
 # Changelog
 
+## 7.1.0
+
+### Added
+
+- **API v3 via `elfa.v3`.** A new `V3Client`, exposed on `ElfaSDK` as `v3` and
+  sharing its options the same way `auto` does, with one method per published
+  `/v3` endpoint: `getEntities`, `getEvents`, `getStorylines`, `getArcs`,
+  `getCallBook(market, params)`, `getMindshare(market, params)`,
+  `getTrendingContracts`, `getCalls`, `getCallEpisodes`, `getPositioning`,
+  `getTopAccounts` and `getKeyStatus`. `market` is `"crypto"` or `"equity"`.
+  Request and response types are in `src/types/v3.ts` and exported from the
+  package root. List parameters take arrays and are sent comma-separated. A
+  parameter the endpoint does not declare, or an empty array, throws
+  `ValidationError` before the request, since v3 answers an unknown parameter
+  with `400` and an empty filter would otherwise be dropped. Times are unix
+  seconds. PAYG, Grow and Enterprise keys can call every v3 endpoint; a Free
+  key can call only `getKeyStatus()`. See [API v3](https://docs.elfa.ai/v3/overview).
+
+- **`includeSources` on `chat` and `chatStream`.** Set `includeSources: true` to
+  receive the links the research behind the answer read: `data.sources` on
+  `chat`, `sources` on the final `complete` stream event. Each `ChatSource` has
+  a `url`, a `kind` and an optional `title` naming the research step, such as
+  "Searched X". `kind` is typed as `string`, not an enum, so new kinds do not
+  break your build; treat an unknown value as `web`.
+
+- **`EqlConditionSource` covers every documented source.** Adds `events`
+  (API 2.9.0) and the follow-graph sources `x_follow_received`,
+  `x_follow_made` and `x_follow_overlap`, so these conditions type-check
+  without a cast.
+
+### Removed
+
+- **`"gmx"` is no longer a `TradableExchange`.** The published
+  `GET /v2/auto/validate-symbol/{exchange}/{symbol}` enum is now
+  `hyperliquid | binance`. Passing `"gmx"` to `validateSymbol` is now a type
+  error; the API already rejected it, so no working call changes.
+
+### Changed
+
+- `swagger.json` refreshed to the published API `2.10.0`, which adds the `/v3`
+  endpoints and chat sources, drops `gmx`, and no longer lists
+  `/v2/data/market-events`. The SDK never referenced market events, so nothing
+  else changes.
+
 ## 7.0.0
 
 ### Removed

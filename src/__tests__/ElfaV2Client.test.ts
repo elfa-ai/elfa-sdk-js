@@ -602,6 +602,40 @@ describe("ElfaV2Client", () => {
       });
     });
 
+    it("should send includeSources and return data.sources", async () => {
+      const mockResponse = {
+        success: true,
+        data: {
+          message: "hi",
+          sessionId: "s1",
+          creditsConsumed: 2,
+          sources: [
+            {
+              url: "https://x.com/a/status/1",
+              kind: "x_post",
+              title: "Searched X",
+            },
+            { url: "https://example.com", kind: "web" },
+          ],
+        },
+      };
+      mockHttpClient.post.mockResolvedValue(mockResponse);
+
+      const result = await client.chat({
+        message: "hello",
+        includeSources: true,
+      });
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith("/v2/chat", {
+        message: "hello",
+        includeSources: true,
+      });
+      expect(result.data.sources?.map((s) => s.kind)).toEqual([
+        "x_post",
+        "web",
+      ]);
+    });
+
     it("should throw ValidationError when chat message is missing", async () => {
       await expect(client.chat({})).rejects.toThrow(
         new ValidationError("message is required for chat analysis"),
@@ -657,6 +691,33 @@ describe("ElfaV2Client", () => {
           sessionId: "s1",
           creditsConsumed: 3,
         },
+      ]);
+    });
+
+    it("should yield sources on the complete event with includeSources", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody(
+          'data: {"type":"complete","success":true,"sessionId":"s1","creditsConsumed":3,"sources":[{"url":"https://t.me/c/1","kind":"telegram"}]}\n\n' +
+            "data: [DONE]\n\n",
+        ),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+
+      const events = [];
+      for await (const event of client.chatStream({
+        message: "hello",
+        includeSources: true,
+      })) {
+        events.push(event);
+      }
+
+      expect(fetchMock.mock.calls[0][1].body).toBe(
+        JSON.stringify({ message: "hello", includeSources: true }),
+      );
+      const complete = events[0];
+      expect(complete.type === "complete" && complete.sources).toEqual([
+        { url: "https://t.me/c/1", kind: "telegram" },
       ]);
     });
 

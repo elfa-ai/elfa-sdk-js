@@ -6,13 +6,14 @@
 [![codecov](https://codecov.io/gh/elfa-ai/elfa-sdk-js/branch/main/graph/badge.svg)](https://codecov.io/gh/elfa-ai/elfa-sdk-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official TypeScript/JavaScript SDK for the Elfa API v2 - social intelligence, AI chat, and the Auto condition engine for crypto.
+Official TypeScript/JavaScript SDK for the Elfa API v2 and v3 - social intelligence, AI chat, the Auto condition engine, and API v3 events, calls and market data across crypto and equities.
 
 ## Features
 
 - **Social Intelligence**: Trending tokens, mentions, narratives, smart stats, and event summaries
 - **AI Chat**: Market analysis and conversational chat via `elfa.chat`, streamed via `elfa.chatStream`
 - **Auto Condition Engine**: Build EQL queries that watch markets and notify via `elfa.auto`
+- **API v3**: Events, storylines and arcs; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts via `elfa.v3`
 - **TypeScript First**: Comprehensive type definitions and IDE support
 - **Smart Error Handling**: Typed error classes with built-in retries and rate-limit handling
 - **Rate Limiting**: Built-in respect for API rate limits
@@ -148,6 +149,24 @@ await elfa.chat({
 });
 ```
 
+Set `includeSources: true` to receive `data.sources`: the links the research
+behind the answer read, in the order it read them, without duplicates (at most
+50). Each has a `url`, a `kind` and an optional `title` naming the research
+step, such as "Searched X". `kind` is a string, not an enum — current values
+are `x_post`, `x_account`, `telegram`, `dex`, `explorer`, `prediction_market`
+and `web`; treat a value you do not recognise as `web`. A source was read, not necessarily cited in `message`. Without the flag
+the response is unchanged.
+
+```typescript
+const answer = await elfa.chat({
+  message: "Why is BTC moving today?",
+  includeSources: true,
+});
+for (const source of answer.data.sources ?? []) {
+  console.log(source.kind, source.url);
+}
+```
+
 #### `chatStream(params, signal?)`
 
 The same analysis as `chat`, delivered incrementally over Server-Sent Events.
@@ -171,7 +190,8 @@ for await (const event of elfa.chatStream({
 ```
 
 Event types are `session_info`, `title`, `text`, `text_complete`, `status`,
-`credits`, `complete`, `invalid_request` and `error`.
+`credits`, `complete`, `invalid_request` and `error`. With `includeSources: true`
+the final `complete` event also carries `sources`, in the same shape as `chat`.
 
 ### Auto (Condition Engine)
 
@@ -222,6 +242,78 @@ const reply = await elfa.auto.chat({
 });
 console.log(reply.credits); // e.g. 104 — same total as the x-elfa-credits header
 ```
+
+### API v3
+
+`elfa.v3` covers [API v3](https://docs.elfa.ai/v3/overview), the data stack that
+powers agent awareness: events, storylines and arcs; call books, mindshare and
+trending contracts; calls, call episodes and positioning; ranked accounts. No
+endpoint returns post text.
+
+Resolve Bitcoin, read its last day of events, then see how accounts are
+positioned on it:
+
+```typescript
+// 1. Resolve. Check the name: the first match may not be the asset you meant.
+const { entities } = await elfa.v3.getEntities({
+  q: "btc",
+  entityType: ["token"],
+  limit: 1,
+});
+const id = entities[0].id; // Bitcoin
+
+// 2. Its events of the last 24 hours. from is required, in seconds.
+const from = Math.floor(Date.now() / 1000) - 86400;
+const { events, nextCursor } = await elfa.v3.getEvents({
+  entityIds: [id],
+  from,
+  limit: 10,
+});
+
+// 3. Open longs and shorts on it right now.
+const positioning = await elfa.v3.getPositioning({ entityId: id });
+```
+
+| Method                                        | Endpoint                                                     |
+| --------------------------------------------- | ------------------------------------------------------------ |
+| `getEntities(params)`                         | `/v3/entities`                                               |
+| `getEvents(params?)`                          | `/v3/events`                                                 |
+| `getStorylines(params?)`                      | `/v3/events/storylines`                                      |
+| `getArcs(params?)`                            | `/v3/events/arcs`                                            |
+| `getCallBook("crypto" \| "equity", params)`   | `/v3/market/crypto/call-book`, `/v3/market/equity/call-book` |
+| `getMindshare("crypto" \| "equity", params?)` | `/v3/market/crypto/mindshare`, `/v3/market/equity/mindshare` |
+| `getTrendingContracts(params)`                | `/v3/market/crypto/trending-contracts`                       |
+| `getCalls(params?)`                           | `/v3/calls`                                                  |
+| `getCallEpisodes(params?)`                    | `/v3/calls/episodes`                                         |
+| `getPositioning({ entityId })`                | `/v3/calls/positioning`                                      |
+| `getTopAccounts(params?)`                     | `/v3/people/accounts`                                        |
+| `getKeyStatus()`                              | `/v3/key-status`                                             |
+
+The rules every v3 endpoint follows:
+
+- **Access.** PAYG, Grow and Enterprise keys can call every v3 endpoint. The v3
+  API is free on the Pay-as-you-go and Grow plans. A Free key can call only
+  `getKeyStatus()`; the rest throw `ElfaApiError` with status `403`.
+- **Times are unix seconds**, UTC, in requests and responses. Milliseconds are a
+  `400`: divide by 1000. `from` is required, except when fetching by id or
+  searching with `q`; `getEvents({ sort: "relevant" })` ranks the last 24 hours
+  and refuses `from`. Entities, arcs, positioning and top accounts take no
+  range; mindshare takes a `period` and an optional `to`.
+- **Entity ids, not tickers.** Every entity filter takes an id from
+  `getEntities`, never a name. Resolve once and cache the id.
+- **History by plan.** 30 days on PAYG, 60 days on Grow, 2 years on Enterprise,
+  counted from midnight UTC. `getKeyStatus()` returns the start as
+  `historyFrom`. An earlier `from` is cut, and `servedFrom` says where.
+- **Paging.** Pass `nextCursor` back as `cursor`. `hasMore: false` and
+  `nextCursor: null` mark the last page. There is no offset and no total.
+- **Lists.** List parameters such as `entityIds` take an array, sent
+  comma-separated. A list of ids takes at most 30. An empty array throws
+  `ValidationError` rather than silently dropping the filter.
+- **Errors.** The API answers an unknown parameter with a `400`, so the SDK
+  throws `ValidationError` for a parameter the endpoint does not declare. API
+  errors throw the same classes as v2; `error.details` holds the body
+  `{ code, message, details?, errorId, requestId }`. On a `400`, `message` reads
+  `Invalid parameters`: the field and the reason are in `error.details.details[]`.
 
 ### Response shapes are extensible
 
@@ -293,6 +385,7 @@ Check out the [examples directory](./src/examples/) for comprehensive usage exam
 
 - [Basic Usage](./src/examples/basic.ts) - V2 API with processed data
 - [Auto](./src/examples/auto.ts) - Condition engine queries
+- [API v3](./src/examples/v3.ts) - Resolve an entity, read its events and positioning
 
 ## Contributing
 

@@ -10,13 +10,17 @@ export type EqlConditionSource =
   | "llm"
   | "tweet"
   | "telegram"
+  | "events"
   | "news"
   | "sec"
   | "kalshi"
   | "polymarket"
   | "funding"
   | "liquidation"
-  | "fear_greed";
+  | "fear_greed"
+  | "x_follow_received"
+  | "x_follow_made"
+  | "x_follow_overlap";
 
 export type EqlActionType = "webhook" | "notify" | "telegram_bot" | "llm";
 
@@ -203,7 +207,7 @@ export interface AutoListExecutionsResponse {
   pagination?: unknown;
 }
 
-export type TradableExchange = "hyperliquid" | "gmx" | "binance";
+export type TradableExchange = "hyperliquid" | "binance";
 
 export interface AutoValidateSymbolResponse {
   supported: "true" | "false";

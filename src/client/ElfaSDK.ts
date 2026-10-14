@@ -1,5 +1,6 @@
 import { ElfaV2Client } from "./ElfaV2Client.js";
 import { AutoClient } from "./AutoClient.js";
+import { V3Client } from "./V3Client.js";
 import { ValidationError } from "../utils/errors.js";
 import { normalizeAppName } from "../utils/userAgent.js";
 import type { SDKOptions } from "../types/options.js";
@@ -31,6 +32,7 @@ import type {
 
 export class ElfaSDK {
   public readonly auto: AutoClient;
+  public readonly v3: V3Client;
   private elfaClient: ElfaV2Client;
   private options: SDKOptions & {
     baseUrl: string;
@@ -52,6 +54,7 @@ export class ElfaSDK {
 
     this.elfaClient = new ElfaV2Client(clientOptions);
     this.auto = new AutoClient(clientOptions);
+    this.v3 = new V3Client(clientOptions);
   }
 
   private buildClientOptions() {
@@ -190,5 +193,6 @@ export class ElfaSDK {
 
     this.elfaClient.updateOptions(clientOptions);
     this.auto.updateOptions(clientOptions);
+    this.v3.updateOptions(clientOptions);
   }
 }
