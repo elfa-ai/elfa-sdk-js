@@ -260,7 +260,9 @@ const { entities } = await elfa.v3.getEntities({
   entityType: ["token"],
   limit: 1,
 });
-const id = entities[0].id; // Bitcoin
+const [match] = entities;
+if (!match) throw new Error("no match for btc");
+const id = match.id; // Bitcoin
 
 // 2. Its events of the last 24 hours. from is required, in seconds.
 const from = Math.floor(Date.now() / 1000) - 86400;
@@ -304,8 +306,14 @@ The rules every v3 endpoint follows:
 - **History by plan.** 30 days on PAYG, 60 days on Grow, 2 years on Enterprise,
   counted from midnight UTC. `getKeyStatus()` returns the start as
   `historyFrom`. An earlier `from` is cut, and `servedFrom` says where.
+- **Top accounts by track record.** `getTopAccounts({ metric })` ranks by
+  `standing` (the default) or by a caller's track: `alphaScore`, `hitRate` or
+  `avgReturn`. For the best callers use `alphaScore`; `avgReturn` is not
+  adjusted for the market. Track metrics rank only accounts with at least 20
+  scored positions.
 - **Paging.** Pass `nextCursor` back as `cursor`. `hasMore: false` and
-  `nextCursor: null` mark the last page. There is no offset and no total.
+  `nextCursor: null` mark the last page. There is no offset and no total. A
+  cursor belongs to its query: change anything but `limit` and it is a `400`.
 - **Lists.** List parameters such as `entityIds` take an array, sent
   comma-separated. A list of ids takes at most 30. An empty array throws
   `ValidationError` rather than silently dropping the filter.

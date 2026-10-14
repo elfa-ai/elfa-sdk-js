@@ -1,5 +1,19 @@
 # Changelog
 
+## 7.2.0
+
+### Added
+
+- **Rank top accounts by track record.** `AccountMetricV3` now takes
+  `alphaScore`, `hitRate` and `avgReturn` beside `standing` (API 2.11.0), so
+  `elfa.v3.getTopAccounts({ metric: "alphaScore" })` type-checks. Track metrics
+  rank only accounts with at least 20 scored positions, and a `nextCursor` works
+  only with the `metric` and `order` it came from.
+
+### Changed
+
+- `swagger.json` refreshed to the published API `2.11.0`.
+
 ## 7.1.0
 
 ### Added

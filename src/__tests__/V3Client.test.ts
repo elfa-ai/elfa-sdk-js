@@ -250,6 +250,23 @@ describe("V3Client", () => {
     );
   });
 
+  it.each(["alphaScore", "hitRate", "avgReturn"] as const)(
+    "ranks top accounts by %s",
+    async (metric) => {
+      mockHttpClient.get.mockResolvedValue({
+        accounts: [],
+        nextCursor: null,
+        hasMore: false,
+      });
+
+      await client.getTopAccounts({ metric, order: "desc" });
+
+      expect(mockHttpClient.get).toHaveBeenCalledWith(
+        `/v3/people/accounts?metric=${metric}&order=desc`,
+      );
+    },
+  );
+
   it("reads key status with no params", async () => {
     const response = {
       plan: "grow",

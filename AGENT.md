@@ -40,7 +40,9 @@ const { entities } = await elfa.v3.getEntities({
   entityType: ["token"],
   limit: 1,
 });
-const id = entities[0].id; // Bitcoin
+const [match] = entities;
+if (!match) throw new Error("no match for btc");
+const id = match.id; // Bitcoin
 const from = Math.floor(Date.now() / 1000) - 86400;
 const { events } = await elfa.v3.getEvents({
   entityIds: [id],
