@@ -20,13 +20,11 @@ updates:
       - "automated"
     # Group minor and patch updates
     groups:
+      # Every devDependency, not a name list: "eslint*" missed
+      # @typescript-eslint/* and typescript-eslint, whose peer ranges must
+      # move together, so separate PRs for them could never pass CI alone.
       development-dependencies:
-        patterns:
-          - "@types/*"
-          - "eslint*"
-          - "jest*"
-          - "typescript"
-          - "tsup"
+        dependency-type: "development"
         update-types:
           - "minor"
           - "patch"
