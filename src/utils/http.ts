@@ -261,7 +261,7 @@ export async function throwForFetchResponse(
   response: Response,
 ): Promise<never> {
   const text = await response.text().catch(() => "");
-  let data: any = text;
+  let data: any;
   try {
     data = text ? JSON.parse(text) : undefined;
   } catch {
