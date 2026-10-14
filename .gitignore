@@ -91,3 +91,5 @@ pids/
 
 # DynamoDB Local files
 .dynamodb/
+# Local agent / editor config
+.mcp.json
