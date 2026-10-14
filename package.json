@@ -1,6 +1,6 @@
 {
   "name": "@elfa-ai/sdk",
-  "version": "7.1.0",
+  "version": "7.2.0",
   "description": "Official TypeScript SDK for the Elfa API v2 and v3 - social intelligence, AI chat, the Auto condition engine, and v3 events, calls and market data for crypto and equities",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
