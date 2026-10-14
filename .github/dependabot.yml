@@ -28,6 +28,15 @@ updates:
         update-types:
           - "minor"
           - "patch"
+      # Majors fall through the group above. eslint and @eslint/js must still
+      # move together: @eslint/js carries the `recommended` rules we extend and
+      # peer-requires the matching eslint major.
+      eslint-major:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+        update-types:
+          - "major"
       production-dependencies:
         patterns:
           - "axios"
