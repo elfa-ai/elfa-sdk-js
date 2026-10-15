@@ -5,7 +5,13 @@ import type {
   ProcessedMention,
   TopMentionV2,
 } from "../types/elfa";
-import type { EqlConditionSource, TradableExchange } from "../types/auto";
+import type {
+  AutoCreateQueryResponse,
+  AutoPollQueryResponse,
+  AutoValidateResponse,
+  EqlConditionSource,
+  TradableExchange,
+} from "../types/auto";
 import type { EventsV3Params } from "../types/v3";
 
 // Compile-time assertions. `@ts-expect-error` fails the build when the
@@ -110,5 +116,70 @@ describe("response types match swagger.json", () => {
     const spam: EventsV3Params = { eventType: "spam" };
 
     expect([ok.eventType, spam.eventType]).toEqual(["listing", "spam"]);
+  });
+});
+
+describe("auto response types match swagger.json", () => {
+  it("types the X accounts validate returns", () => {
+    const response: AutoValidateResponse = {
+      valid: true,
+      errors: [],
+      warnings: [],
+      estimatedCredits: null,
+      tweetAccounts: [
+        {
+          path: "conditions.OR[1]",
+          username: "nasa",
+          accountSourceRefId: "11348282",
+          billing: "per_post",
+          creditsPerPost: 1,
+        },
+      ],
+    };
+    expect(response.tweetAccounts?.[0]?.billing).toBe("per_post");
+  });
+
+  it("rejects a billing value the schema does not enumerate", () => {
+    const account: NonNullable<AutoValidateResponse["tweetAccounts"]>[number] =
+      {
+        path: "conditions.OR[0]",
+        username: "nasa",
+        accountSourceRefId: "11348282",
+        // @ts-expect-error "free" is not in the schema's billing enum
+        billing: "free",
+      };
+    expect(account.billing).toBe("free");
+  });
+
+  it("no longer types estimatedCost on validate", () => {
+    const response: AutoValidateResponse = {
+      valid: true,
+      errors: [],
+      warnings: [],
+      // @ts-expect-error estimatedCost is x402-only, not on the API-key response
+      estimatedCost: { credits: 1, price: "$0.01" },
+    };
+    expect(response.valid).toBe(true);
+  });
+
+  it("requires the id and status create returns", () => {
+    // @ts-expect-error create always returns id and status
+    const missing: AutoCreateQueryResponse = { estimatedCredits: 116 };
+    expect(missing.estimatedCredits).toBe(116);
+  });
+
+  it("types the failure poll returns", () => {
+    const poll: AutoPollQueryResponse = {
+      queryId: "q",
+      status: "failed",
+      latestEvaluation: null,
+      executions: [],
+      failure: {
+        code: "SUBSCRIPTION_CREDITS_EXHAUSTED",
+        message: null,
+        source: "billing",
+      },
+    };
+    expect(poll.failure?.source).toBe("billing");
   });
 });

@@ -74,21 +74,41 @@ export interface AutoQueryInput {
   description?: string;
 }
 
+export interface AutoTweetAccount {
+  path: string;
+  username: string;
+  accountSourceRefId: string;
+  billing: "included" | "per_post";
+  creditsPerPost?: number;
+}
+
+export interface AutoQueryFailure {
+  code: string;
+  message: string | null;
+  source: string;
+}
+
 export interface AutoValidateResponse {
   valid: boolean;
   errors: Array<string | Record<string, unknown>>;
   warnings: Array<string | Record<string, unknown>>;
-  estimatedCredits?: number;
-  estimatedCost?: { credits: number; price: string };
+  estimatedCredits?: number | null;
   simulationLlmCallsEstimate?: Record<string, unknown>;
+  tweetAccounts?: AutoTweetAccount[];
 }
 
 export interface AutoQuery {
   queryId?: string;
   id?: string;
   status?: string;
-  estimatedCredits?: number;
+  estimatedCredits?: number | null;
+  tweetAccounts?: AutoTweetAccount[];
   [key: string]: unknown;
+}
+
+export interface AutoCreateQueryResponse extends AutoQuery {
+  id: string;
+  status: string;
 }
 
 export interface AutoListQueriesParams {
@@ -123,6 +143,7 @@ export interface AutoPollQueryResponse {
     error?: unknown;
   }>;
   credits?: number;
+  failure?: AutoQueryFailure;
 }
 
 export interface AutoDraft {
