@@ -5,21 +5,22 @@
 ### Added
 
 - **X accounts on Auto validate and create** (API 2.12.0). `AutoValidateResponse`
-  and the create response carry `tweetAccounts: AutoTweetAccount[]`, one per
+  and `AutoCreateQueryResponse` carry `tweetAccounts?: AutoTweetAccount[]`, one per
   `tweet` condition, with `billing` (`included` or `per_post`) and
-  `creditsPerPost`. A `per_post` account costs that much for every post while the
-  query runs, on top of `estimatedCredits`.
+  `creditsPerPost`. A `per_post` account costs that much for each post (not
+  replies or reposts) while the query runs, on top of `estimatedCredits`.
 - **`failure` on poll** (API 2.12.0). `getQuery()` returns `failure: AutoQueryFailure`
-  (`code`, `message`, `source`) when a query ended as `failed`.
+  (`code`, `message`, `source`) when a query failed with a recorded reason.
 
 ### Changed
 
 - `createQuery()` returns `AutoCreateQueryResponse`, with `id` and `status`
-  required, as the API returns them. The README example reads `created.id`.
+  required, as the API returns them. The README and `src/examples/auto.ts` read
+  `created.id`.
 - `estimatedCredits` is `number | null` on validate and create: `null` when no
   estimate can be made.
-- README: API v3 is free on Pay-as-you-go and Grow until 31 October 2026, and the
-  v3 link points at `docs.elfa.ai/api/v3/overview`.
+- README, `AGENT.md` and `CLAUDE.md`: API v3 is free on Pay-as-you-go and Grow
+  until 31 October 2026. The v3 link points at `docs.elfa.ai/api/v3/overview`.
 - `swagger.json` refreshed to the published API `3.0.0`.
 
 ### Removed

@@ -35,9 +35,8 @@ export async function autoExample(): Promise<void> {
   console.log("Query valid:", validation.valid);
 
   const created = await elfa.auto.createQuery(input);
-  const queryId = created.id ?? created.queryId;
-  console.log("Created query:", queryId);
+  console.log("Created query:", created.id);
 
-  const status = await elfa.auto.getQuery(queryId as string);
+  const status = await elfa.auto.getQuery(created.id);
   console.log("Status:", status.status);
 }

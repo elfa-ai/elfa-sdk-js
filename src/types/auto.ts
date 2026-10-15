@@ -102,13 +102,13 @@ export interface AutoQuery {
   id?: string;
   status?: string;
   estimatedCredits?: number | null;
-  tweetAccounts?: AutoTweetAccount[];
   [key: string]: unknown;
 }
 
 export interface AutoCreateQueryResponse extends AutoQuery {
   id: string;
   status: string;
+  tweetAccounts?: AutoTweetAccount[];
 }
 
 export interface AutoListQueriesParams {

@@ -162,10 +162,16 @@ describe("auto response types match swagger.json", () => {
     expect(response.valid).toBe(true);
   });
 
-  it("requires the id and status create returns", () => {
-    // @ts-expect-error create always returns id and status
-    const missing: AutoCreateQueryResponse = { estimatedCredits: 116 };
-    expect(missing.estimatedCredits).toBe(116);
+  it("requires the id create returns", () => {
+    // @ts-expect-error create always returns id
+    const noId: AutoCreateQueryResponse = { status: "active" };
+    expect(noId.status).toBe("active");
+  });
+
+  it("requires the status create returns", () => {
+    // @ts-expect-error create always returns status
+    const noStatus: AutoCreateQueryResponse = { id: "q" };
+    expect(noStatus.id).toBe("q");
   });
 
   it("types the failure poll returns", () => {

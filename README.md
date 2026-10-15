@@ -234,11 +234,15 @@ for await (const event of elfa.auto.streamQuery(created.id)) {
 }
 ```
 
-A `tweet` condition can watch any public X account. Validate's `tweetAccounts`
-says how each one is billed: `included` costs nothing extra, `per_post` costs
-`creditsPerPost` for every post while the query runs, on top of
-`estimatedCredits`. A failed query's `getQuery()` carries `failure` with the
-reason.
+A `tweet` condition can watch any public X account; one outside Elfa's real-time
+set needs a paid API key, and Builder Chat drafts only real-time accounts.
+Validate's `tweetAccounts` says how each is billed: `included` costs nothing
+extra, `per_post` costs `creditsPerPost` for each post (not replies or reposts)
+while the query runs. Those charges are not in `estimatedCredits` or
+`x-elfa-credits`; `getApiKeyStatus()` shows them. An account that can't be watched
+is an `errors[]` entry with `details.reason`. When a query fails with a recorded
+reason, `getQuery()` carries it in `failure`. See
+[X Accounts and Per-Post Billing](https://docs.elfa.ai/auto/signal#x-accounts-and-per-post-billing).
 
 Builder Chat is dynamically priced, so it reports what the turn cost:
 
