@@ -7,6 +7,7 @@ import type {
   AutoChatResponse,
   AutoQueryInput,
   AutoValidateResponse,
+  AutoCreateQueryResponse,
   AutoQuery,
   AutoListQueriesParams,
   AutoListQueriesResponse,
@@ -87,8 +88,8 @@ export class AutoClient {
     return this.post<AutoValidateResponse>("/queries/validate", input);
   }
 
-  public createQuery(input: AutoQueryInput): Promise<AutoQuery> {
-    return this.post<AutoQuery>("/queries", input);
+  public createQuery(input: AutoQueryInput): Promise<AutoCreateQueryResponse> {
+    return this.post<AutoCreateQueryResponse>("/queries", input);
   }
 
   public listQueries(

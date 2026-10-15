@@ -226,13 +226,23 @@ const query = {
 
 const { valid } = await elfa.auto.validateQuery(query);
 const created = await elfa.auto.createQuery(query);
-const status = await elfa.auto.getQuery(created.id ?? created.queryId!);
+const status = await elfa.auto.getQuery(created.id);
 
 // Stream notifications over SSE
-for await (const event of elfa.auto.streamQuery(created.id!)) {
+for await (const event of elfa.auto.streamQuery(created.id)) {
   console.log(event.event, event.data);
 }
 ```
+
+A `tweet` condition can watch any public X account; one outside Elfa's real-time
+set needs a paid API key, and Builder Chat drafts only real-time accounts.
+Validate's `tweetAccounts` says how each is billed: `included` costs nothing
+extra, `per_post` costs `creditsPerPost` for each post (not replies or reposts)
+while the query runs. Those charges are not in `estimatedCredits` or
+`x-elfa-credits`; `getApiKeyStatus()` shows them. An account that can't be watched
+is an `errors[]` entry with `details.reason`. When a query fails with a recorded
+reason, `getQuery()` carries it in `failure`. See
+[X Accounts and Per-Post Billing](https://docs.elfa.ai/auto/signal#x-accounts-and-per-post-billing).
 
 Builder Chat is dynamically priced, so it reports what the turn cost:
 
@@ -245,7 +255,7 @@ console.log(reply.credits); // e.g. 104 — same total as the x-elfa-credits hea
 
 ### API v3
 
-`elfa.v3` covers [API v3](https://docs.elfa.ai/v3/overview), the data stack that
+`elfa.v3` covers [API v3](https://docs.elfa.ai/api/v3/overview), the data stack that
 powers agent awareness: events, storylines and arcs; call books, mindshare and
 trending contracts; calls, call episodes and positioning; ranked accounts. No
 endpoint returns post text.
@@ -294,7 +304,7 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 The rules every v3 endpoint follows:
 
 - **Access.** PAYG, Grow and Enterprise keys can call every v3 endpoint. The v3
-  API is free on the Pay-as-you-go and Grow plans. A Free key can call only
+  API is free on the Pay-as-you-go and Grow plans until 31 October 2026. A Free key can call only
   `getKeyStatus()`; the rest throw `ElfaApiError` with status `403`.
 - **Times are unix seconds**, UTC, in requests and responses. Milliseconds are a
   `400`: divide by 1000. `from` is required, except when fetching by id or
