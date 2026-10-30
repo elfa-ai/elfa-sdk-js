@@ -38,12 +38,6 @@ export async function basicUsageExample(): Promise<void> {
     });
     console.log("Recent mentions (no reposts):", mentionsNoReposts.data.length);
 
-    console.log("Getting account smart stats...");
-    const accountStats = await elfa.getAccountSmartStats({
-      username: "elonmusk",
-    });
-    console.log("Account stats:", accountStats.data);
-
     console.log("Fetching trending contract addresses...");
     const trendingCAs = await elfa.getTrendingCAsTwitter({
       timeWindow: "24h",

@@ -20,7 +20,9 @@ export type EqlConditionSource =
   | "fear_greed"
   | "x_follow_received"
   | "x_follow_made"
-  | "x_follow_overlap";
+  | "x_follow_overlap"
+  | "calls"
+  | "mindshare";
 
 export type EqlActionType = "webhook" | "notify" | "telegram_bot" | "llm";
 
