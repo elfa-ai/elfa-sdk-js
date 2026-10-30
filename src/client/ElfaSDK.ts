@@ -99,11 +99,11 @@ export class ElfaSDK {
   }
 
   /**
-   * @deprecated `GET /v2/account/smart-stats` is legacy. It still works, but
-   * will be removed on 28 October 2026, and is not being extended before then.
+   * @deprecated `GET /v2/account/smart-stats` is deprecated and not maintained.
    * It returns raw account metrics, not a reputation score. Use
    * {@link getKeywordMentions} instead, which returns the posting account
-   * alongside each mention's engagement metrics.
+   * alongside each mention's engagement metrics, and `v3.getTopAccounts` to
+   * rank accounts.
    */
   public async getAccountSmartStats(
     params: AccountSmartStatsParams,

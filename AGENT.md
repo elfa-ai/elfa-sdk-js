@@ -59,8 +59,8 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 - Entity filters take ids from `getEntities`, never tickers.
 - History depends on the plan (30 days Free and PAYG, 60 days Grow, 2 years Enterprise);
   `getKeyStatus()` returns its start as `historyFrom`.
-- Every plan, Free included, can call every v3 endpoint; from 1 November 2026
-  each call but `/v3/key-status` costs credits on Free, PAYG and Grow.
+- Every plan, Free included, can call every v3 endpoint; each call but
+  `/v3/key-status` costs credits on Free, PAYG and Grow.
 - Unknown query parameters are a `400`, so each method throws `ValidationError`
   for a parameter its endpoint does not declare. List parameters are arrays, sent
   comma-separated; an empty array throws `ValidationError`.

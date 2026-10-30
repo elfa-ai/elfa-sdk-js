@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 7.4.0
 
 ### Added
 
@@ -23,9 +23,11 @@
   out of credits, so retrying does not help; `isRetryableError()` returns `false`
   and the call throws `RateLimitError` at once. A `429` over the per-minute limit
   (`ERR_RATE_LIMIT_EXCEEDED`) still retries on the server's reset.
-- README, `AGENT.md` and `CLAUDE.md`: API v3 is open to every plan and, from
-  1 November 2026, costs credits per call on Free, PAYG and Grow; a Free key
-  reads 30 days of history. `chatStream` needs a PAYG, Grow or Enterprise key.
+- README, `AGENT.md` and `CLAUDE.md`: API v3 is open to every plan and costs
+  credits per call on Free, PAYG and Grow; a Free key reads 30 days of history.
+  `chatStream` needs a PAYG, Grow or Enterprise key.
+- `getAccountSmartStats()` is documented as deprecated and not maintained, with
+  `v3.getTopAccounts` as the way to rank accounts.
 - `swagger.json` refreshed to the published API `3.4.2`.
 
 ## 7.3.0

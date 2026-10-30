@@ -10,7 +10,7 @@ Official TypeScript/JavaScript SDK for the Elfa API v2 and v3 - social intellige
 
 ## Features
 
-- **Social Intelligence**: Trending tokens, mentions, narratives, smart stats, and event summaries
+- **Social Intelligence**: Trending tokens, mentions, narratives, and event summaries
 - **AI Chat**: Market analysis and conversational chat via `elfa.chat`, streamed via `elfa.chatStream`
 - **Auto Condition Engine**: Build EQL queries that watch markets and notify via `elfa.auto`
 - **API v3**: Events, storylines and arcs; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts via `elfa.v3`
@@ -104,10 +104,10 @@ const trendingCAs = await elfa.getTrendingCAsTwitter({
 
 #### `getAccountSmartStats(params)`
 
-Get smart stats for a Twitter account. **Legacy — it still works, but will be
-removed on 28 October 2026.** It returns raw metrics, not a reputation score,
-and is not being extended before then; use `getKeywordMentions` instead, which
-returns the posting account alongside each mention's engagement metrics.
+Get smart stats for a Twitter account. **Deprecated and not maintained.** It
+returns raw metrics, not a reputation score; use `getKeywordMentions` instead,
+which returns the posting account alongside each mention's engagement metrics,
+and `v3.getTopAccounts` to rank accounts.
 
 ```typescript
 const stats = await elfa.getAccountSmartStats({
@@ -312,9 +312,9 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 
 The rules every v3 endpoint follows:
 
-- **Access.** Every plan, Free included, can call every v3 endpoint. From
-  1 November 2026 each call but `getKeyStatus()` costs credits on Free, PAYG and
-  Grow, priced per endpoint on the
+- **Access.** Every plan, Free included, can call every v3 endpoint. Each call
+  but `getKeyStatus()` costs credits on Free, PAYG and Grow, priced per endpoint
+  on the
   [pricing page](https://docs.elfa.ai/get-started/pricing#api-v3).
 - **Times are unix seconds**, UTC, in requests and responses. Milliseconds are a
   `400`: divide by 1000. `from` is required, except when fetching by id or
