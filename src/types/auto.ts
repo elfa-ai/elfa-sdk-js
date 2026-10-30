@@ -20,7 +20,9 @@ export type EqlConditionSource =
   | "fear_greed"
   | "x_follow_received"
   | "x_follow_made"
-  | "x_follow_overlap";
+  | "x_follow_overlap"
+  | "calls"
+  | "mindshare";
 
 export type EqlActionType = "webhook" | "notify" | "telegram_bot" | "llm";
 
@@ -82,6 +84,14 @@ export interface AutoTweetAccount {
   creditsPerPost?: number;
 }
 
+export interface AutoFollowAccount {
+  path: string;
+  username: string;
+  accountSourceRefId: string;
+  billing: "included" | "per_day";
+  creditsPerDay?: number;
+}
+
 export interface AutoQueryFailure {
   code: string;
   message: string | null;
@@ -95,6 +105,7 @@ export interface AutoValidateResponse {
   estimatedCredits?: number | null;
   simulationLlmCallsEstimate?: Record<string, unknown>;
   tweetAccounts?: AutoTweetAccount[];
+  followAccounts?: AutoFollowAccount[];
 }
 
 export interface AutoQuery {
@@ -109,6 +120,7 @@ export interface AutoCreateQueryResponse extends AutoQuery {
   id: string;
   status: string;
   tweetAccounts?: AutoTweetAccount[];
+  followAccounts?: AutoFollowAccount[];
 }
 
 export interface AutoListQueriesParams {

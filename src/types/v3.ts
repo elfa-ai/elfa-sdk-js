@@ -75,7 +75,7 @@ export type CloseReasonV3 = "close" | "reverse" | "stopOut" | "expiry";
 export type AccountMetricV3 =
   "standing" | "alphaScore" | "hitRate" | "avgReturn";
 
-export type PlanV3 = "payg" | "grow" | "enterprise";
+export type PlanV3 = "free" | "payg" | "grow" | "enterprise";
 
 export interface PageV3 {
   nextCursor: string | null;

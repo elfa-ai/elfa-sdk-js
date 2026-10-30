@@ -22,6 +22,7 @@ export interface ChatParams {
   speed?: ChatSpeed;
   assetMetadata?: ChatAssetMetadata;
   includeSources?: boolean;
+  useMemory?: boolean;
 }
 
 export interface ChatSource {

@@ -133,6 +133,20 @@ describe("Error Utility Functions", () => {
         false,
       );
       expect(isRetryableError(new AuthenticationError())).toBe(false);
+      expect(
+        isRetryableError(
+          new RateLimitError("Out of credits", undefined, {
+            code: "ERR_RATE_LIMITED",
+          }),
+        ),
+      ).toBe(false);
+      expect(
+        isRetryableError(
+          new RateLimitError("Slow down", undefined, {
+            code: "ERR_RATE_LIMIT_EXCEEDED",
+          }),
+        ),
+      ).toBe(true);
       expect(isRetryableError(new ElfaApiError("Bad request", 400))).toBe(
         false,
       );

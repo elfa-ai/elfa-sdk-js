@@ -118,10 +118,10 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
   `getEvents({ sort: "relevant" })` refuses it; entities, arcs, positioning and
   top accounts take no range; mindshare takes a `period` and an optional `to`.
 - Entity filters take ids from `getEntities`, never tickers.
-- History depends on the plan (30 days PAYG, 60 days Grow, 2 years Enterprise);
+- History depends on the plan (30 days Free and PAYG, 60 days Grow, 2 years Enterprise);
   `getKeyStatus()` returns its start as `historyFrom`.
-- PAYG, Grow and Enterprise keys can call every v3 endpoint; the v3 API is free
-  on the Pay-as-you-go and Grow plans until 31 October 2026. A Free key can call only `/v3/key-status`.
+- Every plan, Free included, can call every v3 endpoint; each call but
+  `/v3/key-status` costs credits on Free, PAYG and Grow.
 - Unknown query parameters are a `400`, so each method throws `ValidationError`
   for a parameter its endpoint does not declare. List parameters are arrays, sent
   comma-separated; an empty array throws `ValidationError`.

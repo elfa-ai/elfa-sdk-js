@@ -636,6 +636,20 @@ describe("ElfaV2Client", () => {
       ]);
     });
 
+    it("should send useMemory when set", async () => {
+      mockHttpClient.post.mockResolvedValue({
+        success: true,
+        data: { message: "hi", sessionId: "s1", creditsConsumed: 2 },
+      });
+
+      await client.chat({ message: "hello", useMemory: true });
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith("/v2/chat", {
+        message: "hello",
+        useMemory: true,
+      });
+    });
+
     it("should throw ValidationError when chat message is missing", async () => {
       await expect(client.chat({})).rejects.toThrow(
         new ValidationError("message is required for chat analysis"),

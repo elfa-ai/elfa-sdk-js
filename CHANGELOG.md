@@ -1,5 +1,39 @@
 # Changelog
 
+## 7.4.0
+
+### Added
+
+- **`useMemory` on chat** (API 3.3.0). `ChatParams` takes `useMemory?: boolean`
+  for `chat` and `chatStream`. `true` lets the request read and add to the saved
+  memory of the Elfa account that owns the API key. Without it the request
+  neither reads nor writes memory, which is now the API's default.
+- **Follow accounts on Auto validate and create** (API 3.1.0).
+  `AutoValidateResponse` and `AutoCreateQueryResponse` carry
+  `followAccounts?: AutoFollowAccount[]`, one per account an `x_follow_made` or
+  `x_follow_overlap` condition watches, with `billing` (`included` or `per_day`)
+  and `creditsPerDay`. A `per_day` account costs that much for each UTC day its
+  follows are read, on top of `estimatedCredits`.
+- **`calls` and `mindshare` in `EqlConditionSource`** (API 3.2.0), the Auto
+  condition sources for one account's trading calls and for token or stock
+  mindshare.
+- **`"free"` in `PlanV3`** (API 3.4.0). Free keys can call every v3 endpoint, and
+  `getKeyStatus()` reports `plan: "free"`.
+
+### Changed
+
+- **`ERR_RATE_LIMITED` is not retried.** A `429` with that code means the key is
+  out of credits, so retrying does not help; `isRetryableError()` returns `false`
+  and the call throws `RateLimitError` at once. A `429` over the per-minute limit
+  (`ERR_RATE_LIMIT_EXCEEDED`) still retries on the server's reset.
+- README, `AGENT.md` and `CLAUDE.md`: API v3 is open to every plan and costs
+  credits per call on Free, PAYG and Grow; a Free key reads 30 days of history.
+  `chatStream` needs a PAYG, Grow or Enterprise key.
+- `getAccountSmartStats()` is documented as deprecated and not maintained, with
+  `v3.getTopAccounts` as the way to rank accounts. The basic example no longer
+  calls it.
+- `swagger.json` refreshed to the published API `3.4.2`.
+
 ## 7.3.0
 
 ### Added
