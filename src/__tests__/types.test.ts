@@ -139,6 +139,25 @@ describe("auto response types match swagger.json", () => {
     expect(response.tweetAccounts?.[0]?.billing).toBe("per_post");
   });
 
+  it("types the follow accounts validate returns", () => {
+    const response: AutoValidateResponse = {
+      valid: true,
+      errors: [],
+      warnings: [],
+      estimatedCredits: null,
+      followAccounts: [
+        {
+          path: "conditions[0]",
+          username: "nasa",
+          accountSourceRefId: "11348282",
+          billing: "per_day",
+          creditsPerDay: 1,
+        },
+      ],
+    };
+    expect(response.followAccounts?.[0]?.billing).toBe("per_day");
+  });
+
   it("rejects a billing value the schema does not enumerate", () => {
     const account: NonNullable<AutoValidateResponse["tweetAccounts"]>[number] =
       {

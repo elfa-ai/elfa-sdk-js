@@ -84,7 +84,7 @@ export function isRateLimitError(error: Error): error is RateLimitError {
 export function isRetryableError(error: Error): boolean {
   // Check by error name for better compatibility
   if (isRateLimitError(error)) {
-    return true;
+    return error.details?.code !== "ERR_RATE_LIMITED";
   }
 
   if (error.name === "NetworkError") {

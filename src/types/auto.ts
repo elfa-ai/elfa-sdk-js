@@ -82,6 +82,14 @@ export interface AutoTweetAccount {
   creditsPerPost?: number;
 }
 
+export interface AutoFollowAccount {
+  path: string;
+  username: string;
+  accountSourceRefId: string;
+  billing: "included" | "per_day";
+  creditsPerDay?: number;
+}
+
 export interface AutoQueryFailure {
   code: string;
   message: string | null;
@@ -95,6 +103,7 @@ export interface AutoValidateResponse {
   estimatedCredits?: number | null;
   simulationLlmCallsEstimate?: Record<string, unknown>;
   tweetAccounts?: AutoTweetAccount[];
+  followAccounts?: AutoFollowAccount[];
 }
 
 export interface AutoQuery {
@@ -109,6 +118,7 @@ export interface AutoCreateQueryResponse extends AutoQuery {
   id: string;
   status: string;
   tweetAccounts?: AutoTweetAccount[];
+  followAccounts?: AutoFollowAccount[];
 }
 
 export interface AutoListQueriesParams {
