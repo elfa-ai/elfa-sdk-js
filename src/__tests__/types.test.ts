@@ -12,7 +12,12 @@ import type {
   EqlConditionSource,
   TradableExchange,
 } from "../types/auto";
-import type { EventsV3Params } from "../types/v3";
+import type {
+  CalendarEntryV3,
+  CalendarV3Params,
+  EventsV3Params,
+  PredictionMarketV3,
+} from "../types/v3";
 
 // Compile-time assertions. `@ts-expect-error` fails the build when the
 // expression it guards stops being an error, so these are real checks: if a
@@ -116,6 +121,50 @@ describe("response types match swagger.json", () => {
     const spam: EventsV3Params = { eventType: "spam" };
 
     expect([ok.eventType, spam.eventType]).toEqual(["listing", "spam"]);
+  });
+});
+
+describe("v3 calendar and prediction market types match swagger.json", () => {
+  it("types a day-precision calendar entry and its outcome", () => {
+    const entry: CalendarEntryV3 = {
+      id: "e1",
+      title: "Token unlock",
+      summary: null,
+      category: "unlock",
+      startsAt: 1795046400,
+      endsAt: null,
+      precision: "day",
+      date: "2026-11-20",
+      endDate: null,
+      timezone: null,
+      status: "occurred",
+      importance: 82,
+      confidence: "official",
+      entities: [],
+      eventIds: ["ev1"],
+      storylineIds: [],
+      outcome: { eventId: "ev1", implication: null },
+    };
+    expect(entry.outcome?.eventId).toBe("ev1");
+  });
+
+  it("rejects a calendar category the schema does not enumerate", () => {
+    // @ts-expect-error "holiday" is not a CalendarCategoryV3
+    const params: CalendarV3Params = { category: ["holiday"] };
+    expect(params.category).toHaveLength(1);
+  });
+
+  it("types a market with no measured move", () => {
+    const market: PredictionMarketV3 = {
+      provider: "kalshi",
+      marketId: "KXWTI-26NOV0414",
+      title: "Oil Price (WTI) on Nov 4, 2026?",
+      url: "https://kalshi.com/markets/KXWTI-26NOV0414",
+      closesAt: null,
+      eventIds: [],
+      move: null,
+    };
+    expect(market.move).toBeNull();
   });
 });
 

@@ -72,6 +72,21 @@ describe("AutoClient", () => {
     );
   });
 
+  it("pages executions with the after cursor", async () => {
+    const client = new AutoClient({ apiKey: "k" });
+    mockHttpClient.get.mockResolvedValue({
+      data: [],
+      pagination: { limit: 50, hasMore: false, nextCursor: "c2" },
+    });
+
+    const page = await client.listExecutions({ after: "start" });
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(
+      "/v2/auto/executions?after=start",
+    );
+    expect(page.pagination?.nextCursor).toBe("c2");
+  });
+
   it("gets a query by id", async () => {
     const client = new AutoClient({ apiKey: "k" });
     mockHttpClient.get.mockResolvedValue({});
