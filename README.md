@@ -13,7 +13,7 @@ Official TypeScript/JavaScript SDK for the Elfa API v2 and v3 - social intellige
 - **Social Intelligence**: Trending tokens, mentions, narratives, and event summaries
 - **AI Chat**: Market analysis and conversational chat via `elfa.chat`, streamed via `elfa.chatStream`
 - **Auto Condition Engine**: Build EQL queries that watch markets and notify via `elfa.auto`
-- **API v3**: Events, storylines and arcs; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts via `elfa.v3`
+- **API v3**: Events, storylines and arcs; the events calendar and prediction markets; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts via `elfa.v3`
 - **TypeScript First**: Comprehensive type definitions and IDE support
 - **Smart Error Handling**: Typed error classes with built-in retries and rate-limit handling
 - **Rate Limiting**: Built-in respect for API rate limits
@@ -262,11 +262,28 @@ const reply = await elfa.auto.chat({
 console.log(reply.credits); // e.g. 104 — same total as the x-elfa-credits header
 ```
 
+A message the safety checks reject throws `ElfaApiError` with status `400` and
+`details.code` `ERR_BAD_REQUEST`, and costs nothing. A turn that ends without an
+answer throws `ElfaApiError` with status `502`; `details.sessionId`, when
+present, is the session to retry in. Neither comes back as an empty `response`.
+
+To read every execution exactly once, page `listExecutions` with `after`: start
+with `"start"`, then pass back `pagination.nextCursor`. Executions come oldest
+first. `hasMore: false` means none are ready yet, not the end, so poll again
+later. `after` cannot be combined with `offset` or `status`. See
+[Read Every Execution Once](https://docs.elfa.ai/auto/api-key-auth#read-every-execution-once).
+
+```typescript
+let after = "start";
+const page = await elfa.auto.listExecutions({ after });
+after = page.pagination?.nextCursor ?? after;
+```
+
 ### API v3
 
 `elfa.v3` covers [API v3](https://docs.elfa.ai/api/v3/overview), the data stack that
-powers agent awareness: events, storylines and arcs; call books, mindshare and
-trending contracts; calls, call episodes and positioning; ranked accounts. No
+powers agent awareness: events, storylines and arcs; the events calendar and
+prediction markets; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts. No
 endpoint returns post text.
 
 Resolve Bitcoin, read its last day of events, then see how accounts are
@@ -301,6 +318,8 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 | `getEvents(params?)`                          | `/v3/events`                                                 |
 | `getStorylines(params?)`                      | `/v3/events/storylines`                                      |
 | `getArcs(params?)`                            | `/v3/events/arcs`                                            |
+| `getCalendar(params?)`                        | `/v3/events/calendar`                                        |
+| `getPredictionMarkets({ ids })`               | `/v3/events/prediction-markets`                              |
 | `getCallBook("crypto" \| "equity", params)`   | `/v3/market/crypto/call-book`, `/v3/market/equity/call-book` |
 | `getMindshare("crypto" \| "equity", params?)` | `/v3/market/crypto/mindshare`, `/v3/market/equity/mindshare` |
 | `getTrendingContracts(params)`                | `/v3/market/crypto/trending-contracts`                       |
@@ -313,14 +332,16 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 The rules every v3 endpoint follows:
 
 - **Access.** Every plan, Free included, can call every v3 endpoint. Each call
-  but `getKeyStatus()` costs credits on Free, PAYG and Grow, priced per endpoint
-  on the
+  but `getKeyStatus()` and, for now, `getPredictionMarkets()` costs credits on
+  Free, PAYG and Grow, priced per endpoint on the
   [pricing page](https://docs.elfa.ai/get-started/pricing#api-v3).
 - **Times are unix seconds**, UTC, in requests and responses. Milliseconds are a
   `400`: divide by 1000. `from` is required, except when fetching by id or
   searching with `q`; `getEvents({ sort: "relevant" })` ranks the last 24 hours
-  and refuses `from`. Entities, arcs, positioning and top accounts take no
-  range; mindshare takes a `period` and an optional `to`.
+  and refuses `from`. `getCalendar()` reads ahead: `from` defaults to 00:00 UTC
+  today and `to` to 30 days after `from`. Entities, arcs, prediction markets,
+  positioning and top accounts take no range; mindshare takes a `period` and an
+  optional `to`.
 - **Entity ids, not tickers.** Every entity filter takes an id from
   `getEntities`, never a name. Resolve once and cache the id.
 - **History by plan.** 30 days on Free and PAYG, 60 days on Grow, 2 years on Enterprise,
@@ -334,6 +355,8 @@ The rules every v3 endpoint follows:
 - **Paging.** Pass `nextCursor` back as `cursor`. `hasMore: false` and
   `nextCursor: null` mark the last page. There is no offset and no total. A
   cursor belongs to its query: change anything but `limit` and it is a `400`.
+  `getCalendar()` defaults to `order: "asc"`, soonest first.
+  `getPredictionMarkets()` has no cursor: its `related` list comes back whole.
 - **Lists.** List parameters such as `entityIds` take an array, sent
   comma-separated. A list of ids takes at most 30. An empty array throws
   `ValidationError` rather than silently dropping the filter.

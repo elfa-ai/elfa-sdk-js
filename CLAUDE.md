@@ -91,7 +91,7 @@ contributor credit this way; #97 lost it.
 ### API v3
 
 `ElfaSDK.v3` (`V3Client`) wraps API v3: entities; events, storylines and arcs;
-call books, mindshare and trending contracts; calls, call episodes and
+the events calendar and prediction markets; call books, mindshare and trending contracts; calls, call episodes and
 positioning; top accounts; key status. One `GET` method per `/v3` endpoint in
 `swagger.json`, nothing else. Types live in `src/types/v3.ts`.
 
@@ -115,13 +115,16 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 
 - Times are unix seconds; milliseconds are a `400`. `from` is required on list
   endpoints except when fetching by id or searching with `q`, and
-  `getEvents({ sort: "relevant" })` refuses it; entities, arcs, positioning and
-  top accounts take no range; mindshare takes a `period` and an optional `to`.
+  `getEvents({ sort: "relevant" })` refuses it; `getCalendar()` reads ahead,
+  `from` defaulting to 00:00 UTC today and `to` to 30 days after `from`;
+  entities, arcs, prediction markets, positioning and top accounts take no
+  range; mindshare takes a `period` and an optional `to`.
 - Entity filters take ids from `getEntities`, never tickers.
 - History depends on the plan (30 days Free and PAYG, 60 days Grow, 2 years Enterprise);
   `getKeyStatus()` returns its start as `historyFrom`.
 - Every plan, Free included, can call every v3 endpoint; each call but
-  `/v3/key-status` costs credits on Free, PAYG and Grow.
+  `/v3/key-status` and, for now, `/v3/events/prediction-markets` costs credits
+  on Free, PAYG and Grow.
 - Unknown query parameters are a `400`, so each method throws `ValidationError`
   for a parameter its endpoint does not declare. List parameters are arrays, sent
   comma-separated; an empty array throws `ValidationError`.

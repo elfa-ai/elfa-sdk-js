@@ -233,11 +233,20 @@ export interface AutoListExecutionsParams {
   type?: string;
   limit?: number;
   offset?: number;
+  after?: string;
+}
+
+export interface AutoExecutionsPagination {
+  total?: number;
+  limit?: number;
+  offset?: number;
+  hasMore?: boolean;
+  nextCursor?: string;
 }
 
 export interface AutoListExecutionsResponse {
   data: AutoExecution[];
-  pagination?: unknown;
+  pagination?: AutoExecutionsPagination;
 }
 
 export type TradableExchange = "hyperliquid" | "binance";

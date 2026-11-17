@@ -19,6 +19,26 @@
   mindshare.
 - **`"free"` in `PlanV3`** (API 3.4.0). Free keys can call every v3 endpoint, and
   `getKeyStatus()` reports `plan: "free"`.
+- **`v3.getPredictionMarkets({ ids, limit? })`** (API 3.6.0) for
+  `GET /v3/events/prediction-markets`: the open Polymarket and Kalshi markets up
+  to 30 event, storyline or arc ids bear on, any mix. Each item in `related` has
+  its `id`, `kind` and `markets`; each market has `provider`, `marketId`,
+  `title`, `url`, `closesAt`, the `eventIds` behind it and `move`, how one
+  outcome's odds moved around a story and whether that was `unusual`. No range,
+  no cursor; free for now. New types `PredictionMarketsV3Params`,
+  `PredictionMarketsV3Response`, `PredictionMarketV3`, `PredictionMarketMoveV3`,
+  `PredictionMarketProviderV3` and `RelatedKindV3`.
+- **`after` on `auto.listExecutions`** (API 3.8.0). Pass `"start"`, then
+  `pagination.nextCursor`, to read every execution once, oldest first.
+  `AutoListExecutionsResponse.pagination` is now typed as
+  `AutoExecutionsPagination`, with `nextCursor`.
+- **`v3.getCalendar(params?)`** (API 3.9.0) for `GET /v3/events/calendar`: what
+  is scheduled across crypto, equities and macro, soonest first, with a cursor.
+  `from` defaults to 00:00 UTC today and `to` to 30 days after `from`. Filters:
+  `entityIds`, `assetClass`, `category`, `status`, `confidence` and
+  `minImportance`. New types `CalendarV3Params`, `CalendarV3Response`,
+  `CalendarEntryV3`, `CalendarCategoryV3`, `CalendarStatusV3` and
+  `CalendarConfidenceV3`.
 
 ### Changed
 
@@ -32,7 +52,10 @@
 - `getAccountSmartStats()` is documented as deprecated and not maintained, with
   `v3.getTopAccounts` as the way to rank accounts. The basic example no longer
   calls it.
-- `swagger.json` refreshed to the published API `3.4.2`.
+- README: Builder chat answers a rejected message with a `400` and a turn with no
+  answer with a `502` (API 3.10.0), so `auto.chat` throws `ElfaApiError` for both
+  instead of returning an empty `response`.
+- `swagger.json` refreshed to the published API `3.10.1`.
 
 ## 7.3.0
 

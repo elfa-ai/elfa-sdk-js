@@ -10,6 +10,10 @@ import type {
   StorylinesV3Response,
   ArcsV3Params,
   ArcsV3Response,
+  PredictionMarketsV3Params,
+  PredictionMarketsV3Response,
+  CalendarV3Params,
+  CalendarV3Response,
   CallBookV3Params,
   CallBookV3Response,
   MindshareV3Params,
@@ -134,6 +138,38 @@ export class V3Client {
       "limit",
       "cursor",
     ]);
+  }
+
+  public getPredictionMarkets(
+    params: PredictionMarketsV3Params,
+  ): Promise<PredictionMarketsV3Response> {
+    return this.get<PredictionMarketsV3Response, PredictionMarketsV3Params>(
+      "/events/prediction-markets",
+      params,
+      ["ids", "limit"],
+    );
+  }
+
+  public getCalendar(
+    params: CalendarV3Params = {},
+  ): Promise<CalendarV3Response> {
+    return this.get<CalendarV3Response, CalendarV3Params>(
+      "/events/calendar",
+      params,
+      [
+        "from",
+        "to",
+        "entityIds",
+        "assetClass",
+        "category",
+        "status",
+        "confidence",
+        "minImportance",
+        "order",
+        "limit",
+        "cursor",
+      ],
+    );
   }
 
   public getCallBook(

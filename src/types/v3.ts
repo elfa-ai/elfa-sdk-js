@@ -244,6 +244,107 @@ export interface ArcsV3Response extends PageV3 {
   arcs: ArcV3[];
 }
 
+export type RelatedKindV3 = "event" | "storyline" | "arc";
+
+export type PredictionMarketProviderV3 = "polymarket" | "kalshi";
+
+export interface PredictionMarketMoveV3 {
+  eventId: string;
+  outcomeId: string;
+  outcome: string | null;
+  before: number;
+  after: number;
+  unusual: boolean;
+}
+
+export interface PredictionMarketV3 {
+  provider: PredictionMarketProviderV3;
+  marketId: string;
+  title: string;
+  url: string;
+  closesAt: number | null;
+  eventIds: string[];
+  move: PredictionMarketMoveV3 | null;
+}
+
+export interface PredictionMarketsV3Params {
+  ids: string[];
+  limit?: number;
+}
+
+export interface PredictionMarketsV3Response {
+  related: Array<{
+    id: string;
+    kind: RelatedKindV3;
+    markets: PredictionMarketV3[];
+  }>;
+}
+
+export type CalendarCategoryV3 =
+  | "macro"
+  | "earnings"
+  | "unlock"
+  | "governance"
+  | "listing"
+  | "launch"
+  | "airdrop"
+  | "conference"
+  | "regulatory"
+  | "protocolUpgrade"
+  | "corporateAction"
+  | "marketResolution"
+  | "campaign"
+  | "expiry"
+  | "deadline"
+  | "geopolitics"
+  | "other";
+
+export type CalendarStatusV3 =
+  "scheduled" | "rescheduled" | "postponed" | "cancelled" | "past" | "occurred";
+
+export type CalendarConfidenceV3 = "official" | "reported" | "rumored";
+
+export interface CalendarEntryV3 {
+  id: string;
+  title: string;
+  summary: string | null;
+  category: CalendarCategoryV3;
+  startsAt: number;
+  endsAt: number | null;
+  precision: "exact" | "day";
+  date: string | null;
+  endDate: string | null;
+  timezone: string | null;
+  status: CalendarStatusV3;
+  importance: number;
+  confidence: CalendarConfidenceV3;
+  entities: EventEntityV3[];
+  eventIds: string[];
+  storylineIds: string[];
+  outcome: {
+    eventId: string;
+    implication: ImplicationV3 | null;
+  } | null;
+}
+
+export interface CalendarV3Params {
+  from?: number;
+  to?: number;
+  entityIds?: string[];
+  assetClass?: AssetClassV3;
+  category?: CalendarCategoryV3[];
+  status?: CalendarStatusV3[];
+  confidence?: CalendarConfidenceV3[];
+  minImportance?: number;
+  order?: OrderV3;
+  limit?: number;
+  cursor?: string;
+}
+
+export interface CalendarV3Response extends ServedPageV3 {
+  entries: CalendarEntryV3[];
+}
+
 export interface CallBookBarV3 {
   barAt: number;
   live: boolean;

@@ -136,6 +136,56 @@ describe("V3Client", () => {
     );
   });
 
+  it("reads prediction markets for mixed ids without a range", async () => {
+    mockHttpClient.get.mockResolvedValue({ related: [] });
+
+    const result = await client.getPredictionMarkets({
+      ids: [ID1, ID2],
+      limit: 5,
+    });
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(
+      `/v3/events/prediction-markets?ids=${ID1}%2C${ID2}&limit=5`,
+    );
+    expect(result).toEqual({ related: [] });
+
+    await expect(
+      client.getPredictionMarkets({ ids: [ID1], from: 1 } as any),
+    ).rejects.toThrow(/Unknown parameter for this endpoint: from/);
+    await expect(
+      client.getPredictionMarkets({ ids: [] }),
+    ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("lists the calendar with comma-joined filters", async () => {
+    mockHttpClient.get.mockResolvedValue({ entries: [], ...page });
+
+    const result = await client.getCalendar({
+      entityIds: [ID1],
+      assetClass: "crypto",
+      category: ["unlock", "listing"],
+      status: ["scheduled", "rescheduled"],
+      confidence: ["official"],
+      minImportance: 80,
+      order: "asc",
+      limit: 10,
+      cursor: "c1",
+    });
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(
+      `/v3/events/calendar?entityIds=${ID1}&assetClass=crypto&category=unlock%2Clisting&status=scheduled%2Crescheduled&confidence=official&minImportance=80&order=asc&limit=10&cursor=c1`,
+    );
+    expect(result).toEqual({ entries: [], ...page });
+  });
+
+  it("reads the calendar with no params", async () => {
+    mockHttpClient.get.mockResolvedValue({ entries: [], ...page });
+
+    await client.getCalendar();
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith("/v3/events/calendar");
+  });
+
   it.each(["crypto", "equity"] as const)(
     "maps the %s market onto the call book path",
     async (market) => {
