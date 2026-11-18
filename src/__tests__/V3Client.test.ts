@@ -11,6 +11,9 @@ describe("V3Client", () => {
   beforeEach(() => {
     mockHttpClient = {
       get: jest.fn(),
+      post: jest.fn(),
+      delete: jest.fn(),
+      request: jest.fn(),
       setAuthHeader: jest.fn(),
       updateOptions: jest.fn(),
     } as any;
@@ -338,6 +341,125 @@ describe("V3Client", () => {
 
     expect(mockHttpClient.get).toHaveBeenCalledWith("/v3/key-status");
     expect(result.historyFrom).toBe(1788307200);
+  });
+
+  it("posts a statement to verify with a decision", async () => {
+    const response = {
+      verdict: "supported",
+      probabilities: {
+        supported: 0.91,
+        contradicted: 0.03,
+        notEnoughEvidence: 0.06,
+      },
+      decision: { type: "yesNo", yes: 0.9 },
+      evidence: { twitter: [], telegram: [], web: [] },
+      asOf: 1794960000,
+      searchedFrom: 1794355200,
+      coverage: {
+        complete: true,
+        sources: {
+          twitter: "complete",
+          telegram: "complete",
+          web: "complete",
+        },
+        captions: "complete",
+      },
+    };
+    mockHttpClient.post.mockResolvedValue(response);
+    const body = {
+      statement: "The SEC approved a spot Solana ETF",
+      decision: { type: "yesNo" as const },
+    };
+
+    const result = await client.verify(body);
+
+    expect(mockHttpClient.post).toHaveBeenCalledWith("/v3/verify", body);
+    expect(result.verdict).toBe("supported");
+  });
+
+  const monitor = {
+    id: ID1,
+    query: "OpenAI, Google or Anthropic launches a new AI model",
+    webhookUrl: "https://example.com/elfa-webhook",
+    webhookSecret: "whsec_dGVzdA==",
+    status: "active",
+    createdAt: 1794981600,
+    updatedAt: 1794981600,
+  };
+
+  it("creates a monitor", async () => {
+    mockHttpClient.post.mockResolvedValue(monitor);
+    const body = { query: monitor.query, webhookUrl: monitor.webhookUrl };
+
+    const result = await client.createMonitor(body);
+
+    expect(mockHttpClient.post).toHaveBeenCalledWith("/v3/monitors", body);
+    expect(result.webhookSecret).toBe("whsec_dGVzdA==");
+  });
+
+  it("lists monitors", async () => {
+    mockHttpClient.get.mockResolvedValue({ data: [monitor], total: 1 });
+
+    const result = await client.getMonitors();
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith("/v3/monitors");
+    expect(result.total).toBe(1);
+  });
+
+  it("gets one monitor", async () => {
+    mockHttpClient.get.mockResolvedValue(monitor);
+
+    await client.getMonitor(ID1);
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(`/v3/monitors/${ID1}`);
+  });
+
+  it("patches a monitor", async () => {
+    mockHttpClient.request.mockResolvedValue(monitor);
+
+    await client.updateMonitor(ID1, { query: "Binance lists a new token" });
+
+    expect(mockHttpClient.request).toHaveBeenCalledWith({
+      method: "PATCH",
+      url: `/v3/monitors/${ID1}`,
+      data: { query: "Binance lists a new token" },
+    });
+  });
+
+  it("deletes a monitor", async () => {
+    mockHttpClient.delete.mockResolvedValue({ id: ID1, deleted: true });
+
+    const result = await client.deleteMonitor(ID1);
+
+    expect(mockHttpClient.delete).toHaveBeenCalledWith(`/v3/monitors/${ID1}`);
+    expect(result.deleted).toBe(true);
+  });
+
+  it("pages a monitor's matches", async () => {
+    mockHttpClient.get.mockResolvedValue({ data: [], nextCursor: null });
+
+    await client.getMonitorMatches(ID1, { limit: 100, cursor: "c1" });
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(
+      `/v3/monitors/${ID1}/events?limit=100&cursor=c1`,
+    );
+  });
+
+  it("reads a monitor's matches with no params", async () => {
+    mockHttpClient.get.mockResolvedValue({ data: [], nextCursor: null });
+
+    await client.getMonitorMatches(ID1);
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(
+      `/v3/monitors/${ID1}/events`,
+    );
+  });
+
+  it("refuses a parameter the matches endpoint does not declare", async () => {
+    await expect(
+      client.getMonitorMatches(ID1, { order: "asc" } as any),
+    ).rejects.toThrow(/Unknown parameter for this endpoint: order/);
+    expect(mockHttpClient.get).not.toHaveBeenCalled();
   });
 
   it("propagates API errors", async () => {

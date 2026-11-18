@@ -29,6 +29,15 @@ import type {
   TopAccountsV3Params,
   TopAccountsV3Response,
   KeyStatusV3Response,
+  VerifyV3Params,
+  VerifyV3Response,
+  MonitorV3,
+  MonitorsV3Response,
+  CreateMonitorV3Params,
+  UpdateMonitorV3Params,
+  DeleteMonitorV3Response,
+  MonitorMatchesV3Params,
+  MonitorMatchesV3Response,
 } from "../types/v3.js";
 
 export interface V3ClientOptions {
@@ -261,6 +270,50 @@ export class V3Client {
 
   public getKeyStatus(): Promise<KeyStatusV3Response> {
     return this.get<KeyStatusV3Response, object>("/key-status", {}, []);
+  }
+
+  public verify(body: VerifyV3Params): Promise<VerifyV3Response> {
+    return this.httpClient.post<VerifyV3Response>(`${MOUNT}/verify`, body);
+  }
+
+  public getMonitors(): Promise<MonitorsV3Response> {
+    return this.get<MonitorsV3Response, object>("/monitors", {}, []);
+  }
+
+  public getMonitor(id: string): Promise<MonitorV3> {
+    return this.get<MonitorV3, object>(`/monitors/${id}`, {}, []);
+  }
+
+  public createMonitor(body: CreateMonitorV3Params): Promise<MonitorV3> {
+    return this.httpClient.post<MonitorV3>(`${MOUNT}/monitors`, body);
+  }
+
+  public updateMonitor(
+    id: string,
+    body: UpdateMonitorV3Params,
+  ): Promise<MonitorV3> {
+    return this.httpClient.request<MonitorV3>({
+      method: "PATCH",
+      url: `${MOUNT}/monitors/${id}`,
+      data: body,
+    });
+  }
+
+  public deleteMonitor(id: string): Promise<DeleteMonitorV3Response> {
+    return this.httpClient.delete<DeleteMonitorV3Response>(
+      `${MOUNT}/monitors/${id}`,
+    );
+  }
+
+  public getMonitorMatches(
+    id: string,
+    params: MonitorMatchesV3Params = {},
+  ): Promise<MonitorMatchesV3Response> {
+    return this.get<MonitorMatchesV3Response, MonitorMatchesV3Params>(
+      `/monitors/${id}/events`,
+      params,
+      ["limit", "cursor"],
+    );
   }
 
   private async get<T, P extends object>(

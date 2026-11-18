@@ -558,3 +558,163 @@ export interface KeyStatusV3Response {
   };
   historyFrom: number;
 }
+
+export type VerdictV3 = "supported" | "contradicted" | "notEnoughEvidence";
+
+export interface VerifyYesNoRequestV3 {
+  type: "yesNo";
+  yes?: string;
+  no?: string;
+}
+
+export interface VerifyChoiceOptionV3 {
+  label: string;
+  definition: string;
+}
+
+export interface VerifyChoiceRequestV3 {
+  type: "choice";
+  options: VerifyChoiceOptionV3[];
+}
+
+export interface VerifyScoreRequestV3 {
+  type: "score";
+  levels: string[];
+}
+
+export type VerifyDecisionRequestV3 =
+  VerifyYesNoRequestV3 | VerifyChoiceRequestV3 | VerifyScoreRequestV3;
+
+export interface VerifyV3Params {
+  statement: string;
+  asOf?: number;
+  context?: string;
+  decision?: VerifyDecisionRequestV3;
+}
+
+export interface VerifyYesNoDecisionV3 {
+  type: "yesNo";
+  yes: number;
+}
+
+export interface VerifyChoiceDecisionV3 {
+  type: "choice";
+  choice: string;
+  probabilities: Record<string, number>;
+}
+
+export interface VerifyScoreDecisionV3 {
+  type: "score";
+  score: number;
+  levelProbabilities: number[];
+}
+
+export type VerifyDecisionV3 =
+  VerifyYesNoDecisionV3 | VerifyChoiceDecisionV3 | VerifyScoreDecisionV3;
+
+export interface VerifyEvidenceItemV3 {
+  link: string;
+  decisiveness: number;
+  basis: boolean;
+}
+
+export type VerifyCoverageStatusV3 = "complete" | "partial" | "unavailable";
+
+export interface VerifyV3Response {
+  verdict: VerdictV3;
+  probabilities: Record<VerdictV3, number>;
+  decision: VerifyDecisionV3 | null;
+  evidence: {
+    twitter: VerifyEvidenceItemV3[];
+    telegram: VerifyEvidenceItemV3[];
+    web: VerifyEvidenceItemV3[];
+  };
+  asOf: number;
+  searchedFrom: number;
+  coverage: {
+    complete: boolean;
+    sources: {
+      twitter: VerifyCoverageStatusV3;
+      telegram: VerifyCoverageStatusV3;
+      web: VerifyCoverageStatusV3;
+    };
+    captions: "complete" | "unavailable";
+  };
+}
+
+export type MonitorStatusV3 = "active" | "ended";
+
+export interface MonitorV3 {
+  id: string;
+  query: string;
+  webhookUrl: string;
+  webhookSecret: string;
+  status: MonitorStatusV3;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface MonitorsV3Response {
+  data: MonitorV3[];
+  total: number;
+}
+
+export interface CreateMonitorV3Params {
+  query: string;
+  webhookUrl: string;
+}
+
+export type UpdateMonitorV3Params =
+  | { query: string; webhookUrl?: string }
+  | { query?: string; webhookUrl: string };
+
+export interface DeleteMonitorV3Response {
+  id: string;
+  deleted: true;
+}
+
+export interface MonitorCitedSourceV3 {
+  source: string;
+  sourceRecordId?: string | null;
+  handle?: string | null;
+  link?: string | null;
+}
+
+export interface MonitorEventItemV3 {
+  source: "event";
+  id: string;
+  alertTitle?: string | null;
+  summary?: string | null;
+  analyzedAt?: number | null;
+  firstSeenAt?: number | null;
+  citedSources?: MonitorCitedSourceV3[] | null;
+}
+
+export interface MonitorWebItemV3 {
+  source: "web";
+  id: string;
+  url?: string | null;
+  title?: string | null;
+  author?: string | null;
+  excerpt?: string | null;
+  publishedAt?: number | null;
+  publishedDayOnly?: boolean | null;
+  firstSeenAt?: number | null;
+}
+
+export interface MonitorMatchV3 {
+  id: string;
+  monitorId: string;
+  matchedAt: number;
+  items: Array<MonitorEventItemV3 | MonitorWebItemV3>;
+}
+
+export interface MonitorMatchesV3Params {
+  limit?: number;
+  cursor?: string;
+}
+
+export interface MonitorMatchesV3Response {
+  data: MonitorMatchV3[];
+  nextCursor: string | null;
+}
