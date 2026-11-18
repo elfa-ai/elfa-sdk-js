@@ -16,7 +16,11 @@ import type {
   CalendarEntryV3,
   CalendarV3Params,
   EventsV3Params,
+  MonitorMatchV3,
   PredictionMarketV3,
+  UpdateMonitorV3Params,
+  VerifyV3Params,
+  VerifyV3Response,
 } from "../types/v3";
 
 // Compile-time assertions. `@ts-expect-error` fails the build when the
@@ -165,6 +169,61 @@ describe("v3 calendar and prediction market types match swagger.json", () => {
       move: null,
     };
     expect(market.move).toBeNull();
+  });
+});
+
+describe("verify and monitor types match the published contract", () => {
+  it("types a verdict with no decision", () => {
+    const response: VerifyV3Response = {
+      verdict: "notEnoughEvidence",
+      probabilities: {
+        supported: 0.2,
+        contradicted: 0.1,
+        notEnoughEvidence: 0.7,
+      },
+      decision: null,
+      evidence: { twitter: [], telegram: [], web: [] },
+      asOf: 1794960000,
+      searchedFrom: 1794355200,
+      coverage: {
+        complete: false,
+        sources: {
+          twitter: "complete",
+          telegram: "partial",
+          web: "unavailable",
+        },
+        captions: "unavailable",
+      },
+    };
+    expect(response.decision).toBeNull();
+  });
+
+  it("rejects a decision type the schema does not enumerate", () => {
+    const params: VerifyV3Params = {
+      statement: "BTC closes above 100k",
+      // @ts-expect-error "range" is not a decision type
+      decision: { type: "range" },
+    };
+    expect(params.statement).toBeDefined();
+  });
+
+  it("rejects an update with neither query nor webhookUrl", () => {
+    // @ts-expect-error an update needs query, webhookUrl or both
+    const params: UpdateMonitorV3Params = {};
+    expect(params).toEqual({});
+  });
+
+  it("types an event match and a web match", () => {
+    const match: MonitorMatchV3 = {
+      id: "msg_1",
+      monitorId: "5b0c6f8e-2f7a-4f43-9a8e-3c1d2a9b7e10",
+      matchedAt: 1794985200,
+      items: [
+        { source: "event", id: "ev1", citedSources: null },
+        { source: "web", id: "w1", url: "https://example.com/a" },
+      ],
+    };
+    expect(match.items).toHaveLength(2);
   });
 });
 

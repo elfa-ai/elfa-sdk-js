@@ -6,7 +6,7 @@
 [![codecov](https://codecov.io/gh/elfa-ai/elfa-sdk-js/branch/main/graph/badge.svg)](https://codecov.io/gh/elfa-ai/elfa-sdk-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official TypeScript/JavaScript SDK for the Elfa API v2 and v3 - social intelligence, AI chat, the Auto condition engine, and API v3 events, calls and market data across crypto and equities.
+Official TypeScript/JavaScript SDK for the Elfa API v2 and v3 - social intelligence, AI chat, the Auto condition engine, API v3 events, calls and market data across crypto and equities, Verify and Monitors.
 
 ## Features
 
@@ -14,6 +14,7 @@ Official TypeScript/JavaScript SDK for the Elfa API v2 and v3 - social intellige
 - **AI Chat**: Market analysis and conversational chat via `elfa.chat`, streamed via `elfa.chatStream`
 - **Auto Condition Engine**: Build EQL queries that watch markets and notify via `elfa.auto`
 - **API v3**: Events, storylines and arcs; the events calendar and prediction markets; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts via `elfa.v3`
+- **Verify and Monitors**: Check a claim against X posts, Telegram channels and web pages with `elfa.v3.verify`, and get a signed webhook for each new match of a plain-words query with `elfa.v3.createMonitor`
 - **TypeScript First**: Comprehensive type definitions and IDE support
 - **Smart Error Handling**: Typed error classes with built-in retries and rate-limit handling
 - **Rate Limiting**: Built-in respect for API rate limits
@@ -251,7 +252,7 @@ the same for each `x_follow_made` or `x_follow_overlap` account: `per_day` costs
 `creditsPerDay` for each UTC day its follows are read. An account that can't be watched
 is an `errors[]` entry with `details.reason`. When a query fails with a recorded
 reason, `getQuery()` carries it in `failure`. See
-[X Accounts and Per-Post Billing](https://docs.elfa.ai/auto/signal#x-accounts-and-per-post-billing).
+[X Accounts and Per-Post Billing](https://docs.elfa.ai/auto/sources/social-posts#x-accounts-and-per-post-billing).
 
 Builder Chat is dynamically priced, so it reports what the turn cost:
 
@@ -271,7 +272,7 @@ To read every execution exactly once, page `listExecutions` with `after`: start
 with `"start"`, then pass back `pagination.nextCursor`. Executions come oldest
 first. `hasMore: false` means none are ready yet, not the end, so poll again
 later. `after` cannot be combined with `offset` or `status`. See
-[Read Every Execution Once](https://docs.elfa.ai/auto/api-key-auth#read-every-execution-once).
+[Read Every Time a Query Fired](https://docs.elfa.ai/auto/manage#read-every-time-a-query-fired).
 
 ```typescript
 let after = "start";
@@ -281,10 +282,10 @@ after = page.pagination?.nextCursor ?? after;
 
 ### API v3
 
-`elfa.v3` covers [API v3](https://docs.elfa.ai/api/v3/overview), the data stack that
+`elfa.v3` covers [API v3](https://docs.elfa.ai/enrich/overview), the data stack that
 powers agent awareness: events, storylines and arcs; the events calendar and
-prediction markets; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts. No
-endpoint returns post text.
+prediction markets; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts;
+[Verify](#verify) and [Monitors](#monitors). No endpoint returns post text.
 
 Resolve Bitcoin, read its last day of events, then see how accounts are
 positioned on it:
@@ -328,13 +329,21 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 | `getPositioning({ entityId })`                | `/v3/calls/positioning`                                      |
 | `getTopAccounts(params?)`                     | `/v3/people/accounts`                                        |
 | `getKeyStatus()`                              | `/v3/key-status`                                             |
+| `verify(body)`                                | `POST /v3/verify`                                            |
+| `getMonitors()`                               | `GET /v3/monitors`                                           |
+| `getMonitor(id)`                              | `GET /v3/monitors/{id}`                                      |
+| `createMonitor(body)`                         | `POST /v3/monitors`                                          |
+| `updateMonitor(id, body)`                     | `PATCH /v3/monitors/{id}`                                    |
+| `deleteMonitor(id)`                           | `DELETE /v3/monitors/{id}`                                   |
+| `getMonitorMatches(id, params?)`              | `GET /v3/monitors/{id}/events`                               |
 
 The rules every v3 endpoint follows:
 
-- **Access.** Every plan, Free included, can call every v3 endpoint. Each call
-  but `getKeyStatus()` and, for now, `getPredictionMarkets()` costs credits on
-  Free, PAYG and Grow, priced per endpoint on the
-  [pricing page](https://docs.elfa.ai/get-started/pricing#api-v3).
+- **Access.** Every plan, Free included, can call every v3 endpoint except
+  Verify and Monitors, which need a PAYG, Grow or Enterprise key; a Free key
+  gets a `403`. Each data call but `getKeyStatus()` and, for now,
+  `getPredictionMarkets()` costs credits on Free, PAYG and Grow, priced per
+  endpoint on the [pricing page](https://docs.elfa.ai/platform/pricing#api-v3).
 - **Times are unix seconds**, UTC, in requests and responses. Milliseconds are a
   `400`: divide by 1000. `from` is required, except when fetching by id or
   searching with `q`; `getEvents({ sort: "relevant" })` ranks the last 24 hours
@@ -357,6 +366,8 @@ The rules every v3 endpoint follows:
   cursor belongs to its query: change anything but `limit` and it is a `400`.
   `getCalendar()` defaults to `order: "asc"`, soonest first.
   `getPredictionMarkets()` has no cursor: its `related` list comes back whole.
+  `getMonitorMatches()` returns `nextCursor` but no `hasMore`, and
+  `getMonitors()` has no paging.
 - **Lists.** List parameters such as `entityIds` take an array, sent
   comma-separated. A list of ids takes at most 30. An empty array throws
   `ValidationError` rather than silently dropping the filter.
@@ -365,6 +376,62 @@ The rules every v3 endpoint follows:
   errors throw the same classes as v2; `error.details` holds the body
   `{ code, message, details?, errorId, requestId }`. On a `400`, `message` reads
   `Invalid parameters`: the field and the reason are in `error.details.details[]`.
+
+#### Verify
+
+`verify` checks one statement against X posts, public Telegram channels and web
+pages, and returns a `verdict` (`supported`, `contradicted` or
+`notEnoughEvidence`), its `probabilities` and links to the `evidence` it
+judged. `notEnoughEvidence` does not mean false. An optional `decision` asks a
+yes or no (`yesNo`), one of your options (`choice`) or a place on your scale
+(`score`) from the same evidence; `asOf` judges the claim as it stood at a past
+moment, up to 30 days ago. A call costs 1 credit whatever the verdict, and
+errors cost nothing. See [Verify](https://docs.elfa.ai/verify/overview) and
+[Decision types](https://docs.elfa.ai/verify/decision-types).
+
+```typescript
+const { verdict, probabilities, decision, coverage } = await elfa.v3.verify({
+  statement: "The SEC approved a spot Solana ETF",
+  decision: { type: "yesNo" },
+});
+if (!coverage.complete) console.log("a source did not answer in time");
+```
+
+#### Monitors
+
+A monitor checks each new Elfa event, and the open web every hour, against a
+query you write in plain words (3 to 500 characters), and POSTs each match to
+your HTTPS `webhookUrl`, signed with
+[Standard Webhooks](https://www.standardwebhooks.com/) using the monitor's
+`webhookSecret`. Matches are also kept for 30 days to read back. A live monitor
+costs 2 credits for each started hour, starting at create; every other monitor
+call is free, and a create that fails is never charged. A key holds 20 live
+monitors. A monitor that Elfa stopped, for example when the key could not pay
+for an hour, has `status: "ended"`. See
+[Monitors](https://docs.elfa.ai/monitors/overview) and
+[Limits and errors](https://docs.elfa.ai/monitors/limits-and-errors).
+
+```typescript
+const monitor = await elfa.v3.createMonitor({
+  query: "OpenAI, Google or Anthropic launches a new AI model",
+  webhookUrl: "https://example.com/elfa-webhook",
+});
+// monitor.webhookSecret verifies each webhook; getMonitor(id) returns it again.
+
+const { data, nextCursor } = await elfa.v3.getMonitorMatches(monitor.id, {
+  limit: 100,
+});
+
+await elfa.v3.updateMonitor(monitor.id, { query: "Binance lists a new token" });
+await elfa.v3.deleteMonitor(monitor.id);
+```
+
+Each match's `items` are Elfa events (`source: "event"`, fetch the whole event
+with `getEvents({ eventIds })`) or web pages (`source: "web"`). A monitor takes
+one change at a time: `updateMonitor` returns a `409` while an earlier change is
+still being applied, and a `503` means the change may still apply, so get the
+monitor after a minute before you retry. See
+[Receive matches](https://docs.elfa.ai/monitors/alerts).
 
 ### Response shapes are extensible
 

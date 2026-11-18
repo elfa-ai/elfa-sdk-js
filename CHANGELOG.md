@@ -1,5 +1,40 @@
 # Changelog
 
+## 7.5.0
+
+### Added
+
+- **`v3.verify(body)`** (API 3.13.0) for `POST /v3/verify`: checks one
+  statement against X posts, public Telegram channels and web pages, and returns
+  a `verdict` (`supported`, `contradicted` or `notEnoughEvidence`), its
+  `probabilities`, the `evidence` judged, `asOf`, `searchedFrom` and `coverage`.
+  An optional `decision` asks a `yesNo`, a `choice` or a `score` from the same
+  evidence, answered in `decision` (`null` when none was asked). Needs a PAYG,
+  Grow or Enterprise key; 1 credit a call whatever the verdict. New types
+  `VerifyV3Params`, `VerifyV3Response`, `VerdictV3`, `VerifyDecisionRequestV3`,
+  `VerifyDecisionV3` and their variants, `VerifyEvidenceItemV3` and
+  `VerifyCoverageStatusV3`.
+- **Monitors** (API 3.13.0) for `/v3/monitors`: `v3.createMonitor(body)`,
+  `v3.getMonitors()`, `v3.getMonitor(id)`, `v3.updateMonitor(id, body)`,
+  `v3.deleteMonitor(id)` and `v3.getMonitorMatches(id, params?)`. A monitor
+  matches new Elfa events and web pages against a plain-words `query` and sends
+  each match to its `webhookUrl`, signed with its `webhookSecret`; matches can
+  be paged back with `nextCursor` for 30 days. Needs a PAYG, Grow or Enterprise
+  key; a live monitor costs 2 credits for each started hour, and every other
+  monitor call is free. New types `MonitorV3`, `MonitorStatusV3`,
+  `MonitorsV3Response`, `CreateMonitorV3Params`, `UpdateMonitorV3Params`,
+  `DeleteMonitorV3Response`, `MonitorMatchesV3Params`,
+  `MonitorMatchesV3Response`, `MonitorMatchV3`, `MonitorEventItemV3`,
+  `MonitorWebItemV3` and `MonitorCitedSourceV3`.
+
+### Changed
+
+- README, `AGENT.md` and `CLAUDE.md`: Verify and Monitors in the v3 capability
+  lists and method table; they are the v3 endpoints a Free key cannot call.
+- `swagger.json` refreshed to the published API `3.13.0`. An event's
+  `citedSources[].source` can be `sec_edgar` (API 3.11.0);
+  `EventCitedSourceV3.source` is already a `string`.
+
 ## 7.4.0
 
 ### Added
