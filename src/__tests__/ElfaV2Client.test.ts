@@ -17,6 +17,7 @@ describe("ElfaV2Client", () => {
       put: jest.fn(),
       delete: jest.fn(),
       setAuthHeader: jest.fn(),
+      setBearerAuth: jest.fn(),
       setTwitterAuthHeader: jest.fn(),
       updateOptions: jest.fn(),
       request: jest.fn(),
@@ -665,6 +666,24 @@ describe("ElfaV2Client", () => {
           controller.close();
         },
       });
+
+    it("streams chat with a bearer when built with an access token", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody("data: [DONE]\n\n"),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+      const bearerClient = new ElfaV2Client({ accessToken: "tok" });
+      expect(mockHttpClient.setBearerAuth).toHaveBeenCalledWith("tok");
+
+      for await (const _ of bearerClient.chatStream({ message: "hi" })) {
+        // drain
+      }
+
+      const headers = fetchMock.mock.calls[0][1].headers;
+      expect(headers.Authorization).toBe("Bearer tok");
+      expect(headers).not.toHaveProperty("x-elfa-api-key");
+    });
 
     it("should post to /v2/chat/stream and yield parsed events", async () => {
       const fetchMock = jest.fn().mockResolvedValue({

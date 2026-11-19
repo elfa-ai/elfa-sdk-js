@@ -15,6 +15,7 @@ describe("V3Client", () => {
       delete: jest.fn(),
       request: jest.fn(),
       setAuthHeader: jest.fn(),
+      setBearerAuth: jest.fn(),
       updateOptions: jest.fn(),
     } as any;
     (HttpClient as jest.MockedClass<typeof HttpClient>).mockImplementation(
@@ -36,6 +37,13 @@ describe("V3Client", () => {
       expect.objectContaining({ baseURL: "https://api.elfa.ai" }),
     );
     expect(mockHttpClient.setAuthHeader).toHaveBeenCalledWith("k");
+  });
+
+  it("authenticates with an access token as a bearer", () => {
+    jest.clearAllMocks();
+    new V3Client({ accessToken: "tok" });
+    expect(mockHttpClient.setBearerAuth).toHaveBeenCalledWith("tok");
+    expect(mockHttpClient.setAuthHeader).not.toHaveBeenCalled();
   });
 
   it("applies updateOptions to the http client", () => {

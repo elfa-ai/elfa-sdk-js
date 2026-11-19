@@ -1,5 +1,13 @@
 export interface SDKOptions {
-  elfaApiKey: string;
+  /** Your Elfa API key, sent as `x-elfa-api-key`. Set this or `accessToken`. */
+  elfaApiKey?: string;
+  /**
+   * An OAuth access token for the Elfa API, sent as
+   * `Authorization: Bearer <token>`, instead of an API key. Set this or
+   * `elfaApiKey`, not both. Set at construction only: build a new client when
+   * the token is renewed.
+   */
+  accessToken?: string;
   baseUrl?: string;
   timeout?: number;
   retries?: number;

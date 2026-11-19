@@ -13,6 +13,7 @@ describe("AutoClient", () => {
       post: jest.fn(),
       delete: jest.fn(),
       setAuthHeader: jest.fn(),
+      setBearerAuth: jest.fn(),
       updateOptions: jest.fn(),
     } as any;
     (HttpClient as jest.MockedClass<typeof HttpClient>).mockImplementation(
@@ -178,6 +179,24 @@ describe("AutoClient", () => {
         }),
       );
       expect(events).toHaveLength(1);
+    });
+
+    it("streams with a bearer when built with an access token", async () => {
+      const fetchMock = jest.fn().mockResolvedValue({
+        ok: true,
+        body: sseBody(""),
+      });
+      global.fetch = fetchMock as unknown as typeof fetch;
+      const client = new AutoClient({ accessToken: "tok" });
+      expect(mockHttpClient.setBearerAuth).toHaveBeenCalledWith("tok");
+
+      for await (const _ of client.streamAll()) {
+        // drain
+      }
+
+      const headers = fetchMock.mock.calls[0][1].headers;
+      expect(headers.Authorization).toBe("Bearer tok");
+      expect(headers).not.toHaveProperty("x-elfa-api-key");
     });
 
     it("leaves the User-Agent to a caller header on streamAll", async () => {

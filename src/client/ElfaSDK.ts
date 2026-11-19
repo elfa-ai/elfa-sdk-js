@@ -59,7 +59,9 @@ export class ElfaSDK {
 
   private buildClientOptions() {
     return {
-      apiKey: this.options.elfaApiKey,
+      ...(this.options.accessToken
+        ? { accessToken: this.options.accessToken }
+        : { apiKey: this.options.elfaApiKey }),
       baseUrl: this.options.baseUrl,
       timeout: this.options.timeout,
       retries: this.options.retries,
@@ -73,8 +75,11 @@ export class ElfaSDK {
   }
 
   private validateOptions(options: SDKOptions): void {
-    if (!options.elfaApiKey) {
-      throw new ValidationError("elfaApiKey is required");
+    if (options.elfaApiKey && options.accessToken) {
+      throw new ValidationError("Set elfaApiKey or accessToken, not both");
+    }
+    if (!options.elfaApiKey && !options.accessToken) {
+      throw new ValidationError("elfaApiKey or accessToken is required");
     }
 
     if (options.timeout !== undefined && options.timeout < 1000) {
@@ -180,6 +185,12 @@ export class ElfaSDK {
     if (newOptions.elfaApiKey) {
       throw new ValidationError(
         "Cannot update elfaApiKey after initialization",
+      );
+    }
+
+    if (newOptions.accessToken) {
+      throw new ValidationError(
+        "Cannot update accessToken after initialization",
       );
     }
 

@@ -270,6 +270,17 @@ describe("HttpClient", () => {
         "test-api-key",
       );
     });
+
+    it("sends an access token as a bearer and no key header", () => {
+      httpClient.setAuthHeader("test-api-key");
+      httpClient.setBearerAuth("tok");
+      expect(mockAxiosInstance.defaults.headers.common["Authorization"]).toBe(
+        "Bearer tok",
+      );
+      expect(
+        mockAxiosInstance.defaults.headers.common["x-elfa-api-key"],
+      ).toBeUndefined();
+    });
   });
 
   describe("updateOptions", () => {

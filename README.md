@@ -445,7 +445,8 @@ field breaks your client even though the API stayed backwards compatible.
 
 ```typescript
 interface SDKOptions {
-  elfaApiKey: string; // Required: Your Elfa API key
+  elfaApiKey?: string; // Your Elfa API key, sent as x-elfa-api-key. Set this or accessToken
+  accessToken?: string; // An OAuth access token for the Elfa API, sent as Authorization: Bearer
   baseUrl?: string; // Optional: API base URL (default: https://api.elfa.ai)
   timeout?: number; // Optional: request timeout in ms (default: 30000)
   retries?: number; // Optional: retries for idempotent requests (default: 3)
