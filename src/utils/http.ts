@@ -230,6 +230,12 @@ export class HttpClient {
     this.client.defaults.headers.common["x-elfa-api-key"] = token;
   }
 
+  /** Authenticate with an OAuth access token instead of an API key. */
+  public setBearerAuth(token: string): void {
+    delete this.client.defaults.headers.common["x-elfa-api-key"];
+    this.client.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
+
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }

@@ -55,9 +55,31 @@ describe("ElfaSDK", () => {
       );
     });
 
-    it("throws when elfaApiKey is missing", () => {
+    it("throws when neither elfaApiKey nor accessToken is set", () => {
       expect(() => new ElfaSDK({} as any)).toThrow(
-        new ValidationError("elfaApiKey is required"),
+        new ValidationError("elfaApiKey or accessToken is required"),
+      );
+    });
+
+    it("passes an access token to every client instead of a key", () => {
+      new ElfaSDK({ accessToken: "tok" });
+      for (const Client of [ElfaV2Client, AutoClient, V3Client]) {
+        const opts = (Client as unknown as jest.Mock).mock.calls[0][0];
+        expect(opts.accessToken).toBe("tok");
+        expect(opts).not.toHaveProperty("apiKey");
+      }
+    });
+
+    it("refuses both an API key and an access token", () => {
+      expect(
+        () => new ElfaSDK({ elfaApiKey: "k", accessToken: "tok" }),
+      ).toThrow(new ValidationError("Set elfaApiKey or accessToken, not both"));
+    });
+
+    it("refuses to change the access token after construction", () => {
+      const sdk = new ElfaSDK({ accessToken: "tok" });
+      expect(() => sdk.updateOptions({ accessToken: "other" })).toThrow(
+        new ValidationError("Cannot update accessToken after initialization"),
       );
     });
 

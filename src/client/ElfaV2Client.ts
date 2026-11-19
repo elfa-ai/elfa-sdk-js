@@ -2,6 +2,7 @@ import { HttpClient, throwForFetchResponse } from "../utils/http.js";
 import { NetworkError, ValidationError } from "../utils/errors.js";
 import { readSSE } from "../utils/sse.js";
 import { userAgentHeader } from "../utils/userAgent.js";
+import { authHeaders } from "../utils/credentials.js";
 import type {
   ChatParams,
   ChatResponse,
@@ -29,7 +30,10 @@ import type {
 } from "../types/elfa.js";
 
 export interface ElfaV2ClientOptions {
-  apiKey: string;
+  /** Sent as `x-elfa-api-key`. Set this or `accessToken`. */
+  apiKey?: string;
+  /** Sent as `Authorization: Bearer`. Set this or `apiKey`. */
+  accessToken?: string;
   baseUrl?: string;
   timeout?: number;
   retries?: number;
@@ -82,11 +86,17 @@ export class ElfaV2Client {
 
     this.httpClient = new HttpClient(httpOptions);
 
-    this.httpClient.setAuthHeader(this.options.apiKey);
+    if (this.options.accessToken) {
+      this.httpClient.setBearerAuth(this.options.accessToken);
+    } else {
+      this.httpClient.setAuthHeader(this.options.apiKey ?? "");
+    }
   }
 
   public updateOptions(
-    options: Partial<Omit<ElfaV2ClientOptions, "apiKey" | "appName">>,
+    options: Partial<
+      Omit<ElfaV2ClientOptions, "apiKey" | "accessToken" | "appName">
+    >,
   ): void {
     const { appName: _fixedAtConstruction, ...rest } =
       options as Partial<ElfaV2ClientOptions>;
@@ -419,7 +429,7 @@ export class ElfaV2Client {
       headers: {
         ...userAgentHeader(this.options.headers, this.options.appName),
         ...this.options.headers,
-        "x-elfa-api-key": this.options.apiKey,
+        ...authHeaders(this.options),
         "Content-Type": "application/json",
         Accept: "text/event-stream",
       },

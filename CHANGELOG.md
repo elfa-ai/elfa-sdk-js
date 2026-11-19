@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`accessToken` option.** `new ElfaSDK({ accessToken })` authenticates with
+  an OAuth access token for the Elfa API, sent as `Authorization: Bearer`,
+  instead of an API key. Set `elfaApiKey` or `accessToken`, not both; the
+  constructor throws a `ValidationError` for neither or both. Every client
+  (`ElfaSDK`, `auto`, `v3`) and the streaming calls use it. Like the key, it is
+  fixed at construction: build a new client when the token is renewed.
+
+### Changed
+
+- `SDKOptions.elfaApiKey` is now optional in the type, since `accessToken` can
+  replace it. Passing neither still throws at construction.
+
 ## 7.5.0
 
 ### Added

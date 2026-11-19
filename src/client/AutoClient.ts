@@ -2,6 +2,7 @@ import { HttpClient, throwForFetchResponse } from "../utils/http.js";
 import { NetworkError } from "../utils/errors.js";
 import { readSSE } from "../utils/sse.js";
 import { userAgentHeader } from "../utils/userAgent.js";
+import { authHeaders, type Credentials } from "../utils/credentials.js";
 import type {
   AutoChatParams,
   AutoChatResponse,
@@ -27,7 +28,10 @@ import type {
 } from "../types/auto.js";
 
 export interface AutoClientOptions {
-  apiKey: string;
+  /** Sent as `x-elfa-api-key`. Set this or `accessToken`. */
+  apiKey?: string;
+  /** Sent as `Authorization: Bearer`. Set this or `apiKey`. */
+  accessToken?: string;
   baseUrl?: string;
   timeout?: number;
   retries?: number;
@@ -42,13 +46,15 @@ const MOUNT = "/v2/auto";
 export class AutoClient {
   private httpClient: HttpClient;
   private baseUrl: string;
-  private apiKey: string;
+  private credentials: Credentials;
   private headers?: Record<string, string>;
   private appName?: string;
 
   constructor(options: AutoClientOptions) {
     this.baseUrl = options.baseUrl ?? "https://api.elfa.ai";
-    this.apiKey = options.apiKey;
+    this.credentials = options.accessToken
+      ? { accessToken: options.accessToken }
+      : { apiKey: options.apiKey ?? "" };
     if (options.headers) this.headers = options.headers;
     if (options.appName !== undefined) this.appName = options.appName;
 
@@ -61,11 +67,17 @@ export class AutoClient {
       ...(options.appName !== undefined ? { appName: options.appName } : {}),
       debug: options.debug ?? false,
     });
-    this.httpClient.setAuthHeader(this.apiKey);
+    if (this.credentials.accessToken) {
+      this.httpClient.setBearerAuth(this.credentials.accessToken);
+    } else {
+      this.httpClient.setAuthHeader(this.credentials.apiKey ?? "");
+    }
   }
 
   public updateOptions(
-    options: Partial<Omit<AutoClientOptions, "apiKey" | "appName">>,
+    options: Partial<
+      Omit<AutoClientOptions, "apiKey" | "accessToken" | "appName">
+    >,
   ): void {
     if (options.baseUrl !== undefined) this.baseUrl = options.baseUrl;
     if (options.headers !== undefined) this.headers = options.headers;
@@ -201,7 +213,7 @@ export class AutoClient {
       headers: {
         ...userAgentHeader(this.headers, this.appName),
         ...this.headers,
-        "x-elfa-api-key": this.apiKey,
+        ...authHeaders(this.credentials),
         Accept: "text/event-stream",
       },
       ...(signal ? { signal } : {}),

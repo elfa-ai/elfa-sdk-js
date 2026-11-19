@@ -41,7 +41,10 @@ import type {
 } from "../types/v3.js";
 
 export interface V3ClientOptions {
-  apiKey: string;
+  /** Sent as `x-elfa-api-key`. Set this or `accessToken`. */
+  apiKey?: string;
+  /** Sent as `Authorization: Bearer`. Set this or `apiKey`. */
+  accessToken?: string;
   baseUrl?: string;
   timeout?: number;
   retries?: number;
@@ -66,11 +69,17 @@ export class V3Client {
       ...(options.appName !== undefined ? { appName: options.appName } : {}),
       debug: options.debug ?? false,
     });
-    this.httpClient.setAuthHeader(options.apiKey);
+    if (options.accessToken) {
+      this.httpClient.setBearerAuth(options.accessToken);
+    } else {
+      this.httpClient.setAuthHeader(options.apiKey ?? "");
+    }
   }
 
   public updateOptions(
-    options: Partial<Omit<V3ClientOptions, "apiKey" | "appName">>,
+    options: Partial<
+      Omit<V3ClientOptions, "apiKey" | "accessToken" | "appName">
+    >,
   ): void {
     this.httpClient.updateOptions({
       baseURL: options.baseUrl,
