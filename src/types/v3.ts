@@ -171,7 +171,7 @@ export interface EventV3 {
   summary: string | null;
   implication: ImplicationV3 | null;
   eventType: EventTypeV3 | null;
-  eventCategory: EventCategoryV3 | null;
+  eventCategory: EventCategoryV3 | (string & {}) | null;
   primaryEntities: EventEntityV3[];
   relatedEntities: EventEntityV3[];
   alertAction: AlertActionV3 | null;
