@@ -22,6 +22,35 @@ export type EventTypeV3 =
   | "spam"
   | "other";
 
+export type EventCategoryV3 =
+  | "earnings"
+  | "analystRating"
+  | "corporateAction"
+  | "acquisition"
+  | "financing"
+  | "partnership"
+  | "product"
+  | "personnel"
+  | "plansAndMilestones"
+  | "ipo"
+  | "exchangeListing"
+  | "delisting"
+  | "tokenLaunch"
+  | "tokenomics"
+  | "governance"
+  | "flows"
+  | "marketMove"
+  | "metricsAndReports"
+  | "economy"
+  | "policy"
+  | "legal"
+  | "securityIncident"
+  | "outage"
+  | "geopolitics"
+  | "disaster"
+  | "commentary"
+  | "forecast";
+
 export type ImplicationV3 = "bullish" | "bearish" | "mixed" | "unclear";
 
 export type AlertActionV3 = "alert" | "monitor";
@@ -142,6 +171,7 @@ export interface EventV3 {
   summary: string | null;
   implication: ImplicationV3 | null;
   eventType: EventTypeV3 | null;
+  eventCategory: EventCategoryV3 | (string & {}) | null;
   primaryEntities: EventEntityV3[];
   relatedEntities: EventEntityV3[];
   alertAction: AlertActionV3 | null;
@@ -166,6 +196,7 @@ export interface EventsV3Params {
   eventIds?: string[];
   eventClass?: EventClassV3;
   eventType?: Exclude<EventTypeV3, "spam">;
+  eventCategory?: EventCategoryV3[];
   implication?: ImplicationV3;
   entityIds?: string[];
   assetClass?: AssetClassV3;
