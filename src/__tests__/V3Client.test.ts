@@ -93,6 +93,23 @@ describe("V3Client", () => {
     expect(result).toEqual({ events: [], ...page });
   });
 
+  it("sends eventCategory comma-joined after eventType", async () => {
+    mockHttpClient.get.mockResolvedValue({ events: [], ...page });
+
+    await client.getEvents({
+      from: 1790672305,
+      eventType: "macro",
+      eventCategory: ["economy", "forecast"],
+    });
+
+    expect(mockHttpClient.get).toHaveBeenCalledWith(
+      "/v3/events?from=1790672305&eventType=macro&eventCategory=economy%2Cforecast",
+    );
+    await expect(
+      client.getEvents({ from: 1790672305, eventCategory: [] }),
+    ).rejects.toThrow(ValidationError);
+  });
+
   it("sends no query string when no params are set", async () => {
     mockHttpClient.get.mockResolvedValue({ events: [], ...page });
 

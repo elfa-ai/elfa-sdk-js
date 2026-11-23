@@ -65,10 +65,9 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 - Entity filters take ids from `getEntities`, never tickers.
 - History depends on the plan (30 days Free and PAYG, 60 days Grow, 2 years Enterprise);
   `getKeyStatus()` returns its start as `historyFrom`.
-- Every plan, Free included, can call every v3 endpoint except Verify and
-  Monitors, which need PAYG, Grow or Enterprise (Free gets a `403`). Each data
-  call but `/v3/key-status` and, for now, `/v3/events/prediction-markets` costs
-  credits on Free, PAYG and Grow. Verify costs 1 credit a call whatever the
+- Every plan, Free included, can call every v3 endpoint, Verify and Monitors
+  included. Each data call but `/v3/key-status` costs credits on Free, PAYG and
+  Grow. Verify costs 1 credit a call whatever the
   verdict; a live monitor costs 2 credits per started hour, and every other
   monitor call is free.
 - Unknown query parameters are a `400`, so each method throws `ValidationError`

@@ -339,10 +339,9 @@ const positioning = await elfa.v3.getPositioning({ entityId: id });
 
 The rules every v3 endpoint follows:
 
-- **Access.** Every plan, Free included, can call every v3 endpoint except
-  Verify and Monitors, which need a PAYG, Grow or Enterprise key; a Free key
-  gets a `403`. Each data call but `getKeyStatus()` and, for now,
-  `getPredictionMarkets()` costs credits on Free, PAYG and Grow, priced per
+- **Access.** Every plan, Free included, can call every v3 endpoint,
+  Verify and Monitors included. Each data call but `getKeyStatus()`
+  costs credits on Free, PAYG and Grow, priced per
   endpoint on the [pricing page](https://docs.elfa.ai/platform/pricing#api-v3).
 - **Times are unix seconds**, UTC, in requests and responses. Milliseconds are a
   `400`: divide by 1000. `from` is required, except when fetching by id or

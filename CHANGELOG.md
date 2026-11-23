@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`eventCategory` on `v3.getEvents()`** (API 3.14.0): what happened, such as
+  `earnings`, `analystRating`, `exchangeListing`, `securityIncident` or
+  `forecast`, as an array of the 27 `EventCategoryV3` values, sent
+  comma-separated. It combines with `eventType`, which stays the domain, works
+  with `sort: "relevant"`, and the API refuses it with `q` and `eventIds`. An
+  empty array throws `ValidationError`. `EventV3` gains `eventCategory`, which
+  is `null` on about 1 event in 10 and on events analysed before 2026-09-30.
+  New values may be added in a minor API version; treat one you do not know as
+  no category. New type `EventCategoryV3`.
+
+### Changed
+
+- README, `AGENT.md` and `CLAUDE.md`: Verify and Monitors work on every plan,
+  Free included (API 3.15.0, 3.16.0), and `getPredictionMarkets()` costs 1
+  credit a call (API 3.15.0); they no longer say otherwise.
+- `swagger.json` refreshed to the published API `3.16.0`.
+
 ## 7.6.0
 
 ### Added

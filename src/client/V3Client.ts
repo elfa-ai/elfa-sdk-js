@@ -108,6 +108,7 @@ export class V3Client {
       "eventIds",
       "eventClass",
       "eventType",
+      "eventCategory",
       "implication",
       "entityIds",
       "assetClass",
