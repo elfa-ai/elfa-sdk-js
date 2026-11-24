@@ -18,7 +18,7 @@ To say where a change came from, cite the public source ("matches the spec publi
 
 ## Project Overview
 
-This is the **Elfa AI SDK** - a TypeScript SDK for the Elfa API v2 and v3 that provides social intelligence for crypto: data endpoints, AI chat, the Auto condition engine, and API v3 events, calls and market data across crypto and equities.
+This is the **Elfa AI SDK** - a TypeScript SDK for the Elfa API: Data, Explain (AI chat), Verify, Monitors and Auto, plus the older Social data (v2) endpoints.
 
 ## Development Commands
 
