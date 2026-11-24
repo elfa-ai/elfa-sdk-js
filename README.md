@@ -6,15 +6,17 @@
 [![codecov](https://codecov.io/gh/elfa-ai/elfa-sdk-js/branch/main/graph/badge.svg)](https://codecov.io/gh/elfa-ai/elfa-sdk-js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official TypeScript/JavaScript SDK for the Elfa API v2 and v3 - social intelligence, AI chat, the Auto condition engine, API v3 events, calls and market data across crypto and equities, Verify and Monitors.
+Official TypeScript/JavaScript SDK for [Elfa](https://docs.elfa.ai). Get events, answers, verdicts and alerts from social and web data.
+
+Elfa indexes social media and web pages, and turns them into high-intent events and entities. Your agent can query them, ask about them, or get an alert when they happen.
 
 ## Features
 
-- **Social Intelligence**: Trending tokens, mentions, narratives, and event summaries
-- **AI Chat**: Market analysis and conversational chat via `elfa.chat`, streamed via `elfa.chatStream`
-- **Auto Condition Engine**: Build EQL queries that watch markets and notify via `elfa.auto`
-- **API v3**: Events, storylines and arcs; the events calendar and prediction markets; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts via `elfa.v3`
+- **Data**: Events, storylines and arcs; the events calendar and prediction markets; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts via `elfa.v3`
+- **Explain**: Written, sourced answers to market questions via `elfa.chat`, streamed via `elfa.chatStream`
 - **Verify and Monitors**: Check a claim against X posts, Telegram channels and web pages with `elfa.v3.verify`, and get a signed webhook for each new match of a plain-words query with `elfa.v3.createMonitor`
+- **Auto**: Alert rules, written as EQL queries, that watch markets and notify via `elfa.auto`
+- **Social data (v2)**: Trending tokens, mentions, narratives and event summaries from the older endpoints, which Elfa will deprecate
 - **TypeScript First**: Comprehensive type definitions and IDE support
 - **Smart Error Handling**: Typed error classes with built-in retries and rate-limit handling
 - **Rate Limiting**: Built-in respect for API rate limits
@@ -31,7 +33,7 @@ and are no longer supported as of v6 — stay on `@elfa-ai/sdk@5` if you need th
 
 ## Quick Start
 
-### Basic V2 Usage
+Read the events Elfa judged most important in the last 24 hours. `from` is in unix seconds.
 
 ```typescript
 import { ElfaSDK } from "@elfa-ai/sdk";
@@ -40,21 +42,16 @@ const elfa = new ElfaSDK({
   elfaApiKey: "your-elfa-api-key",
 });
 
-// Get trending tokens
-const trending = await elfa.getTrendingTokens({ timeWindow: "24h" });
-console.log(trending.data.data);
-
-// Search keyword mentions
-const mentions = await elfa.getKeywordMentions({
-  keywords: "bitcoin,ethereum",
-  timeWindow: "1h",
-});
-console.log(mentions.data);
+const from = Math.floor(Date.now() / 1000) - 86400;
+const { events } = await elfa.v3.getEvents({ from, alertAction: ["alert"] });
+console.log(events[0]?.alertTitle);
 ```
 
 ## API Reference
 
-### Core Methods
+### Social data (v2) and Explain
+
+Apart from `chat` and `chatStream` (Explain), these methods call the older Social data (v2) endpoints. Elfa will deprecate them; they still work, but build new work on [Data](#data-verify-and-monitors).
 
 #### `getTrendingTokens(params?)`
 
@@ -129,7 +126,7 @@ const narratives = await elfa.getTrendingNarratives({
 
 #### `chat(params)`
 
-AI market analysis and conversational chat. Requires a key with the `chat` scope.
+Ask [Explain](https://docs.elfa.ai/explain/overview) a market question and get a written, sourced answer, or hold a conversation. Requires a key with the `chat` scope.
 
 ```typescript
 const reply = await elfa.chat({
@@ -201,9 +198,10 @@ Event types are `session_info`, `title`, `text`, `text_complete`, `status`,
 `credits`, `complete`, `invalid_request` and `error`. With `includeSources: true`
 the final `complete` event also carries `sources`, in the same shape as `chat`.
 
-### Auto (Condition Engine)
+### Auto
 
-`elfa.auto` drives the Auto condition engine — EQL queries that watch markets and
+`elfa.auto` drives [Auto](https://docs.elfa.ai/auto/overview), which runs an alert rule that
+you write and tells you when it matches. Rules are EQL queries that watch markets and
 fire notifications. Every route authenticates with the API key alone.
 
 ```typescript
@@ -280,10 +278,9 @@ const page = await elfa.auto.listExecutions({ after });
 after = page.pagination?.nextCursor ?? after;
 ```
 
-### API v3
+### Data, Verify and Monitors
 
-`elfa.v3` covers [API v3](https://docs.elfa.ai/enrich/overview), the data stack that
-powers agent awareness: events, storylines and arcs; the events calendar and
+`elfa.v3` covers [Data](https://docs.elfa.ai/enrich/overview): events, storylines and arcs; the events calendar and
 prediction markets; call books, mindshare and trending contracts; calls, call episodes and positioning; ranked accounts;
 [Verify](#verify) and [Monitors](#monitors). No endpoint returns post text.
 
@@ -505,9 +502,9 @@ help. Upgrade, turn on overage, or raise the spend cap.
 
 Check out the [examples directory](./src/examples/) for comprehensive usage examples:
 
-- [Basic Usage](./src/examples/basic.ts) - V2 API with processed data
-- [Auto](./src/examples/auto.ts) - Condition engine queries
-- [API v3](./src/examples/v3.ts) - Resolve an entity, read its events and positioning
+- [Basic Usage](./src/examples/basic.ts) - Social data (v2) endpoints
+- [Auto](./src/examples/auto.ts) - Auto alert queries
+- [Data](./src/examples/v3.ts) - Resolve an entity, read its events and positioning
 
 ## Contributing
 

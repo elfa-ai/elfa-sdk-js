@@ -18,7 +18,7 @@ To say where a change came from, cite the public source ("matches the spec publi
 
 ## Project Context
 
-**Elfa AI SDK** - TypeScript SDK for the Elfa API: v2 social intelligence for crypto markets, and v3 events, calls and market data across crypto and equities.
+**Elfa AI SDK** - TypeScript SDK for the Elfa API: Data, Explain, Verify, Monitors and Auto, plus the older Social data (v2) endpoints.
 
 ### Core Architecture
 
