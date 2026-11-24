@@ -1,6 +1,6 @@
 {
   "name": "@elfa-ai/sdk",
-  "version": "7.6.0",
+  "version": "7.7.0",
   "description": "Official TypeScript SDK for Elfa. Get events, answers, verdicts and alerts from social and web data.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 7.7.0
 
 ### Added
 
@@ -19,7 +19,13 @@
 - README, `AGENT.md` and `CLAUDE.md`: Verify and Monitors work on every plan,
   Free included (API 3.15.0, 3.16.0), and `getPredictionMarkets()` costs 1
   credit a call (API 3.15.0); they no longer say otherwise.
-- `swagger.json` refreshed to the published API `3.16.0`.
+- `swagger.json` refreshed to the published API `3.16.1`.
+- The README and the npm description use the docs.elfa.ai line: "Get events,
+  answers, verdicts and alerts from social and web data." The README,
+  `AGENT.md` and `CLAUDE.md` name the docs products: Data, Explain, Verify,
+  Monitors and Auto, plus the older Social data (v2) endpoints. The Quick Start
+  now makes the docs' first request,
+  `v3.getEvents({ from, alertAction: ["alert"] })`.
 
 ## 7.6.0
 
