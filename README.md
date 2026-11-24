@@ -33,7 +33,7 @@ and are no longer supported as of v6 — stay on `@elfa-ai/sdk@5` if you need th
 
 ## Quick Start
 
-Read the events Elfa judged most important in the last 24 hours. `from` is in unix seconds.
+Read the events Elfa judged most important in the last 24 hours, newest first. `from` is in unix seconds.
 
 ```typescript
 import { ElfaSDK } from "@elfa-ai/sdk";
